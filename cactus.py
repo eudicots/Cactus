@@ -11,6 +11,7 @@ import sys
 import os
 import codecs
 import shutil
+import baker
 
 from django.template import Template, Context
 from django.template import loader as templateLoader
@@ -35,9 +36,10 @@ def fileList(path):
 	return files
 
 
+@baker.command
 def init(path):
 	"""
-	New site skeleton.
+	Generate new site at path
 	"""
 	
 	os.mkdir(path)
@@ -52,8 +54,11 @@ def init(path):
 	open(os.path.join(path, 'contexts.py'), 'w').write(contextsFile)
 	open(os.path.join(path, 'templatetags.py'), 'w').write("")
 
+@baker.command
 def build(path):
-	
+	"""
+	Rebuild site at path
+	"""
 	# Set up django
 	
 	templatePath = os.path.join(path, 'templates')
@@ -62,8 +67,11 @@ def build(path):
 	mediaPath = os.path.join(path, 'static')
 	buildPath = os.path.join(path, 'build')
 	
-	from django.conf import settings
-	settings.configure(TEMPLATE_DIRS=[templatePath, contentsPath])
+	try:
+		from django.conf import settings
+		settings.configure(TEMPLATE_DIRS=[templatePath, contentsPath])
+	except:
+		pass
 	
 	sys.path.append(path)
 	import contexts
@@ -96,8 +104,37 @@ def build(path):
 		f.close()
 	
 	map(buildPage, [f.replace('%s/' % contentsPath, '') for f in fileList(contentsPath)])
-	shutil.copytree(mediaPath, os.path.join(buildPath, 'static'))
 	
+	if not os.path.exists(os.path.join(buildPath, 'static')):
+		shutil.copytree(mediaPath, os.path.join(buildPath, 'static'))
+
+@baker.command
+def listen(path):
+	
+	buildPath = os.path.join(path, 'build')
+	
+	from pyfsevents import registerpath, listen
+	
+	def rebuild(change, recursive):
+		if not change.startswith(buildPath):
+			build(path)
+	
+	registerpath(path, rebuild)
+	listen()
+
+@baker.command
+def serve(path, port=8000):
+	
+	buildPath = os.path.join(path, 'build')
+	
+	import SimpleHTTPServer
+	import SocketServer
+	
+	os.chdir(buildPath)
+	
+	httpd = SocketServer.TCPServer(("", port), SimpleHTTPServer.SimpleHTTPRequestHandler)
+	print "serving at port", port
+	httpd.serve_forever()
 
 ### TEMPLATES
 
@@ -130,10 +167,4 @@ def context(url):
 	return {}
 """
 
-
-
-# import shutil
-# 
-# shutil.rmtree('/Users/koen/testsite')
-# init('/Users/koen/testsite')
-build('/Users/koen/testsite')
+baker.run()
