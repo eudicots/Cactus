@@ -158,6 +158,7 @@ def serve(path, port=8000, browser=True):
 		build(path)
 	
 	print 'Running webserver at 0.0.0.0:%s for %s' % (port, buildPath)
+	print 'Type control-c to exit'
 	
 	# Start the webserver in a subprocess
 	os.chdir(buildPath)
