@@ -21,18 +21,15 @@ The very basic installation of Cactus only needs Django and Baker. More python g
 
     easy_install baker django pyfsevents
 
-Make the cactus.py script executable (if it not is already) and place it in a location where you can run it easily.
-
-	cd <path-where-you-have-cactus>
-    chmod 755 cactus.py
+If you get an error building pyfsevents, you need to install [Apple's Developer Tools][http://developer.apple.com/technologies/tools]. You can do without, but the serve command won't work.
 
 ## For the impatient: Quickstart
 
 The fastest way to start developing right away. If you need a little more context please skip this and keep on reading.
 
 	cd <cactus location>
-	./cactus.py init ~/my-cactus-test-site
-	./cactus.py serve ~/my-cactus-test-site
+	python cactus.py init ~/my-cactus-test-site
+	python cactus.py serve ~/my-cactus-test-site
 
 This should open your browser with a fresh generated site. You can now start editing it.
 
@@ -43,7 +40,7 @@ This should open your browser with a fresh generated site. You can now start edi
 
 You can create a new project by generating a new project stucture like this. Make sure the destination folder does not exist yet.
 
-	./cactus.py init [path]
+	python cactus.py init [path]
 
 If you did not see any errors, the path you pointed to should now look like this.
 	
@@ -68,7 +65,7 @@ After generating your site you can start building by adding pages to contents, w
 
 When you build your site it will generate a static version in the build folder that you can upload to any host. Basically it will render each page from your pages folder, copy it over to the build folder and add all the static assets to it so it becomes a self contained website. You can build your site like this:
 
-	./cactus.py build [path]
+	python cactus.py build [path]
 
 #### Linking and contexts
 
@@ -86,7 +83,7 @@ TODO
 
 Cactus can run a small webserver to preview your site and update it when you make any changes. This is really handy when developing. You can run it like this:
 
-	./cactus.py serve [path]
+	python cactus.py serve [path]
 
 ## Deploying
 
