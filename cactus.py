@@ -85,10 +85,17 @@ def build(path):
 	except:
 		pass
 	
+	# Load custom python code
+	
 	sys.path.append(os.path.join(path, 'extras'))
 	import contexts
 	import templatetags
 
+	
+	# Make sure the build path exists
+	if not os.path.exists(buildPath):
+		os.mkdir(buildPath)
+	
 	def buildPage(path):
 		
 		print "Building %s" % (path)
@@ -123,6 +130,10 @@ def build(path):
 def serve(path, port=8000, browser=True):
 	
 	buildPath = os.path.join(path, 'build')
+	
+	# See if the project ever got built
+	if not os.path.isdir(buildPath) or len(fileList(buildPath)) == 0:
+		build(path)
 	
 	print 'Running webserver at 0.0.0.0:%s for %s' % (port, buildPath)
 	
