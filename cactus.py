@@ -181,7 +181,7 @@ templateFile = """
 indexFile = """
 {% extends "base.html" %}
 {% block content %}
-Hello world!
+Welcome to Cactus!
 {% endblock %}
 """
 

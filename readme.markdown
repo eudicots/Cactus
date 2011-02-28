@@ -26,6 +26,17 @@ Make the cactus.py script executable (if it not is already) and place it in a lo
 	cd <path-where-you-have-cactus>
     chmod 755 cactus.py
 
+## For the impatient: Quickstart
+
+The fastest way to start developing right away. If you need a little more context please skip this and keep on reading.
+
+	cd <cactus location>
+	./cactus.py init ~/my-cactus-test-site
+	./cactus.py serve ~/my-cactus-test-site
+
+This should open your browser with a fresh generated site. You can now start editing it.
+
+
 ## Basic Usage
 
 ### Creating a new project
