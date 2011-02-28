@@ -19,7 +19,7 @@ Get the Cactus source by downloading/cloning this repository.
 
 The very basic installation of Cactus only needs Django and Baker. More python goodies are needed based on the features you may use. You can install them easily like this:
 
-    easy_install baker django pyfsevents
+    easy_install baker django simplejson boto keyring pyfsevents
 
 If you get an error building pyfsevents, you need to install [Apple's Developer Tools][http://developer.apple.com/technologies/tools]. You can do without, but the serve command won't work.
 

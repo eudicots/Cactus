@@ -15,12 +15,34 @@ import baker
 import subprocess
 import webbrowser
 import time
+import simplejson as json
 
 from distutils import dir_util
 
 from django.template import Template, Context
 from django.template import loader as templateLoader
 
+
+class Config(object):
+	def __init__(self, path):
+		self.path = path
+		self.load()
+	
+	def get(self, key):
+		return self._data.get(key, None)
+	
+	def set(self, key, value):
+		self._data[key] = value
+	
+	def load(self):
+		try:
+			self._data = json.load(open(self.path, 'r'))
+		except:
+			self._data = {}
+	
+	def write(self):
+		json.dump(self._data, open(self.path, 'w'), sort_keys=True, indent=4)
+		
 
 def fileList(path):
 	
@@ -157,6 +179,68 @@ def serve(path, port=8000, browser=True):
 	
 	registerpath(path, rebuild)
 	listen()
+
+@baker.command
+def deploy(path):
+	
+	import boto
+	import keyring
+	import getpass
+	import mimetypes
+	
+	buildPath = os.path.join(path, 'build')
+	
+	config = Config(os.path.join(path, 'config.json'))
+	
+	awsAccessKey = config.get('aws-access-key') or raw_input('Amazon access key: ')
+	awsSecretKey = keyring.get_password('aws', awsAccessKey) or getpass.getpass('Amazon secret access key: ')
+	
+	connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
+	
+	try:
+		buckets = connection.get_all_buckets()
+	except:
+		print 'Invalid login credentials, please try again...'
+		return
+	
+	config.set('aws-access-key', awsAccessKey)
+	config.write()
+	
+	keyring.set_password('aws', awsAccessKey, awsSecretKey)
+	
+	awsBucketName = config.get('aws-bucket-name') or raw_input('S3 bucket name: ')
+	
+	if awsBucketName not in [b.name for b in buckets]:
+		if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
+			awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
+			awsBucket.configure_website('index.html', 'error.html')
+			config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+			config.set('aws-bucket-name', awsBucketName)
+			config.write()
+			
+			print 'Bucket %s was created with website endpoint %s' % (config.get('aws-bucket-name'), config.get('aws-bucket-website'))
+			print 'You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus'
+			
+		else: return
+	else:
+		for b in buckets:
+			if b.name == awsBucketName:
+				awsBucket = b
+	
+	print 'Uploading site to %s' % config.get('aws-bucket-website')
+	
+	def uploadFile(path):
+		
+		relativePath = path.replace('%s/' % buildPath, '')
+		
+		print 'Uploading %s...' % relativePath
+		
+		key = awsBucket.new_key(relativePath)
+		key.content_type = mimetypes.guess_type(path)
+		key.set_contents_from_file(open(os.path.join(buildPath, path), 'r'), policy='public-read')
+		
+	map(uploadFile, fileList(buildPath))
+		
 
 
 ### TEMPLATES
