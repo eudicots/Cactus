@@ -228,21 +228,23 @@ def deploy(path):
 			if b.name == awsBucketName:
 				awsBucket = b
 	
-	print 'Uploading site to %s' % config.get('aws-bucket-website')
+	print 'Uploading site to bucket %s' % awsBucketName
 	
 	def uploadFile(path):
 		
 		relativePath = path.replace('%s/' % buildPath, '')
 		
-		print 'Uploading %s...' % relativePath
+		print '* %s...' % relativePath
 		
 		key = awsBucket.new_key(relativePath)
 		key.content_type = mimetypes.guess_type(path)
 		key.set_contents_from_file(open(os.path.join(buildPath, path), 'r'), policy='public-read')
 		
 	map(uploadFile, fileList(buildPath))
-		
-
+	
+	print
+	print 'Upload done: http://%s' % config.get('aws-bucket-website')
+	print
 
 ### TEMPLATES
 
