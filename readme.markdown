@@ -27,7 +27,7 @@ Make the cactus.py script executable (if it not is already) and place it in a lo
 
 ## Basic Usage
 
-### Creating a new project: cactus.py init <path>
+### Creating a new project: cactus.py init [path]
 
 Generates a new project at given path with a basic project layout. After adding some custom content it could look something like this.
 	
@@ -50,13 +50,23 @@ Generates a new project at given path with a basic project layout. After adding 
 
 After generating your site you can start building by adding pages to contents, which can rely on templates. 
 
-### Building your site: cactus.py build <path>
+### Building your site: cactus.py build [path]
 
 Building basically renders each page in the contents folder using the django templates to the same location in the build folder, and copies all static assets.
 
-Cactus makes it easy to relatively link to pages and static assets inside your project by using the standard context variables MEDIA\_PATH and ROOT\_PATH. For example if you are at page /blog/2011/Jan/my-article.html and would like to link to /contact.html you would write the following: `<a href={{ ROOT_PATH }}/contact.html>Contact</a>`.
+#### Linking and contexts
 
-### Serving your site: cactus.py serve <path>
+Cactus makes it easy to relatively link to pages and static assets inside your project by using the standard context variables MEDIA\_PATH and ROOT\_PATH. For example if you are at page `/blog/2011/Jan/my-article.html` and would like to link to `/contact.html` you would write the following: 
+
+	<a href={{ ROOT_PATH }}/contact.html>Contact</a>
+
+Optionally you can add variables to the context per page, by modifying the context function in contexts.py
+
+#### Custom Django template tags
+
+TODO
+
+### Serving your site: cactus.py serve [path]
 
 TODO. Serve your site using a small internal webserver rebuilding content each time you change a page.
 
