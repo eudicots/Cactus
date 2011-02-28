@@ -73,7 +73,9 @@ TODO
 
 ### Serving your site: cactus.py serve [path]
 
-TODO. Serve your site using a small internal webserver rebuilding content each time you change a page.
+Cactus can run a small webserver to preview your site and update it when you make any changes. This is really handy when developing. You can run it like this:
+
+	./cactus.py serve [path]
 
 ## Deploying
 
