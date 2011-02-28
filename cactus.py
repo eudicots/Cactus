@@ -13,6 +13,8 @@ import codecs
 import shutil
 import baker
 
+from distutils import dir_util
+
 from django.template import Template, Context
 from django.template import loader as templateLoader
 
@@ -64,7 +66,7 @@ def build(path):
 	templatePath = os.path.join(path, 'templates')
 	contentsPath = os.path.join(path, 'contents')
 	
-	mediaPath = os.path.join(path, 'static')
+	staticPath = os.path.join(path, 'static')
 	buildPath = os.path.join(path, 'build')
 	
 	try:
@@ -105,8 +107,7 @@ def build(path):
 	
 	map(buildPage, [f.replace('%s/' % contentsPath, '') for f in fileList(contentsPath)])
 	
-	if not os.path.exists(os.path.join(buildPath, 'static')):
-		shutil.copytree(mediaPath, os.path.join(buildPath, 'static'))
+	dir_util.copy_tree(staticPath, os.path.join(buildPath, 'static'), verbose=1)
 
 @baker.command
 def listen(path):
