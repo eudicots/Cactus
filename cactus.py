@@ -12,6 +12,9 @@ import os
 import codecs
 import shutil
 import baker
+import subprocess
+import webbrowser
+import time
 
 from distutils import dir_util
 
@@ -44,17 +47,24 @@ def init(path):
 	Generate new site at path
 	"""
 	
+	if os.path.exists(path):
+		print 'Error: path already exists: %s' % path
+		return
+	
 	os.mkdir(path)
 	
 	# Generate basic structure
-	for d in ['templates', 'static', 'static/css', 'static/js', 'static/images', 'contents', 'build']:
+	for d in ['templates', 'static', 'static/css', 'static/js', 'static/images', 'pages', 'build', 'extras']:
 		os.mkdir(os.path.join(path, d))
 	
 	# Generate some default files
 	open(os.path.join(path, 'templates', 'base.html'), 'w').write(templateFile)
-	open(os.path.join(path, 'contents', 'index.html'), 'w').write(indexFile)
-	open(os.path.join(path, 'contexts.py'), 'w').write(contextsFile)
-	open(os.path.join(path, 'templatetags.py'), 'w').write("")
+	open(os.path.join(path, 'pages', 'index.html'), 'w').write(indexFile)
+	open(os.path.join(path, 'extras', 'contexts.py'), 'w').write(contextsFile)
+	open(os.path.join(path, 'extras', 'templatetags.py'), 'w').write("")
+	
+	print 'New project generated at %s' % path
+
 
 @baker.command
 def build(path):
@@ -64,18 +74,18 @@ def build(path):
 	# Set up django
 	
 	templatePath = os.path.join(path, 'templates')
-	contentsPath = os.path.join(path, 'contents')
+	pagesPath = os.path.join(path, 'pages')
 	
 	staticPath = os.path.join(path, 'static')
 	buildPath = os.path.join(path, 'build')
 	
 	try:
 		from django.conf import settings
-		settings.configure(TEMPLATE_DIRS=[templatePath, contentsPath])
+		settings.configure(TEMPLATE_DIRS=[templatePath, pagesPath])
 	except:
 		pass
 	
-	sys.path.append(path)
+	sys.path.append(os.path.join(path, 'extras'))
 	import contexts
 	import templatetags
 
@@ -105,37 +115,38 @@ def build(path):
 		f.write(t.render(Context(context)))
 		f.close()
 	
-	map(buildPage, [f.replace('%s/' % contentsPath, '') for f in fileList(contentsPath)])
+	map(buildPage, [f.replace('%s/' % pagesPath, '') for f in fileList(pagesPath)])
 	
 	dir_util.copy_tree(staticPath, os.path.join(buildPath, 'static'), verbose=1)
 
 @baker.command
-def listen(path):
+def serve(path, port=8000, browser=True):
 	
 	buildPath = os.path.join(path, 'build')
+	
+	print 'Running webserver at 0.0.0.0:%s for %s' % (port, buildPath)
+	
+	# Start the webserver in a subprocess
+	os.chdir(buildPath)
+	subprocess.Popen(['python -m SimpleHTTPServer %s' % port], 
+		stdout=subprocess.PIPE, shell=True)
+	
+	time.sleep(0.5)
+	
+	if browser is True:
+		print 'Opening web browser (disable by adding --browser=no to command)'
+		webbrowser.open('http://0.0.0.0:%s' % port)
 	
 	from pyfsevents import registerpath, listen
 	
 	def rebuild(change, recursive):
 		if not change.startswith(buildPath):
+			print '*** Rebuilding (%s changed)' % change
 			build(path)
 	
 	registerpath(path, rebuild)
 	listen()
 
-@baker.command
-def serve(path, port=8000):
-	
-	buildPath = os.path.join(path, 'build')
-	
-	import SimpleHTTPServer
-	import SocketServer
-	
-	os.chdir(buildPath)
-	
-	httpd = SocketServer.TCPServer(("", port), SimpleHTTPServer.SimpleHTTPRequestHandler)
-	print "serving at port", port
-	httpd.serve_forever()
 
 ### TEMPLATES
 

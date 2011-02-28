@@ -17,42 +17,47 @@ Alternatives to Cactus are [Hyde][4] and [Jekyll][5] but I wanted to build somet
 
 Get the Cactus source by cloning this repository.
 
-The very basic installation of hyde only needs Django and Baker. More python goodies are needed based on the features you may use. For example Markdown for the markdown template tags.
+The very basic installation of hyde only needs Django and Baker. More python goodies are needed based on the features you may use. You can install them easily like this:
 
-    pip install -r requirements.txt
+    easy_install baker django pyfsevents
 
 Make the cactus.py script executable (if it not is already) and place it in a location where you can run it easily.
 
+	cd <path-where-you-have-cactus>
     chmod 755 cactus.py
 
 ## Basic Usage
 
-### Creating a new project: cactus.py init [path]
+### Creating a new project
 
-Generates a new project at given path with a basic project layout. After adding some custom content it could look something like this.
+You can create a new project by generating a new project stucture like this. Make sure the destination folder does not exist yet.
+
+	./cactus.py init [path]
+
+If you did not see any errors, the path you pointed to should now look like this.
 	
-	- build					Generated site
-	- contents				Your actual site pages
+	- build					Generated site (upload this to your host)
+	- pages					Your actual site pages
 		- index.html
-		- blog
-			my-post.html
 	- templates				Holds your django templates
 		- base.html
-		- footer.html
 	- static				Directory with static assets
 		- images
 		- css
 		- js
-	- contexts.py			Allows for custom page contexts
-	- templatetags.py		Hold custom django template tags
+	- extras
+		- contexts.py		Allows for custom page contexts
+		- templatetags.py	Hold custom django template tags
 
 ### Making your site
 
-After generating your site you can start building by adding pages to contents, which can rely on templates. 
+After generating your site you can start building by adding pages to contents, which can rely on templates. So for example if you want a page `/articles/2010/my-article.html` you would create the file with directories in your pages folder. Then you can edit the file and use django's template features.
 
-### Building your site: cactus.py build [path]
+### Building your site
 
-Building basically renders each page in the contents folder using the django templates to the same location in the build folder, and copies all static assets.
+When you build your site it will generate a static version in the build folder that you can upload to any host. Basically it will render each page from your pages folder, copy it over to the build folder and add all the static assets to it so it becomes a self contained website. You can build your site like this:
+
+	./cactus.py build [path]
 
 #### Linking and contexts
 
@@ -72,14 +77,14 @@ TODO. Serve your site using a small internal webserver rebuilding content each t
 
 ## Deploying
 
-Sofa uses Cactus in combination with [Amazon S3 website features][1] and CloudFront to build maintainable and very fast websites. But beacuse Cactus generates static sites, you could host them pretty much anywhere, from Akamai to DropBox.
+Sofa uses Cactus in combination with [Amazon S3 website features][7] and CloudFront to build maintainable and very fast websites. But beacuse Cactus generates static sites, you could host them pretty much anywhere, from Akamai to DropBox.
 
-[1]: http://aws.amazon.com/about-aws/whats-new/2011/02/17/Amazon-S3-Website-Features/
+[7]: http://aws.amazon.com/about-aws/whats-new/2011/02/17/Amazon-S3-Website-Features/
 
-Before deploying (we like [Fabric][1]) you could compress your Javascript and CSS using for example [Google Closure][2] and [CSSMin][3] for even more performant sites. Also make sure you host your content gzipped to clients, which requires [a bit extra work][4] when using Amazon S3.
+Before deploying (we like [Fabric][8]) you could compress your Javascript and CSS using for example [Google Closure][9] and [CSSMin][10] for even more performant sites. Also make sure you host your content gzipped to clients, which requires [a bit extra work][11] when using Amazon S3.
 
-[1]: http://www.fabfile.org
-[2]: http://code.google.com/closure/compiler/docs/gettingstarted_ui.html
-[3]: http://code.google.com/p/cssmin/
-[4]: http://devblog.famundo.com/articles/2007/03/02/serving-compressed-content-from-amazons-s3
+[8]: http://www.fabfile.org
+[9]: http://code.google.com/closure/compiler/docs/gettingstarted_ui.html
+[10]: http://code.google.com/p/cssmin/
+[11]: http://devblog.famundo.com/articles/2007/03/02/serving-compressed-content-from-amazons-s3
 
