@@ -161,8 +161,7 @@ def serve(path, port=8000, browser=True):
 
 ### TEMPLATES
 
-templateFile = """
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+templateFile = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
    "http://www.w3.org/TR/html4/strict.dtd">
 
 <html lang="en">
@@ -178,15 +177,13 @@ templateFile = """
 </html>
 """
 
-indexFile = """
-{% extends "base.html" %}
+indexFile = """{% extends "base.html" %}
 {% block content %}
 Welcome to Cactus!
 {% endblock %}
 """
 
-contextsFile = """
-def context(url):
+contextsFile = """def context(url):
 	return {}
 """
 
