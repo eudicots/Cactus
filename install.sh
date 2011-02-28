@@ -8,12 +8,6 @@ cd /tmp
 
 easy_install baker django simplejson keyring boto pyfsevents
 
-# Install pyfsevents
-
-curl -O https://github.com/koenbok/Cactus/raw/master/vendor/pyfsevents.so.gz
-gzip -d pyfsevents.so.gz
-mv pyfsevents.so `python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"`/pyfsevents.so
-
 # Install Cactus
 
 curl -O https://github.com/koenbok/Cactus/raw/master/cactus.py
