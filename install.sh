@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "Installing Cactus, hold on..."
+
 easy_install baker django simplejson keyring boto pyfsevents
 
 cd /tmp
