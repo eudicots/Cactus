@@ -15,7 +15,7 @@ Alternatives to Cactus are [Hyde][4] and [Jekyll][5] but I wanted to build somet
 
 ## Basic Installation
 
-Get the Cactus source by cloning this repository.
+Get the Cactus source by downloading/cloning this repository.
 
 The very basic installation of Cactus only needs Django and Baker. More python goodies are needed based on the features you may use. You can install them easily like this:
 
