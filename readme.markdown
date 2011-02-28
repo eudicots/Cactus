@@ -71,7 +71,7 @@ Optionally you can add variables to the context per page, by modifying the conte
 
 TODO
 
-### Serving your site: cactus.py serve [path]
+### Serving, testing and developing your site
 
 Cactus can run a small webserver to preview your site and update it when you make any changes. This is really handy when developing. You can run it like this:
 
