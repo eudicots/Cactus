@@ -62,6 +62,15 @@ def fileList(path):
 		
 	return files
 
+def compressString(s):
+	"""Gzip a given string."""
+	import cStringIO, gzip
+	zbuf = cStringIO.StringIO()
+	zfile = gzip.GzipFile(mode='wb', compresslevel=6, fileobj=zbuf)
+	zfile.write(s)
+	zfile.close()
+	return zbuf.getvalue()
+
 
 @baker.command
 def init(path):
@@ -182,13 +191,14 @@ def serve(path, port=8000, browser=True):
 	listen()
 
 @baker.command
-def deploy(path):
-	
+def deploy(path, compress='html,htm,css,js,txt'):
+
 	import boto
 	import keyring
 	import getpass
 	import mimetypes
 	
+	build(path)
 	buildPath = os.path.join(path, 'build')
 	
 	config = Config(os.path.join(path, 'config.json'))
@@ -233,12 +243,19 @@ def deploy(path):
 	def uploadFile(path):
 		
 		relativePath = path.replace('%s/' % buildPath, '')
+		headers = {'Cache-Control': 'max-age %d' % (3600 * 24 * 365)}
 		
 		print '* %s...' % relativePath
 		
+		data = open(os.path.join(buildPath, path), 'r').read()
+		
+		if len(data) > 1024 and os.path.splitext(relativePath)[1].strip('.').lower() in compress.split(','):
+			data = compressString(data)
+			headers['Content-Encoding'] = 'gzip'
+		
 		key = awsBucket.new_key(relativePath)
-		key.content_type = mimetypes.guess_type(path)
-		key.set_contents_from_file(open(os.path.join(buildPath, path), 'r'), policy='public-read')
+		key.content_type = mimetypes.guess_type(path)[0]
+		key.set_contents_from_string(data, headers, policy='public-read')
 		
 	map(uploadFile, fileList(buildPath))
 	
