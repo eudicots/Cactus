@@ -1,0 +1,5 @@
+- Add prefix to deploy
+- Add deploy types (S3/sftp)
+- Add cloudfront expire stuff
+- Add deploy hooks
+- Add deploy log (/deploy-log.txt)

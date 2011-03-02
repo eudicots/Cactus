@@ -9,12 +9,14 @@ Copyright (c) 2011 Sofa BV. All rights reserved.
 
 import sys
 import os
+import re
 import codecs
 import shutil
 import baker
 import subprocess
 import webbrowser
 import time
+import thread
 import simplejson as json
 
 from distutils import dir_util
@@ -22,6 +24,9 @@ from distutils import dir_util
 from django.template import Template, Context
 from django.template import loader as templateLoader
 
+
+###############################################################
+### UTILITIES
 
 class Config(object):
 	def __init__(self, path):
@@ -62,6 +67,77 @@ def fileList(path):
 		
 	return files
 
+
+class Listener(object):
+	
+	def __init__(self, path, f, delay=.5, ignore=None):
+		self.path = path
+		self.f = f
+		self.delay = delay
+		self.ignore = ignore
+		self.current = None
+	
+	def checksum(self, path):
+		
+		total = 0
+		
+		for f in fileList(path):
+			if f.startswith('.'):
+				continue
+			if self.ignore and self.ignore(f) == True:
+				continue
+			total += int(os.stat(f).st_mtime)
+		
+		return total
+	
+	def run(self):
+		self._run()
+		# t = thread.start_new_thread(self._run, ())
+		
+	def _run(self):
+		
+		self.current = self.checksum(self.path)
+		
+		while True:
+			
+			s = self.checksum(self.path)
+		
+			if s != self.current:
+				self.current = s
+				self.f(self.path)
+			
+			time.sleep(self.delay)
+
+def getpassword(service, account):
+	
+	def decode_hex(s):
+		s = eval('"' + re.sub(r"(..)", r"\x\1", s) + '"')
+		if "" in s: s = s[:s.index("")]
+		return s
+
+	cmd = ' '.join([
+		"/usr/bin/security",
+		" find-generic-password",
+		"-g -s '%s' -a '%s'" % (service, account),
+		"2>&1 >/dev/null"
+	])
+	p = os.popen(cmd)
+	s = p.read()
+	p.close()
+	m = re.match(r"password: (?:0x([0-9A-F]+)\s*)?\"(.*)\"$", s)
+	if m:
+		hexform, stringform = m.groups()
+		if hexform: 
+			return decode_hex(hexform)
+		else:
+			return stringform
+
+def setpassword(service, account, password):
+	cmd = 'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
+	p = os.popen(cmd)
+	s = p.read()
+	p.close()
+
 def compressString(s):
 	"""Gzip a given string."""
 	import cStringIO, gzip
@@ -71,6 +147,9 @@ def compressString(s):
 	zfile.close()
 	return zbuf.getvalue()
 
+
+###############################################################
+### COMMAND LINE FUNCTIONS
 
 @baker.command
 def init(path):
@@ -180,21 +259,16 @@ def serve(path, port=8000, browser=True):
 		print 'Opening web browser (disable by adding --browser=no to command)'
 		webbrowser.open('http://0.0.0.0:%s' % port)
 	
-	from pyfsevents import registerpath, listen
+	def rebuild(change):
+		print '*** Rebuilding (%s changed)' % change
+		build(path)
 	
-	def rebuild(change, recursive):
-		if not change.startswith(buildPath):
-			print '*** Rebuilding (%s changed)' % change
-			build(path)
-	
-	registerpath(path, rebuild)
-	listen()
+	Listener(path, rebuild, ignore=lambda x: '/build/' in x).run()
 
 @baker.command
 def deploy(path, compress='html,htm,css,js,txt'):
 
 	import boto
-	import keyring
 	import getpass
 	import mimetypes
 	
@@ -204,7 +278,7 @@ def deploy(path, compress='html,htm,css,js,txt'):
 	config = Config(os.path.join(path, 'config.json'))
 	
 	awsAccessKey = config.get('aws-access-key') or raw_input('Amazon access key: ')
-	awsSecretKey = keyring.get_password('aws', awsAccessKey) or getpass.getpass('Amazon secret access key: ')
+	awsSecretKey = getpassword('aws', awsAccessKey) or getpass.getpass('Amazon secret access key: ')
 	
 	connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
 	
@@ -217,7 +291,7 @@ def deploy(path, compress='html,htm,css,js,txt'):
 	config.set('aws-access-key', awsAccessKey)
 	config.write()
 	
-	keyring.set_password('aws', awsAccessKey, awsSecretKey)
+	setpassword('aws', awsAccessKey, awsSecretKey)
 	
 	awsBucketName = config.get('aws-bucket-name') or raw_input('S3 bucket name: ')
 	
@@ -263,6 +337,8 @@ def deploy(path, compress='html,htm,css,js,txt'):
 	print 'Upload done: http://%s' % config.get('aws-bucket-website')
 	print
 
+
+###############################################################
 ### TEMPLATES
 
 templateFile = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"

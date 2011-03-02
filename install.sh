@@ -4,9 +4,16 @@ echo "Installing Cactus, hold on..."
 
 cd /tmp
 
+# Install setuptools
+
+sudo python -c "import urllib; urllib.main()" http://peak.telecommunity.com/dist/ez_setup.py | python - -U setuptools
+
 # Install dependencies
 
-sudo easy_install baker django simplejson keyring boto pyfsevents
+sudo easy_install baker
+sudo easy_install django
+sudo easy_install simplejson
+sudo easy_install boto
 
 # Install Cactus
 
