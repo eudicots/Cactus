@@ -91,8 +91,8 @@ class Listener(object):
 		return total
 	
 	def run(self):
-		self._run()
-		# t = thread.start_new_thread(self._run, ())
+		# self._run()
+		t = thread.start_new_thread(self._run, ())
 		
 	def _run(self):
 		
@@ -250,20 +250,30 @@ def serve(path, port=8000, browser=True):
 	
 	# Start the webserver in a subprocess
 	os.chdir(buildPath)
-	subprocess.Popen(['python -m SimpleHTTPServer %s' % port], 
-		stdout=subprocess.PIPE, shell=True)
-	
-	time.sleep(0.5)
-	
-	if browser is True:
-		print 'Opening web browser (disable by adding --browser=no to command)'
-		webbrowser.open('http://0.0.0.0:%s' % port)
-	
+		
 	def rebuild(change):
 		print '*** Rebuilding (%s changed)' % change
 		build(path)
 	
 	Listener(path, rebuild, ignore=lambda x: '/build/' in x).run()
+
+	import SimpleHTTPServer
+	import SocketServer
+	
+	SocketServer.ThreadingTCPServer.allow_reuse_address = True
+	
+	httpd = SocketServer.ThreadingTCPServer(("", port), 
+		SimpleHTTPServer.SimpleHTTPRequestHandler)
+	
+	if browser is True:
+		print 'Opening web browser (disable by adding --browser=no to command)'
+		webbrowser.open('http://127.0.0.1:%s' % port)
+	
+	try:
+		httpd.serve_forever()
+	except KeyboardInterrupt:
+		pass
+
 
 @baker.command
 def deploy(path, compress='html,htm,css,js,txt'):
