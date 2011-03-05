@@ -147,6 +147,14 @@ def compressString(s):
 	zfile.close()
 	return zbuf.getvalue()
 
+def loadExtras(path):
+	"""Load custom python code"""
+	sys.path.append(os.path.join(path, 'extras'))
+	import contexts
+	import templatetags
+	import hooks
+	
+	global contexts, templatetags, hooks
 
 ###############################################################
 ### COMMAND LINE FUNCTIONS
@@ -171,6 +179,7 @@ def init(path):
 	open(os.path.join(path, 'templates', 'base.html'), 'w').write(templateFile)
 	open(os.path.join(path, 'pages', 'index.html'), 'w').write(indexFile)
 	open(os.path.join(path, 'extras', 'contexts.py'), 'w').write(contextsFile)
+	open(os.path.join(path, 'extras', 'hooks.py'), 'w').write(hooksFile)
 	open(os.path.join(path, 'extras', 'templatetags.py'), 'w').write("")
 	
 	print 'New project generated at %s' % path
@@ -188,19 +197,18 @@ def build(path):
 	
 	staticPath = os.path.join(path, 'static')
 	buildPath = os.path.join(path, 'build')
+
+	loadExtras(path)
 	
+	config = Config(os.path.join(path, 'config.json'))
+	
+	hooks.preBuild(path, config)
+
 	try:
 		from django.conf import settings
 		settings.configure(TEMPLATE_DIRS=[templatePath, pagesPath])
 	except:
 		pass
-	
-	# Load custom python code
-	
-	sys.path.append(os.path.join(path, 'extras'))
-	import contexts
-	import templatetags
-
 	
 	# Make sure the build path exists
 	if not os.path.exists(buildPath):
@@ -235,6 +243,8 @@ def build(path):
 	map(buildPage, [f.replace('%s/' % pagesPath, '') for f in fileList(pagesPath)])
 	
 	dir_util.copy_tree(staticPath, os.path.join(buildPath, 'static'), verbose=1)
+	
+	hooks.postBuild(path, config)
 
 @baker.command
 def serve(path, port=8000, browser=True):
@@ -282,10 +292,14 @@ def deploy(path, compress='html,htm,css,js,txt'):
 	import getpass
 	import mimetypes
 	
+	loadExtras(path)
+	
 	build(path)
 	buildPath = os.path.join(path, 'build')
 	
 	config = Config(os.path.join(path, 'config.json'))
+	
+	hooks.preDeploy(path, config)
 	
 	awsAccessKey = config.get('aws-access-key') or raw_input('Amazon access key: ')
 	awsSecretKey = getpassword('aws', awsAccessKey) or getpass.getpass('Amazon secret access key: ')
@@ -343,6 +357,8 @@ def deploy(path, compress='html,htm,css,js,txt'):
 		
 	map(uploadFile, fileList(buildPath))
 	
+	hooks.postDeploy(path, config)
+	
 	print
 	print 'Upload done: http://%s' % config.get('aws-bucket-website')
 	print
@@ -376,5 +392,39 @@ Welcome to Cactus!
 contextsFile = """def context(url):
 	return {}
 """
+
+hooksFile = """import os
+
+def preBuild(path, config):
+	pass
+
+def postBuild(path, config):
+	pass
+
+def preDeploy(path, config):
+	
+	# Add a deploy log at /versions.txt
+	
+	import urllib2
+	import datetime
+	import platform
+	import codecs
+	import getpass
+	
+	url = config.get('aws-bucket-website')
+	data = u''
+	
+	try:
+		data = urllib2.urlopen('http://%s/versions.txt' % url).read() + u'\n'
+	except:
+		pass
+	
+	data += u'\t'.join([datetime.datetime.now().isoformat(), platform.node(), getpass.getuser()])
+	codecs.open(os.path.join(path, 'build', 'versions.txt'), 'w', 'utf8').write(data)
+
+def postDeploy(path, config):
+	pass
+"""
+
 
 baker.run()
