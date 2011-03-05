@@ -415,7 +415,7 @@ def preDeploy(path, config):
 	data = u''
 	
 	try:
-		data = urllib2.urlopen('http://%s/versions.txt' % url).read() + u'\n'
+		data = urllib2.urlopen('http://%s/versions.txt' % url).read() + u'\\n'
 	except:
 		pass
 	
