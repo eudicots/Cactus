@@ -13,6 +13,7 @@ python -c "import urllib; urllib.main()" http://peak.telecommunity.com/dist/ez_s
 sudo easy_install baker
 sudo easy_install django
 sudo easy_install simplejson
+sudo easy_install workerpool
 # sudo easy_install boto
 
 # Install boto from github as we need the latest version
@@ -27,7 +28,7 @@ sudo python setup.py install
 
 curl -O https://github.com/koenbok/Cactus/raw/master/cactus.py
 chmod 755 cactus.py
-sudo mv cactus.py /usr/local/bin/cactus
+sudo mv cactus.py /usr/local/bin/cactus.py
 
 echo
 echo "If there were no errors, the installation of Cactus was successful"

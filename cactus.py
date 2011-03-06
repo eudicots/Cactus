@@ -18,6 +18,11 @@ import webbrowser
 import time
 import thread
 import simplejson as json
+import workerpool
+import logging
+import boto
+import getpass
+import mimetypes
 
 from distutils import dir_util
 
@@ -156,212 +161,260 @@ def loadExtras(path):
 	
 	global contexts, templatetags, hooks
 
-###############################################################
-### COMMAND LINE FUNCTIONS
-
-@baker.command
-def init(path):
-	"""
-	Generate new site at path
-	"""
-	
-	if os.path.exists(path):
-		print 'Error: path already exists: %s' % path
-		return
-	
-	os.mkdir(path)
-	
-	# Generate basic structure
-	for d in ['templates', 'static', 'static/css', 'static/js', 'static/images', 'pages', 'build', 'extras']:
-		os.mkdir(os.path.join(path, d))
-	
-	# Generate some default files
-	open(os.path.join(path, 'templates', 'base.html'), 'w').write(templateFile)
-	open(os.path.join(path, 'pages', 'index.html'), 'w').write(indexFile)
-	open(os.path.join(path, 'extras', 'contexts.py'), 'w').write(contextsFile)
-	open(os.path.join(path, 'extras', 'hooks.py'), 'w').write(hooksFile)
-	open(os.path.join(path, 'extras', 'templatetags.py'), 'w').write("")
-	
-	print 'New project generated at %s' % path
 
 
-@baker.command
-def build(path):
-	"""
-	Rebuild site at path
-	"""
-	# Set up django
-	
-	templatePath = os.path.join(path, 'templates')
-	pagesPath = os.path.join(path, 'pages')
-	
-	staticPath = os.path.join(path, 'static')
-	buildPath = os.path.join(path, 'build')
 
-	loadExtras(path)
-	
-	config = Config(os.path.join(path, 'config.json'))
-	
-	hooks.preBuild(path, config)
 
-	try:
-		from django.conf import settings
-		settings.configure(TEMPLATE_DIRS=[templatePath, pagesPath])
-	except:
-		pass
+
+class Site(object):
 	
-	# Make sure the build path exists
-	if not os.path.exists(buildPath):
-		os.mkdir(buildPath)
-	
-	def buildPage(path):
+	def __init__(self, path, workers=4):
 		
+		self.path = path
+		self.paths = {
+			'config': os.path.join(path, 'config.json'),
+			'build': os.path.join(path, 'build'),
+			'pages': os.path.join(path, 'pages'),
+			'templates': os.path.join(path, 'templates'),
+			'extras': os.path.join(path, 'extras'),
+			'static': os.path.join(path, 'static'),
+		}
+		
+		self.config = Config(self.paths['config'])
+		self.workers = workers
+		
+		self.compress = 'html,htm,css,js,txt'
+	
+	def loadExtras(self):
+		sys.path.append(self.paths['extras'])
+		import contexts
+		import templatetags
+		import hooks
+	
+		global contexts, templatetags, hooks
+	
+	def map(self, f, items, *args):
+		
+		def wrapped(item):
+			try:
+				f(item, *args)
+			except Exception, e:
+				print e
+		
+		# if len(items) > self.workers:
+		pool = workerpool.WorkerPool(size=self.workers)
+		pool.map(wrapped, items)
+		pool.shutdown()
+		# else:
+		# 	map(wrapped, items)
+		
+	def execHook(self, name):
+		
+		self.loadExtras()
+		hook = getattr(hooks, name, None)
+		
+		if callable(hook):
+			hook(self.path, self.config)
+		
+	def create(self):
+		"""
+		Generate new site skeleton at given path
+		"""
+		
+		if os.path.exists(self.path):
+			if raw_input('Path %s exists, move aside (y/n): ' % self.path) == 'y':
+				os.rename(self.path, '%s.%s.moved' % (self.path, int(time.time())))
+			else:
+				return
+		
+		os.mkdir(self.path)
+	
+		# Generate basic structure
+		for d in ['templates', 'static', 'static/css', 'static/js', 'static/images', 'pages', 'build', 'extras']:
+			os.mkdir(os.path.join(self.path, d))
+	
+		# Generate some default files
+		open(os.path.join(self.path, 'templates', 'base.html'), 'w').write(templateFile)
+		open(os.path.join(self.path, 'pages', 'index.html'), 'w').write(indexFile)
+		open(os.path.join(self.path, 'extras', 'contexts.py'), 'w').write(contextsFile)
+		open(os.path.join(self.path, 'extras', 'hooks.py'), 'w').write(hooksFile)
+		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write("")
+	
+		print 'New project generated at %s' % self.path
+
+	def buildPage(self, path):
+	
 		print "Building %s" % (path)
-		
-		outputPath = os.path.join(buildPath, path)
-		
+	
+		outputPath = os.path.join(self.paths['build'], path)
+	
 		try:
 			os.makedirs(os.path.dirname(outputPath))
 		except OSError:
 			pass
-		
+	
 		t = templateLoader.get_template(path)
 		f = codecs.open(outputPath, 'w', 'utf8')
 		
 		prefix = '/'.join(['..' for i in xrange(len(path.split('/')) - 1)])
-		
+	
 		context = {
 			'MEDIA_PATH': os.path.join(prefix, 'static'),
 			'ROOT_PATH': prefix,
 		}
-		
+	
 		context.update(contexts.context(path))
-		
+	
 		f.write(t.render(Context(context)))
 		f.close()
-	
-	map(buildPage, [f.replace('%s/' % pagesPath, '') for f in fileList(pagesPath)])
-	
-	dir_util.copy_tree(staticPath, os.path.join(buildPath, 'static'), verbose=1)
-	
-	hooks.postBuild(path, config)
 
-@baker.command
-def serve(path, port=8000, browser=True):
-	
-	buildPath = os.path.join(path, 'build')
-	
-	# See if the project ever got built
-	if not os.path.isdir(buildPath) or len(fileList(buildPath)) == 0:
-		build(path)
-	
-	print 'Running webserver at 0.0.0.0:%s for %s' % (port, buildPath)
-	print 'Type control-c to exit'
-	
-	# Start the webserver in a subprocess
-	os.chdir(buildPath)
+
+	def build(self):
+
+		self.execHook('preBuild')
 		
-	def rebuild(change):
-		print '*** Rebuilding (%s changed)' % change
-		build(path)
+		# Load and setup django
+		try:
+			from django.conf import settings
+			settings.configure(TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']])
+		except:
+			pass
 	
-	Listener(path, rebuild, ignore=lambda x: '/build/' in x).run()
+		# Make sure the build path exists
+		if not os.path.exists(self.paths['build']):
+			os.mkdir(self.paths['build'])
+		
+		self.map(self.buildPage, [f.replace('%s/' % self.paths['pages'], '') for f in fileList(self.paths['pages'])])
 
-	import SimpleHTTPServer
-	import SocketServer
+		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
 	
-	SocketServer.ThreadingTCPServer.allow_reuse_address = True
+		self.execHook('postBuild')
 	
-	httpd = SocketServer.ThreadingTCPServer(("", port), 
-		SimpleHTTPServer.SimpleHTTPRequestHandler)
+	def serve(self, browser=True, port=8000):
 	
-	if browser is True:
-		print 'Opening web browser (disable by adding --browser=no to command)'
+		# See if the project ever got built
+		if not os.path.isdir(self.paths['build']) or len(fileList(self.paths['build'])) == 0:
+			self.build()
+	
+		print 'Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build'])
+		print 'Type control-c to exit'
+	
+		# Start the webserver in a subprocess
+		os.chdir(self.paths['build'])
+		
+		def rebuild(change):
+			print '*** Rebuilding (%s changed)' % change
+			self.build()
+	
+		Listener(self.path, rebuild, ignore=lambda x: '/build/' in x).run()
+
+		import SimpleHTTPServer
+		import SocketServer
+	
+		SocketServer.ThreadingTCPServer.allow_reuse_address = True
+	
+		httpd = SocketServer.ThreadingTCPServer(("", port), 
+			SimpleHTTPServer.SimpleHTTPRequestHandler)
+	
+		# if browser is True:
+		# 	print 'Opening web browser (disable by adding --browser=no to command)'
 		webbrowser.open('http://127.0.0.1:%s' % port)
 	
-	try:
-		httpd.serve_forever()
-	except KeyboardInterrupt:
-		pass
+		try:
+			httpd.serve_forever()
+		except KeyboardInterrupt:
+			pass
 
-
-@baker.command
-def deploy(path, compress='html,htm,css,js,txt'):
-
-	import boto
-	import getpass
-	import mimetypes
+	def uploadFile(self, path, awsBucket):
 	
-	loadExtras(path)
-	
-	build(path)
-	buildPath = os.path.join(path, 'build')
-	
-	config = Config(os.path.join(path, 'config.json'))
-	
-	hooks.preDeploy(path, config)
-	
-	awsAccessKey = config.get('aws-access-key') or raw_input('Amazon access key: ')
-	awsSecretKey = getpassword('aws', awsAccessKey) or getpass.getpass('Amazon secret access key: ')
-	
-	connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
-	
-	try:
-		buckets = connection.get_all_buckets()
-	except:
-		print 'Invalid login credentials, please try again...'
-		return
-	
-	config.set('aws-access-key', awsAccessKey)
-	config.write()
-	
-	setpassword('aws', awsAccessKey, awsSecretKey)
-	
-	awsBucketName = config.get('aws-bucket-name') or raw_input('S3 bucket name: ')
-	
-	if awsBucketName not in [b.name for b in buckets]:
-		if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
-			awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
-			awsBucket.configure_website('index.html', 'error.html')
-			config.set('aws-bucket-website', awsBucket.get_website_endpoint())
-			config.set('aws-bucket-name', awsBucketName)
-			config.write()
-			
-			print 'Bucket %s was created with website endpoint %s' % (config.get('aws-bucket-name'), config.get('aws-bucket-website'))
-			print 'You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus'
-			
-		else: return
-	else:
-		for b in buckets:
-			if b.name == awsBucketName:
-				awsBucket = b
-	
-	print 'Uploading site to bucket %s' % awsBucketName
-	
-	def uploadFile(path):
-		
-		relativePath = path.replace('%s/' % buildPath, '')
+		relativePath = path.replace('%s/' % self.paths['build'], '')
 		headers = {'Cache-Control': 'max-age %d' % (3600 * 24 * 365)}
+	
+		data = open(os.path.join(self.paths['build'], path), 'r').read()
+		gzip = (len(data) > 1024 and os.path.splitext(relativePath)[1].strip('.').lower() in self.compress.split(','))
 		
-		print '* %s...' % relativePath
-		
-		data = open(os.path.join(buildPath, path), 'r').read()
-		
-		if len(data) > 1024 and os.path.splitext(relativePath)[1].strip('.').lower() in compress.split(','):
+		if gzip:
 			data = compressString(data)
 			headers['Content-Encoding'] = 'gzip'
+		
+		print '* %s %s bytes%s...' % (relativePath, len(data), ' (gzip)' if gzip else '')
 		
 		key = awsBucket.new_key(relativePath)
 		key.content_type = mimetypes.guess_type(path)[0]
 		key.set_contents_from_string(data, headers, policy='public-read')
+
+	def deploy(self):
+	
+		self.build()
+		self.execHook('preDeploy')
+	
+		awsAccessKey = self.config.get('aws-access-key') or raw_input('Amazon access key: ')
+		awsSecretKey = getpassword('aws', awsAccessKey) or getpass.getpass('Amazon secret access key: ')
+	
+		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
+	
+		try:
+			buckets = connection.get_all_buckets()
+		except:
+			print 'Invalid login credentials, please try again...'
+			return
+	
+		self.config.set('aws-access-key', awsAccessKey)
+		self.config.write()
+	
+		setpassword('aws', awsAccessKey, awsSecretKey)
+	
+		awsBucketName = self.config.get('aws-bucket-name') or raw_input('S3 bucket name: ')
+	
+		if awsBucketName not in [b.name for b in buckets]:
+			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
+				awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
+				awsBucket.configure_website('index.html', 'error.html')
+				self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+				self.config.set('aws-bucket-name', awsBucketName)
+				self.config.write()
+			
+				print 'Bucket %s was created with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website'))
+				print 'You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus'
+			
+			else: return
+		else:
+			for b in buckets:
+				if b.name == awsBucketName:
+					awsBucket = b
+	
+		print 'Uploading site to bucket %s' % awsBucketName
+	
+		self.map(self.uploadFile, fileList(self.paths['build']), awsBucket)
 		
-	map(uploadFile, fileList(buildPath))
+		self.execHook('postDeploy')
 	
-	hooks.postDeploy(path, config)
+		print
+		print 'Upload done: http://%s' % self.config.get('aws-bucket-website')
+		print
+
+
+def main(argv=sys.argv):
 	
-	print
-	print 'Upload done: http://%s' % config.get('aws-bucket-website')
-	print
+	def exit():
+		print
+		print 'Usage: cactus.py <path> [create|build|serve|deploy]'
+		print 
+		print '    create:  Create a new website skeleton at path'
+		print '    build:   Rebuild your site from source files'
+		print '    serve:   Serve you website at local development server'
+		print '    deploy:  Upload and deploy your site to S3'
+		print
+		sys.exit()
+	
+	if len(argv) < 3:
+		exit()
+	
+	if argv[2] not in ['create', 'build', 'serve', 'deploy']:
+		exit()
+	
+	site = Site(sys.argv[1])
+	getattr(site, argv[2])()
 
 
 ###############################################################
@@ -426,5 +479,8 @@ def postDeploy(path, config):
 	pass
 """
 
+###############################################################
+### MAIN
 
-baker.run()
+if __name__ == "__main__":
+	main()
