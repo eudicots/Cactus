@@ -10,7 +10,6 @@ python -c "import urllib; urllib.main()" http://peak.telecommunity.com/dist/ez_s
 
 # Install dependencies
 
-sudo easy_install baker
 sudo easy_install django
 sudo easy_install simplejson
 sudo easy_install workerpool

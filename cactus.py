@@ -154,17 +154,14 @@ def compressString(s):
 
 def loadExtras(path):
 	"""Load custom python code"""
+	
 	sys.path.append(os.path.join(path, 'extras'))
+	
 	import contexts
 	import templatetags
 	import hooks
 	
 	global contexts, templatetags, hooks
-
-
-
-
-
 
 class Site(object):
 	
@@ -393,7 +390,6 @@ class Site(object):
 		print 'Upload done: http://%s' % self.config.get('aws-bucket-website')
 		print
 
-
 def main(argv=sys.argv):
 	
 	def exit():
@@ -413,7 +409,7 @@ def main(argv=sys.argv):
 	if argv[2] not in ['create', 'build', 'serve', 'deploy']:
 		exit()
 	
-	site = Site(sys.argv[1])
+	site = Site(os.path.abspath(sys.argv[1]))
 	getattr(site, argv[2])()
 
 
