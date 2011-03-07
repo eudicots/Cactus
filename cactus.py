@@ -344,8 +344,8 @@ class Site(object):
 		self.build()
 		self.execHook('preDeploy')
 	
-		awsAccessKey = self.config.get('aws-access-key') or raw_input('Amazon access key: ')
-		awsSecretKey = getpassword('aws', awsAccessKey) or getpass.getpass('Amazon secret access key: ')
+		awsAccessKey = self.config.get('aws-access-key') or raw_input('Amazon access key: ').strip()
+		awsSecretKey = getpassword('aws', awsAccessKey) or getpass._raw_input('Amazon secret access key: ').strip()
 	
 		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
 	
