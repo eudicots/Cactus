@@ -360,7 +360,7 @@ class Site(object):
 	
 		setpassword('aws', awsAccessKey, awsSecretKey)
 	
-		awsBucketName = self.config.get('aws-bucket-name') or raw_input('S3 bucket name: ')
+		awsBucketName = self.config.get('aws-bucket-name') or raw_input('S3 bucket name: ').strip().lower()
 	
 		if awsBucketName not in [b.name for b in buckets]:
 			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
