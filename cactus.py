@@ -14,8 +14,10 @@ import codecs
 import shutil
 import subprocess
 import webbrowser
+import traceback
 import time
 import thread
+import threading
 import simplejson as json
 import workerpool
 import logging
@@ -151,17 +153,6 @@ def compressString(s):
 	zfile.close()
 	return zbuf.getvalue()
 
-def loadExtras(path):
-	"""Load custom python code"""
-	
-	sys.path.append(os.path.join(path, 'extras'))
-	
-	import contexts
-	import templatetags
-	import hooks
-	
-	global contexts, templatetags, hooks
-
 class Site(object):
 	
 	def __init__(self, path, workers=4):
@@ -180,14 +171,26 @@ class Site(object):
 		self.workers = workers
 		
 		self.compress = 'html,htm,css,js,txt'
+		self._logLock = threading.Lock()
 	
-	def loadExtras(self):
+	def log(self, msg):
+		with self._logLock:
+			print msg
+	
+	def loadExtras(self, force=False):
+		
 		sys.path.append(self.paths['extras'])
-		import contexts
+		
+		if force:
+			for m in ['render', 'templatetags', 'hooks']:
+				if m in sys.modules:
+					del sys.modules[m]
+		
+		import render
 		import templatetags
 		import hooks
 	
-		global contexts, templatetags, hooks
+		global render, templatetags, hooks
 	
 	def map(self, f, items, *args):
 		
@@ -195,7 +198,7 @@ class Site(object):
 			try:
 				f(item, *args)
 			except Exception, e:
-				print e
+				traceback.print_exc(file=sys.stdout)
 		
 		# if len(items) > self.workers:
 		pool = workerpool.WorkerPool(size=self.workers)
@@ -232,15 +235,15 @@ class Site(object):
 		# Generate some default files
 		open(os.path.join(self.path, 'templates', 'base.html'), 'w').write(templateFile)
 		open(os.path.join(self.path, 'pages', 'index.html'), 'w').write(indexFile)
-		open(os.path.join(self.path, 'extras', 'contexts.py'), 'w').write(contextsFile)
+		open(os.path.join(self.path, 'extras', 'render.py'), 'w').write(renderFile)
 		open(os.path.join(self.path, 'extras', 'hooks.py'), 'w').write(hooksFile)
 		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write("")
 	
-		print 'New project generated at %s' % self.path
+		self.log('New project generated at %s' % self.path)
 
 	def buildPage(self, path):
 	
-		print "Building %s" % (path)
+		self.log("  * Building %s" % (path))
 	
 		outputPath = os.path.join(self.paths['build'], path)
 	
@@ -248,8 +251,11 @@ class Site(object):
 			os.makedirs(os.path.dirname(outputPath))
 		except OSError:
 			pass
-	
-		t = templateLoader.get_template(path)
+
+		source, name = templateLoader.find_template_source(path)
+		pageContext, data = render.process(path, source)
+		
+		t = Template(data)
 		f = codecs.open(outputPath, 'w', 'utf8')
 		
 		prefix = '/'.join(['..' for i in xrange(len(path.split('/')) - 1)])
@@ -259,15 +265,18 @@ class Site(object):
 			'ROOT_PATH': prefix,
 		}
 	
-		context.update(contexts.context(path))
+		context.update(pageContext)
 	
 		f.write(t.render(Context(context)))
 		f.close()
 
 
-	def build(self):
+	def build(self, clean=False):
 
 		self.execHook('preBuild')
+		
+		if clean and os.path.exists(self.paths['build']):
+			shutil.rmtree(self.paths['build'])
 		
 		# Load and setup django
 		try:
@@ -292,14 +301,15 @@ class Site(object):
 		if not os.path.isdir(self.paths['build']) or len(fileList(self.paths['build'])) == 0:
 			self.build()
 	
-		print 'Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build'])
-		print 'Type control-c to exit'
+		self.log('Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build']))
+		self.log('Type control-c to exit')
 	
 		# Start the webserver in a subprocess
 		os.chdir(self.paths['build'])
 		
 		def rebuild(change):
-			print '*** Rebuilding (%s changed)' % change
+			self.log('*** Rebuilding (%s changed)' % change)
+			self.loadExtras(force=True)
 			self.build()
 	
 		Listener(self.path, rebuild, ignore=lambda x: '/build/' in x).run()
@@ -333,7 +343,7 @@ class Site(object):
 			data = compressString(data)
 			headers['Content-Encoding'] = 'gzip'
 		
-		print '* %s %s bytes%s...' % (relativePath, len(data), ' (gzip)' if gzip else '')
+		self.log('  * %s %s bytes%s...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
 		
 		key = awsBucket.new_key(relativePath)
 		key.content_type = mimetypes.guess_type(path)[0]
@@ -341,7 +351,7 @@ class Site(object):
 
 	def deploy(self):
 	
-		self.build()
+		self.build(clean=True)
 		self.execHook('preDeploy')
 	
 		awsAccessKey = self.config.get('aws-access-key') or raw_input('Amazon access key: ').strip()
@@ -352,7 +362,7 @@ class Site(object):
 		try:
 			buckets = connection.get_all_buckets()
 		except:
-			print 'Invalid login credentials, please try again...'
+			self.log('Invalid login credentials, please try again...')
 			return
 	
 		self.config.set('aws-access-key', awsAccessKey)
@@ -370,8 +380,8 @@ class Site(object):
 				self.config.set('aws-bucket-name', awsBucketName)
 				self.config.write()
 			
-				print 'Bucket %s was created with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website'))
-				print 'You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus'
+				self.log('Bucket %s was created with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
+				self.log('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
 			
 			else: return
 		else:
@@ -379,15 +389,15 @@ class Site(object):
 				if b.name == awsBucketName:
 					awsBucket = b
 	
-		print 'Uploading site to bucket %s' % awsBucketName
+		self.log('Uploading site to bucket %s' % awsBucketName)
 	
 		self.map(self.uploadFile, fileList(self.paths['build']), awsBucket)
 		
 		self.execHook('postDeploy')
 	
-		print
-		print 'Upload done: http://%s' % self.config.get('aws-bucket-website')
-		print
+		self.log('')
+		self.log('Upload done: http://%s' % self.config.get('aws-bucket-website'))
+		self.log('')
 
 def main(argv=sys.argv):
 	
@@ -437,8 +447,9 @@ Welcome to Cactus!
 {% endblock %}
 """
 
-contextsFile = """def context(url):
-	return {}
+renderFile = """def process(path, data):
+	context = {}
+	return context, data
 """
 
 hooksFile = """import os
