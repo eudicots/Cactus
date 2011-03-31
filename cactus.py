@@ -252,7 +252,13 @@ class Site(object):
 		except OSError:
 			pass
 
-		source, name = templateLoader.find_template_source(path)
+		# source, name = templateLoader.get_template(path)
+		# print templateLoader.get_template(path)
+		
+		f = codecs.open(os.path.join(self.paths['pages'], path), 'r', 'utf8')
+		source = f.read()
+		f.close()
+		
 		pageContext, data = render.process(path, source)
 		
 		t = Template(data)
