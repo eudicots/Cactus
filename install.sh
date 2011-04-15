@@ -25,9 +25,9 @@ sudo python setup.py install
 
 # Install Cactus
 
-# curl -O https://github.com/koenbok/Cactus/raw/master/cactus.py
-# chmod 755 cactus.py
-# sudo mv cactus.py /usr/local/bin/cactus.py
+curl -O https://github.com/koenbok/Cactus/raw/master/cactus.py
+chmod 755 cactus.py
+sudo mv cactus.py /usr/local/bin/cactus.py
 
 echo
 echo "If there were no errors, the installation of Cactus was successful"
