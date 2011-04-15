@@ -19,11 +19,15 @@ import time
 import thread
 import threading
 import simplejson as json
-import workerpool
+#import workerpool
+import threadpool
 import logging
 import boto
 import getpass
 import mimetypes
+import httplib
+import urlparse
+import hashlib
 
 from distutils import dir_util
 
@@ -107,7 +111,7 @@ class Listener(object):
 		while True:
 			
 			s = self.checksum(self.path)
-		
+			
 			if s != self.current:
 				self.current = s
 				self.f(self.path)
@@ -147,15 +151,35 @@ def setpassword(service, account, password):
 def compressString(s):
 	"""Gzip a given string."""
 	import cStringIO, gzip
+
+	# Nasty monkeypatch to avoid gzip changing every time
+	class FakeTime:
+		def time(self):
+			return 1111111111.111
+
+	gzip.time = FakeTime()
+	
 	zbuf = cStringIO.StringIO()
 	zfile = gzip.GzipFile(mode='wb', compresslevel=6, fileobj=zbuf)
 	zfile.write(s)
 	zfile.close()
 	return zbuf.getvalue()
 
+def getURLHeaders(url):
+	
+	url = urlparse.urlparse(url)
+	
+	conn = httplib.HTTPConnection(url.netloc)
+	conn.request('HEAD', url.path)
+
+	response = conn.getresponse()
+
+	return dict(response.getheaders())
+
+
 class Site(object):
 	
-	def __init__(self, path, workers=4):
+	def __init__(self, path, workers=8):
 		
 		self.path = path
 		self.paths = {
@@ -172,7 +196,8 @@ class Site(object):
 		
 		self.compress = 'html,htm,css,js,txt'
 		self._logLock = threading.Lock()
-	
+		self.pool = None
+		
 	def log(self, msg):
 		with self._logLock:
 			print msg
@@ -200,10 +225,24 @@ class Site(object):
 			except Exception, e:
 				traceback.print_exc(file=sys.stdout)
 		
+		# map(wrapped, items)
+		
+		self.pool = threadpool.ThreadPool(self.workers)
+		requests = threadpool.makeRequests(wrapped, items)
+		
+		[self.pool.putRequest(req) for req in requests]
+		self.pool.wait()
+		# self.pool.map(wrapped, items)
+		# self.pool.join()
+		
 		# if len(items) > self.workers:
-		pool = workerpool.WorkerPool(size=self.workers)
-		pool.map(wrapped, items)
-		pool.shutdown()
+		
+		# if not self.pool:
+		# 	self.pool = workerpool.WorkerPool(size=self.workers)
+		# 
+		# self.pool.map(wrapped, items)
+		# self.pool.join()
+		
 		# else:
 		# 	map(wrapped, items)
 		
@@ -267,8 +306,8 @@ class Site(object):
 		prefix = '/'.join(['..' for i in xrange(len(path.split('/')) - 1)])
 	
 		context = {
-			'MEDIA_PATH': os.path.join(prefix, 'static'),
-			'ROOT_PATH': prefix,
+			'STATIC_URL': os.path.join(prefix, 'static'),
+			'ROOT_URL': prefix,
 		}
 	
 		context.update(pageContext)
@@ -278,7 +317,7 @@ class Site(object):
 
 
 	def build(self, clean=False):
-
+				
 		self.execHook('preBuild')
 		
 		if clean and os.path.exists(self.paths['build']):
@@ -296,16 +335,15 @@ class Site(object):
 			os.mkdir(self.paths['build'])
 		
 		self.map(self.buildPage, [f.replace('%s/' % self.paths['pages'], '') for f in fileList(self.paths['pages'])])
-
-		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
+		
+		if not os.path.exists(os.path.join(self.paths['build'], 'static')):
+			os.symlink(self.paths['static'], os.path.join(self.paths['build'], 'static'))
 	
 		self.execHook('postBuild')
 	
 	def serve(self, browser=True, port=8000):
 	
-		# See if the project ever got built
-		if not os.path.isdir(self.paths['build']) or len(fileList(self.paths['build'])) == 0:
-			self.build()
+		self.build()
 	
 		self.log('Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build']))
 		self.log('Type control-c to exit')
@@ -349,11 +387,23 @@ class Site(object):
 			data = compressString(data)
 			headers['Content-Encoding'] = 'gzip'
 		
-		self.log('  * %s %s bytes%s...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
+		if self.config.get('aws-bucket-website'):
+			
+			url = 'http://%s/%s' % (self.config.get('aws-bucket-website'), relativePath)
+			dataHash = hashlib.md5(data).hexdigest()
+			remoteEtag = getURLHeaders(url).get('etag', '').strip('"')
+			
+			if remoteEtag == dataHash:
+				self.log('  = %s %s bytes%s (unchanged)...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
+				return
 		
 		key = awsBucket.new_key(relativePath)
 		key.content_type = mimetypes.guess_type(path)[0]
 		key.set_contents_from_string(data, headers, policy='public-read')
+		
+		self.changedFilesAtLastDeploy.append(relativePath)
+		
+		self.log('  + %s %s bytes%s...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
 
 	def deploy(self):
 	
@@ -396,14 +446,32 @@ class Site(object):
 					awsBucket = b
 	
 		self.log('Uploading site to bucket %s' % awsBucketName)
-	
-		self.map(self.uploadFile, fileList(self.paths['build']), awsBucket)
+		
+		self.changedFilesAtLastDeploy = []
+		
+		filesToUpload = fileList(self.paths['build'])
+		self.map(self.uploadFile, filesToUpload, awsBucket)
 		
 		self.execHook('postDeploy')
 	
 		self.log('')
-		self.log('Upload done: http://%s' % self.config.get('aws-bucket-website'))
+		self.log('Upload done, %s of %s files changed' % (len(self.changedFilesAtLastDeploy), len(filesToUpload)))
+		self.log('http://%s' % self.config.get('aws-bucket-website'))
 		self.log('')
+		
+		# Expire cloudfront files
+		if not self.changedFilesAtLastDeploy:
+			return
+		
+		from boto import cloudfront
+		
+		connection = cloudfront.CloudFrontConnection(awsAccessKey.strip(), awsSecretKey.strip())
+
+		for d in connection.get_all_distributions():
+			if d.origin.dns_name == self.config.get('aws-bucket-website').replace('http://', '') and d.status == 'Deployed':
+				self.log('Sending CloudFront invalidation request to %s (cname: %s)' % (d.domain_name, ' '.join(d.cnames)))
+				connection.create_invalidation_request(d.id, self.changedFilesAtLastDeploy)
+				
 
 def main(argv=sys.argv):
 	
