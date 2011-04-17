@@ -34,6 +34,11 @@ from distutils import dir_util
 from django.template import Template, Context
 from django.template import loader as templateLoader
 
+try:
+	from xml.etree.ElementTree import fromstring, tostring
+except ImportError:
+	from elementtree.ElementTree import fromstring, tostring
+
 
 ###############################################################
 ### UTILITIES
@@ -77,6 +82,13 @@ def fileList(path):
 		
 	return files
 
+def getError(data):
+	
+	tree = fromstring(data)
+	code = tree.find('.//Code/').text
+	msg  = tree.find('.//Message/').text
+	
+	return '%s: %s' % (code, msg)
 
 class Listener(object):
 	
@@ -336,8 +348,10 @@ class Site(object):
 		
 		self.map(self.buildPage, [f.replace('%s/' % self.paths['pages'], '') for f in fileList(self.paths['pages'])])
 		
-		if not os.path.exists(os.path.join(self.paths['build'], 'static')):
-			os.symlink(self.paths['static'], os.path.join(self.paths['build'], 'static'))
+		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
+		
+		# if not os.path.exists(os.path.join(self.paths['build'], 'static')):
+		# 	os.symlink(self.paths['static'], os.path.join(self.paths['build'], 'static'))
 	
 		self.execHook('postBuild')
 	
@@ -466,7 +480,10 @@ class Site(object):
 		from boto import cloudfront
 		
 		connection = cloudfront.CloudFrontConnection(awsAccessKey.strip(), awsSecretKey.strip())
-
+		
+		if not self.config.get('aws-bucket-website'):
+			return
+		
 		for d in connection.get_all_distributions():
 			if d.origin.dns_name == self.config.get('aws-bucket-website').replace('http://', '') and d.status == 'Deployed':
 				self.log('Sending CloudFront invalidation request to %s (cname: %s)' % (d.domain_name, ' '.join(d.cnames)))
