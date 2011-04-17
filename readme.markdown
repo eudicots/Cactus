@@ -21,11 +21,11 @@ The path should now contain a basic project layout that you can start editing. T
 
 	cactus.py ~/www.mysite.com build
 
-This will render your site to [path]/build. You can fire up a small webserver that continuously previews your site while building. This should automatically open your browser and preview the site. You can stop the server with control-c.
+This will render your site to [path]/build. But you can also fire up a small webserver that continuously previews your site while building. This should automatically open your browser and preview the site. You can stop the server with control-c.
 
 	cactus.py ~/www.mysite.com serve
 
-Once you are ready to deploy your site to S3 you can run the following. You will need your [Amazon access keys](https://payments.amazon.com/sdui/sdui/helpTab/Checkout-by-Amazon/Advanced-Integration-Help/Using-Your-Access-Key). You will also have to come up with an available bucket name for S3.
+Once you are ready to deploy your site to S3 you can run the following. You will need your [Amazon access keys](https://payments.amazon.com/sdui/sdui/helpTab/Checkout-by-Amazon/Advanced-Integration-Help/Using-Your-Access-Key). If you don't have one yet read how to get one [here](http://www.bucketexplorer.com/documentation/amazon-s3--how-to-create-a-new-amazon-s3-account.html) and [here](http://www.hongkiat.com/blog/amazon-s3-the-beginners-guide/) You will also have to come up with an available bucket name for S3.
 
 	cactus.py ~/www.mysite.com deploy
 

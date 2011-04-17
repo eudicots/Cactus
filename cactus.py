@@ -123,7 +123,7 @@ class Listener(object):
 		while True:
 			
 			s = self.checksum(self.path)
-			
+	
 			if s != self.current:
 				self.current = s
 				self.f(self.path)
@@ -229,34 +229,24 @@ class Site(object):
 	
 		global render, templatetags, hooks
 	
-	def map(self, f, items, *args):
+	def map(self, f, items):
 		
-		def wrapped(item):
-			try:
-				f(item, *args)
-			except Exception, e:
-				traceback.print_exc(file=sys.stdout)
 		
-		# map(wrapped, items)
+		
+		# def wrapped(item):
+		# 	print args
+		# 	f(item, *args)
+			
+			# try:
+			# 	f(item, *args)
+			# except Exception, e:
+			# 	traceback.print_exc(file=sys.stdout)
 		
 		self.pool = threadpool.ThreadPool(self.workers)
-		requests = threadpool.makeRequests(wrapped, items)
+		requests = threadpool.makeRequests(f, items)
 		
 		[self.pool.putRequest(req) for req in requests]
 		self.pool.wait()
-		# self.pool.map(wrapped, items)
-		# self.pool.join()
-		
-		# if len(items) > self.workers:
-		
-		# if not self.pool:
-		# 	self.pool = workerpool.WorkerPool(size=self.workers)
-		# 
-		# self.pool.map(wrapped, items)
-		# self.pool.join()
-		
-		# else:
-		# 	map(wrapped, items)
 		
 	def execHook(self, name):
 		
@@ -286,6 +276,9 @@ class Site(object):
 		# Generate some default files
 		open(os.path.join(self.path, 'templates', 'base.html'), 'w').write(templateFile)
 		open(os.path.join(self.path, 'pages', 'index.html'), 'w').write(indexFile)
+		open(os.path.join(self.path, 'pages', 'error.html'), 'w').write(errorFile)
+		open(os.path.join(self.path, 'pages', 'sitemap.xml'), 'w').write(sitemapFile)
+		open(os.path.join(self.path, 'pages', 'robots.txt'), 'w').write(robotsFile)
 		open(os.path.join(self.path, 'extras', 'render.py'), 'w').write(renderFile)
 		open(os.path.join(self.path, 'extras', 'hooks.py'), 'w').write(hooksFile)
 		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write("")
@@ -293,18 +286,13 @@ class Site(object):
 		self.log('New project generated at %s' % self.path)
 
 	def buildPage(self, path):
-	
-		self.log("  * Building %s" % (path))
-	
+		
 		outputPath = os.path.join(self.paths['build'], path)
 	
 		try:
 			os.makedirs(os.path.dirname(outputPath))
 		except OSError:
 			pass
-
-		# source, name = templateLoader.get_template(path)
-		# print templateLoader.get_template(path)
 		
 		f = codecs.open(os.path.join(self.paths['pages'], path), 'r', 'utf8')
 		source = f.read()
@@ -320,12 +308,18 @@ class Site(object):
 		context = {
 			'STATIC_URL': os.path.join(prefix, 'static'),
 			'ROOT_URL': prefix,
+			'CACTUS': {
+				'path': path,
+				'pages': self._pages
+			}
 		}
 	
 		context.update(pageContext)
 	
 		f.write(t.render(Context(context)))
 		f.close()
+		
+		self.log("  * Built %s" % (path))
 
 
 	def build(self, clean=False):
@@ -346,7 +340,9 @@ class Site(object):
 		if not os.path.exists(self.paths['build']):
 			os.mkdir(self.paths['build'])
 		
-		self.map(self.buildPage, [f.replace('%s/' % self.paths['pages'], '') for f in fileList(self.paths['pages'])])
+		pages = [f.replace('%s/' % self.paths['pages'], '') for f in fileList(self.paths['pages'])]
+		self._pages = [p for p in pages if p.endswith('.html') and p != 'error.html']
+		self.map(self.buildPage, pages)
 		
 		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
 		
@@ -374,11 +370,13 @@ class Site(object):
 
 		import SimpleHTTPServer
 		import SocketServer
+		
+		server = SocketServer.ThreadingTCPServer
+		# server = SocketServer.TCPServer
+		
+		server.allow_reuse_address = True
 	
-		SocketServer.ThreadingTCPServer.allow_reuse_address = True
-	
-		httpd = SocketServer.ThreadingTCPServer(("", port), 
-			SimpleHTTPServer.SimpleHTTPRequestHandler)
+		httpd = server(("", port), SimpleHTTPServer.SimpleHTTPRequestHandler)
 	
 		# if browser is True:
 		# 	print 'Opening web browser (disable by adding --browser=no to command)'
@@ -389,8 +387,10 @@ class Site(object):
 		except KeyboardInterrupt:
 			pass
 
-	def uploadFile(self, path, awsBucket):
-	
+	def uploadFile(self, path):
+		
+		awsBucket =  self.awsBucket
+		
 		relativePath = path.replace('%s/' % self.paths['build'], '')
 		headers = {'Cache-Control': 'max-age %d' % (3600 * 24 * 365)}
 	
@@ -444,8 +444,15 @@ class Site(object):
 	
 		if awsBucketName not in [b.name for b in buckets]:
 			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
-				awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
+				
+				try:
+					awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
+				except boto.exception.S3CreateError, e:
+					self.log('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
+					return
+					
 				awsBucket.configure_website('index.html', 'error.html')
+				
 				self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
 				self.config.set('aws-bucket-name', awsBucketName)
 				self.config.write()
@@ -463,8 +470,9 @@ class Site(object):
 		
 		self.changedFilesAtLastDeploy = []
 		
+		self.awsBucket = awsBucket
 		filesToUpload = fileList(self.paths['build'])
-		self.map(self.uploadFile, filesToUpload, awsBucket)
+		self.map(self.uploadFile, filesToUpload)
 		
 		self.execHook('postDeploy')
 	
@@ -488,6 +496,7 @@ class Site(object):
 			if d.origin.dns_name == self.config.get('aws-bucket-website').replace('http://', '') and d.status == 'Deployed':
 				self.log('Sending CloudFront invalidation request to %s (cname: %s)' % (d.domain_name, ' '.join(d.cnames)))
 				connection.create_invalidation_request(d.id, self.changedFilesAtLastDeploy)
+				self.log('Request sent, can take up to fifteen minutes to process...')
 				
 
 def main(argv=sys.argv):
@@ -536,6 +545,27 @@ indexFile = """{% extends "base.html" %}
 {% block content %}
 Welcome to Cactus!
 {% endblock %}
+"""
+
+errorFile = """{% extends "base.html" %}
+{% block content %}
+Sorry, something went wrong.
+{% endblock %}
+"""
+
+robotsFile = """{% for path in CACTUS.pages %}{{ path }}
+{% endfor %}"""
+
+sitemapFile = """<?xml version="1.0" encoding="UTF-8"?> 
+<urlset xmlns="http://www.google.com/schemas/sitemap/0.84"> 
+{% for path in CACTUS.pages %}
+	<url>
+		<loc>{{ path }}</loc>
+		<changefreq>daily</changefreq> 
+		<priority>1.0</priority> 
+	</url>
+{% endfor %}
+</urlset> 
 """
 
 renderFile = """def process(path, data):
