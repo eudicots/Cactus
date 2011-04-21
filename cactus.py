@@ -19,8 +19,7 @@ import time
 import thread
 import threading
 import simplejson as json
-#import workerpool
-import threadpool
+# import threadpool
 import logging
 import boto
 import getpass
@@ -28,6 +27,7 @@ import mimetypes
 import httplib
 import urlparse
 import hashlib
+import socket
 
 from distutils import dir_util
 
@@ -230,23 +230,14 @@ class Site(object):
 		global render, templatetags, hooks
 	
 	def map(self, f, items):
+				
+		# self.pool = threadpool.ThreadPool(self.workers)
+		# requests = threadpool.makeRequests(f, items)
+		# 
+		# [self.pool.putRequest(req) for req in requests]
+		# self.pool.wait()
 		
-		
-		
-		# def wrapped(item):
-		# 	print args
-		# 	f(item, *args)
-			
-			# try:
-			# 	f(item, *args)
-			# except Exception, e:
-			# 	traceback.print_exc(file=sys.stdout)
-		
-		self.pool = threadpool.ThreadPool(self.workers)
-		requests = threadpool.makeRequests(f, items)
-		
-		[self.pool.putRequest(req) for req in requests]
-		self.pool.wait()
+		map(f, items)
 		
 	def execHook(self, name):
 		
@@ -385,9 +376,13 @@ class Site(object):
 					return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 				
 				return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(self, code, message=None)
-			
-		httpd = server(("", port), RequestHandler)
-	
+		
+		try:
+			httpd = server(("", port), RequestHandler)
+		except socket.error, e:
+			self.log('Could not start webserver. Are you running another one on the same port?')
+			return
+		
 		# if browser is True:
 		# 	print 'Opening web browser (disable by adding --browser=no to command)'
 		webbrowser.open('http://127.0.0.1:%s' % port)
