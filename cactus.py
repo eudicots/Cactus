@@ -371,12 +371,22 @@ class Site(object):
 		import SimpleHTTPServer
 		import SocketServer
 		
-		server = SocketServer.ThreadingTCPServer
-		# server = SocketServer.TCPServer
+		# server = SocketServer.ThreadingTCPServer
+		server = SocketServer.TCPServer
 		
 		server.allow_reuse_address = True
-	
-		httpd = server(("", port), SimpleHTTPServer.SimpleHTTPRequestHandler)
+		
+		class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+						
+			def send_error(self, code, message=None):
+				
+				if code == 404:
+					self.path = '/error.html'
+					return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+				
+				return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(self, code, message=None)
+			
+		httpd = server(("", port), RequestHandler)
 	
 		# if browser is True:
 		# 	print 'Opening web browser (disable by adding --browser=no to command)'
@@ -532,6 +542,9 @@ templateFile = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>Welcome</title>
+	
+	<link rel="shortcut icon" href="{{ STATIC_URL }}/favicon.ico"> 
+	
 </head>
 <body>
 	{% block content %}
@@ -549,7 +562,17 @@ Welcome to Cactus!
 
 errorFile = """{% extends "base.html" %}
 {% block content %}
-Sorry, something went wrong.
+<script type="text/javascript" charset="utf-8" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+	$(document).ready(function() {
+		$("#url").text(window.location.pathname)
+	})
+</script>
+
+<p>
+	Sorry the page <b id="url"></b> could not be found on this server.
+</p>
 {% endblock %}
 """
 
