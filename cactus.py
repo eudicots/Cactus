@@ -12,7 +12,7 @@ import os
 import re
 import codecs
 import shutil
-import subprocess
+import commands
 import webbrowser
 import traceback
 import time
@@ -230,14 +230,18 @@ class Site(object):
 		global render, templatetags, hooks
 	
 	def map(self, f, items):
-				
-		# self.pool = threadpool.ThreadPool(self.workers)
-		# requests = threadpool.makeRequests(f, items)
-		# 
-		# [self.pool.putRequest(req) for req in requests]
-		# self.pool.wait()
 		
-		map(f, items)
+		import threadpool
+		
+		if not self.pool:
+			self.pool = threadpool.ThreadPool(self.workers)
+		
+		requests = threadpool.makeRequests(f, items)
+		
+		[self.pool.putRequest(req) for req in requests]
+		self.pool.wait()
+		
+		# map(f, items)
 		
 	def execHook(self, name):
 		
@@ -332,7 +336,26 @@ class Site(object):
 			os.mkdir(self.paths['build'])
 		
 		pages = [f.replace('%s/' % self.paths['pages'], '') for f in fileList(self.paths['pages'])]
-		self._pages = [p for p in pages if p.endswith('.html') and p != 'error.html']
+		self._pages = []
+		
+		for p in pages:
+			
+			if not p.endswith('.html'):
+				continue
+			
+			if p == 'error.html':
+				continue
+			
+			if p.endswith('/index.html'):
+				p = p.replace('index.html', '')
+			
+			if p == 'index.html':
+				p = '/'
+			
+			self._pages.append(p)
+		
+		print self._pages
+	
 		self.map(self.buildPage, pages)
 		
 		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
@@ -349,7 +372,6 @@ class Site(object):
 		self.log('Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build']))
 		self.log('Type control-c to exit')
 	
-		# Start the webserver in a subprocess
 		os.chdir(self.paths['build'])
 		
 		def rebuild(change):
@@ -519,6 +541,11 @@ def main(argv=sys.argv):
 	
 	if len(argv) < 3:
 		exit()
+
+	# Handy shortcut for editing in TextMate
+	if argv[2] == 'mate':
+		commands.getstatusoutput('mate %s' % argv[1])
+		return
 	
 	if argv[2] not in ['create', 'build', 'serve', 'deploy']:
 		exit()
@@ -583,7 +610,7 @@ sitemapFile = """<?xml version="1.0" encoding="UTF-8"?>
 		<priority>1.0</priority> 
 	</url>
 {% endfor %}
-</urlset> 
+</urlset>
 """
 
 renderFile = """def process(path, data):

@@ -52,6 +52,9 @@ If you did not see any errors, the path you pointed to should now look like this
 	- build					Generated site (upload this to your host)
 	- pages					Your actual site pages
 		- index.html
+		- sitemap.xml
+		- robots.txt
+		- error.html		A default 404 page
 	- templates				Holds your django templates
 		- base.html
 	- static				Directory with static assets
@@ -96,6 +99,10 @@ Cactus can deploy your website directly to S3, all you need are your Amazon cred
 	cactus [path] deploy
 
 After deploying you can visit the website directly. You can find a deploy log at [site url]/versions.txt. When you add a CloudFront CDN, Cactus also will automatically expire all changed files at the edge locations. This may take up to 15 minutes.
+
+# Extras
+
+Cactus will auto generate a robots.txt and sitemap.xml file for you based on your pages. This will help bots to index your pages for Google and Bing for example.
 
 # Advanced usage
 

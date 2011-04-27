@@ -6,3 +6,4 @@
 + Add automatic robots.txt and sitemap.xml generation
 + Add error pages (404 and 500) by default
 + Fix issue with changing plain text files (md5 hash seems to change every time)
+- Add plugin structure
