@@ -28,7 +28,7 @@ sudo rm -Rf boto
 
 # Install Cactus
 
-curl -O https://github.com/koenbok/Cactus/raw/master/cactus.py
+curl -O https://raw.github.com/koenbok/Cactus/master/cactus.py
 chmod 755 cactus.py
 sudo mv cactus.py /usr/local/bin/cactus.py
 
