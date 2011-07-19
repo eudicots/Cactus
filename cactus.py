@@ -316,6 +316,8 @@ class Site(object):
 		self.log("  * Built %s" % (path))
 	
 	def build(self, clean=False):
+		
+		print "HELLO"
 				
 		self.execHook('preBuild')
 		
@@ -355,7 +357,7 @@ class Site(object):
 		# self.map(self.buildPage, pages)
 		map(self.buildPage, pages)
 		
-		
+		self.log("Copying static files... %s" % (self.paths['static']))
 		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
 		
 		# if not os.path.exists(os.path.join(self.paths['build'], 'static')):
