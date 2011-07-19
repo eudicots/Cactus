@@ -28,6 +28,7 @@ import httplib
 import urlparse
 import hashlib
 import socket
+import subprocess
 
 from distutils import dir_util
 
@@ -201,6 +202,7 @@ class Site(object):
 			'templates': os.path.join(path, 'templates'),
 			'extras': os.path.join(path, 'extras'),
 			'static': os.path.join(path, 'static'),
+			'script': os.path.join(os.getcwd(), __file__)
 		}
 		
 		self.config = Config(self.paths['config'])
@@ -233,15 +235,12 @@ class Site(object):
 		
 		import threadpool
 		
-		if not self.pool:
-			self.pool = threadpool.ThreadPool(self.workers)
-		
+		pool = threadpool.ThreadPool(self.workers)
 		requests = threadpool.makeRequests(f, items)
 		
-		[self.pool.putRequest(req) for req in requests]
-		self.pool.wait()
-		
-		# map(f, items)
+		[pool.putRequest(req) for req in requests]
+		pool.wait()
+		del pool
 		
 	def execHook(self, name):
 		
@@ -315,8 +314,7 @@ class Site(object):
 		f.close()
 		
 		self.log("  * Built %s" % (path))
-
-
+	
 	def build(self, clean=False):
 				
 		self.execHook('preBuild')
@@ -353,10 +351,10 @@ class Site(object):
 				p = '/'
 			
 			self._pages.append(p)
-		
-		print self._pages
 	
-		self.map(self.buildPage, pages)
+		# self.map(self.buildPage, pages)
+		map(self.buildPage, pages)
+		
 		
 		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
 		
@@ -375,6 +373,7 @@ class Site(object):
 		os.chdir(self.paths['build'])
 		
 		def rebuild(change):
+					
 			self.log('*** Rebuilding (%s changed)' % change)
 			self.loadExtras(force=True)
 			self.build()
@@ -527,7 +526,7 @@ class Site(object):
 				
 
 def main(argv=sys.argv):
-	
+		
 	def exit():
 		print
 		print 'Usage: cactus.py <path> [create|build|serve|deploy]'
