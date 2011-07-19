@@ -316,8 +316,6 @@ class Site(object):
 		self.log("  * Built %s" % (path))
 	
 	def build(self, clean=False):
-		
-		print "HELLO"
 				
 		self.execHook('preBuild')
 		
@@ -589,7 +587,16 @@ errorFile = """{% extends "base.html" %}
 
 <script type="text/javascript" charset="utf-8">
 	$(document).ready(function() {
-		$("#url").text(window.location.pathname)
+		
+		// Add the missing url to the text
+		$("#url").text(window.location.pathname);
+		
+		// Fix the css locations dynamically
+		$("head link").each(function() {
+			for (var i=0; i<window.location.pathname.split(/\//g).length-2; i++)
+				$(this).attr("href", "../" + $(this).attr("href"));
+		});
+		
 	})
 </script>
 
