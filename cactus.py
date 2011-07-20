@@ -549,8 +549,14 @@ def main(argv=sys.argv):
 	if argv[2] not in ['create', 'build', 'serve', 'deploy']:
 		exit()
 	
-	site = Site(os.path.abspath(sys.argv[1]))
-	getattr(site, argv[2])()
+	path = os.path.abspath(sys.argv[1])
+	
+	for p in ['pages', 'static', 'templates']:
+		if not os.path.isdir(os.path.join(path, p)):
+			print 'This does not look like a cactus project (missing "%s" subfolder)' % p
+			sys.exit()
+	
+	getattr(Site(path), argv[2])()
 
 
 ###############################################################
