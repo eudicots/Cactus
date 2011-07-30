@@ -551,10 +551,12 @@ def main(argv=sys.argv):
 	
 	path = os.path.abspath(sys.argv[1])
 	
-	for p in ['pages', 'static', 'templates']:
-		if not os.path.isdir(os.path.join(path, p)):
-			print 'This does not look like a cactus project (missing "%s" subfolder)' % p
-			sys.exit()
+	if argv[2] in ['build', 'serve', 'deploy']:
+	
+		for p in ['pages', 'static', 'templates']:
+			if not os.path.isdir(os.path.join(path, p)):
+				print 'This does not look like a cactus project (missing "%s" subfolder)' % p
+				sys.exit()
 	
 	getattr(Site(path), argv[2])()
 
