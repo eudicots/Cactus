@@ -551,7 +551,7 @@ def main(argv=sys.argv):
 	
 	path = os.path.abspath(sys.argv[1])
 	
-	if argv[2] != 'create'
+	if argv[2] != 'create':
 		for p in ['pages', 'static', 'templates']:
 			if not os.path.isdir(os.path.join(path, p)):
 				print 'This does not look like a cactus project (missing "%s" subfolder)' % p
