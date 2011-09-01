@@ -218,16 +218,19 @@ class Site(object):
 	
 	def loadExtras(self, force=False):
 		
-		sys.path.append(self.paths['extras'])
+		# sys.path.append(self.paths['extras'])
 		
 		if force:
 			for m in ['render', 'templatetags', 'hooks']:
 				if m in sys.modules:
 					del sys.modules[m]
 		
-		import render
-		import templatetags
-		import hooks
+		from extras import render
+		from extras import templatetags
+		from extras import hooks
+		
+		from django.template.loader import add_to_builtins
+		add_to_builtins('extras.templatetags')
 	
 		global render, templatetags, hooks
 	
@@ -276,6 +279,7 @@ class Site(object):
 		open(os.path.join(self.path, 'extras', 'render.py'), 'w').write(renderFile)
 		open(os.path.join(self.path, 'extras', 'hooks.py'), 'w').write(hooksFile)
 		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write("")
+		open(os.path.join(self.path, 'extras', '__init__.py'), 'w').write("")
 	
 		self.log('New project generated at %s' % self.path)
 
