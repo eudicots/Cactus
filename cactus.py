@@ -456,7 +456,7 @@ class Site(object):
 		self.execHook('preDeploy')
 	
 		awsAccessKey = self.config.get('aws-access-key') or raw_input('Amazon access key (http://goo.gl/5OgV8): ').strip()
-		awsSecretKey = getpassword('aws', awsAccessKey) or getpass._raw_input('Amazon secret access key: ').strip()
+		awsSecretKey = getpassword('aws', awsAccessKey) or getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
 	
 		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
 	
@@ -471,7 +471,7 @@ class Site(object):
 	
 		setpassword('aws', awsAccessKey, awsSecretKey)
 	
-		awsBucketName = self.config.get('aws-bucket-name') or raw_input('S3 bucket name: ').strip().lower()
+		awsBucketName = self.config.get('aws-bucket-name') or raw_input('S3 bucket name (make one up, we will check for existence): ').strip().lower()
 	
 		if awsBucketName not in [b.name for b in buckets]:
 			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
