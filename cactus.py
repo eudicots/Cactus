@@ -218,7 +218,8 @@ class Site(object):
 	
 	def loadExtras(self, force=False):
 		
-		# sys.path.append(self.paths['extras'])
+		if not self.path in sys.path:
+			sys.path.append(self.path)
 		
 		if force:
 			for m in ['render', 'templatetags', 'hooks']:
@@ -278,7 +279,7 @@ class Site(object):
 		open(os.path.join(self.path, 'pages', 'robots.txt'), 'w').write(robotsFile)
 		open(os.path.join(self.path, 'extras', 'render.py'), 'w').write(renderFile)
 		open(os.path.join(self.path, 'extras', 'hooks.py'), 'w').write(hooksFile)
-		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write("")
+		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write(templateTagsFile)
 		open(os.path.join(self.path, 'extras', '__init__.py'), 'w').write("")
 	
 		self.log('New project generated at %s' % self.path)
@@ -668,6 +669,11 @@ def preDeploy(path, config):
 
 def postDeploy(path, config):
 	pass
+"""
+
+templateTagsFile = """from django import template
+
+register = template.Library()
 """
 
 ###############################################################
