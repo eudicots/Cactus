@@ -569,7 +569,7 @@ class Site(object):
 				
 			if result == 0:
 				self.log(filePath.replace(self.path, ""))
-
+	
 def main(argv=sys.argv):
 		
 	def exit():
@@ -580,10 +580,16 @@ def main(argv=sys.argv):
 		print '    build:   Rebuild your site from source files'
 		print '    serve:   Serve you website at local development server'
 		print '    deploy:  Upload and deploy your site to S3'
+		print ''
+		print 'Or type "cactus.py update" to update to the latest version'
 		print
 		sys.exit()
 	
 	if len(argv) < 3:
+		if argv[1] == 'update':
+			print '\n### Updating Cactus to the lastest version ###\n'
+			os.system('curl -L https://raw.github.com/koenbok/Cactus/master/install.sh | sh')
+			sys.exit()
 		exit()
 
 	# Handy shortcut for editing in TextMate
