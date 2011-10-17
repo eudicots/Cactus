@@ -92,6 +92,12 @@ def getError(data):
 	
 	return '%s: %s' % (code, msg)
 
+def fileSize(num):
+	for x in ['b','kb','mb','gb','tb']:
+		if num < 1024.0:
+			return "%.0f%s" % (num, x)
+		num /= 1024.0
+
 class Listener(object):
 	
 	def __init__(self, path, f, delay=.5, ignore=None):
@@ -433,6 +439,7 @@ class Site(object):
 	
 		data = open(os.path.join(self.paths['build'], path), 'r').read()
 		gzip = (len(data) > 1024 and os.path.splitext(relativePath)[1].strip('.').lower() in self.compress.split(','))
+		self.totalSize += len(data)
 		
 		if gzip:
 			data = compressString(data)
@@ -445,7 +452,7 @@ class Site(object):
 			remoteEtag = getURLHeaders(url).get('etag', '').strip('"')
 			
 			if remoteEtag == dataHash:
-				self.log('  = %s %s bytes%s (unchanged)...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
+				self.log('  = %s %s%s (unchanged)...' % (relativePath, fileSize(len(data)), ' (gzip)' if gzip else ''))
 				return
 			
 			# print '%s remoteEtag: %s dataHash: %s' % (url, remoteEtag, dataHash)
@@ -454,9 +461,10 @@ class Site(object):
 		key.content_type = mimetypes.guess_type(path)[0]
 		key.set_contents_from_string(data, headers, policy='public-read')
 		
+		self.totalTransferredSize += len(data)
 		self.changedFilesAtLastDeploy.append(relativePath)
 		
-		self.log('  + %s %s bytes%s...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
+		self.log('  + %s %s%s...' % (relativePath, fileSize(len(data)), ' (gzip)' if gzip else ''))
 
 	def deploy(self):
 	
@@ -508,6 +516,8 @@ class Site(object):
 		self.log('Uploading site to bucket %s' % awsBucketName)
 		
 		self.changedFilesAtLastDeploy = []
+		self.totalSize = 0
+		self.totalTransferredSize = 0
 		
 		self.awsBucket = awsBucket
 		filesToUpload = fileList(self.paths['build'])
@@ -516,7 +526,9 @@ class Site(object):
 		self.execHook('postDeploy')
 	
 		self.log('')
-		self.log('Upload done, %s of %s files changed' % (len(self.changedFilesAtLastDeploy), len(filesToUpload)))
+		self.log('Upload done, %s of %s files changed, %s of total %s transferred' % \
+			(len(self.changedFilesAtLastDeploy), len(filesToUpload), 
+			fileSize(self.totalTransferredSize), fileSize(self.totalSize)))
 		self.log('http://%s' % self.config.get('aws-bucket-website'))
 		self.log('')
 		
@@ -536,7 +548,27 @@ class Site(object):
 				self.log('Sending CloudFront invalidation request to %s (cname: %s)' % (d.domain_name, ' '.join(d.cnames)))
 				connection.create_invalidation_request(d.id, self.changedFilesAtLastDeploy)
 				self.log('Request sent, can take up to fifteen minutes to process...')
+	
+	def report(self):
+		"""
+		Bunch of tools that report on your current project:
+		- Currently unused static files in your project
+		- [todo] Broken link detector
+		"""
+		fileTypes = ['css', 'html', 'htm', 'js']
+		
+		self.log('Unused static resources:')
+		
+		for filePath in fileList(self.paths['static']):
+			
+			fileName = os.path.basename(filePath)
+
+			c = "find . -type f \( -iname '*.html' -o -iname '*.css' -o -iname '*.js' \) | xargs grep '%s'" % (fileName)
+			result = len(commands.getstatusoutput(c)[1].splitlines())
+
 				
+			if result == 0:
+				self.log(filePath.replace(self.path, ""))
 
 def main(argv=sys.argv):
 		
@@ -559,7 +591,7 @@ def main(argv=sys.argv):
 		commands.getstatusoutput('mate %s' % argv[1])
 		return
 	
-	if argv[2] not in ['create', 'build', 'serve', 'deploy']:
+	if argv[2] not in ['create', 'build', 'serve', 'deploy', 'report']:
 		exit()
 	
 	path = os.path.abspath(sys.argv[1])
