@@ -25,6 +25,7 @@ import boto
 import getpass
 import mimetypes
 import httplib
+import urllib
 import urlparse
 import hashlib
 import socket
@@ -183,7 +184,7 @@ def getURLHeaders(url):
 	url = urlparse.urlparse(url)
 	
 	conn = httplib.HTTPConnection(url.netloc)
-	conn.request('HEAD', url.path)
+	conn.request('HEAD', urllib.quote(url.path))
 
 	response = conn.getresponse()
 
@@ -192,7 +193,7 @@ def getURLHeaders(url):
 
 class Site(object):
 	
-	def __init__(self, path, workers=8):
+	def __init__(self, path, workers=16):
 		
 		self.path = path
 		self.paths = {
@@ -239,12 +240,16 @@ class Site(object):
 		
 		import threadpool
 		
-		pool = threadpool.ThreadPool(self.workers)
+		self.pool = threadpool.ThreadPool(self.workers)
 		requests = threadpool.makeRequests(f, items)
 		
-		[pool.putRequest(req) for req in requests]
-		pool.wait()
-		del pool
+		[self.pool.putRequest(req) for req in requests]
+		
+		try:
+			self.pool.wait()
+		except KeyboardInterrupt:
+			pass
+		# del pool
 		
 	def execHook(self, name):
 		
@@ -360,11 +365,15 @@ class Site(object):
 		# self.map(self.buildPage, pages)
 		map(self.buildPage, pages)
 		
-		self.log("Copying static files... %s" % (self.paths['static']))
-		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
+		# self.log("Copying static files... %s" % (self.paths['static']))
 		
-		# if not os.path.exists(os.path.join(self.paths['build'], 'static')):
-		# 	os.symlink(self.paths['static'], os.path.join(self.paths['build'], 'static'))
+		# dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
+		
+		# print commands.getstatusoutput('rsync -vaz "%s" "%s"' % \
+		# 	(self.paths['static'], os.path.join(self.paths['build'], 'static')))
+		
+		if not os.path.exists(os.path.join(self.paths['build'], 'static')):
+			os.symlink(self.paths['static'], os.path.join(self.paths['build'], 'static'))
 	
 		self.execHook('postBuild')
 	
@@ -387,11 +396,9 @@ class Site(object):
 
 		import SimpleHTTPServer
 		import SocketServer
-		
-		# server = SocketServer.ThreadingTCPServer
-		server = SocketServer.TCPServer
-		
-		server.allow_reuse_address = True
+
+		class Server(SocketServer.ForkingMixIn, SocketServer.TCPServer):
+			allow_reuse_address = True
 		
 		class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 						
@@ -401,16 +408,15 @@ class Site(object):
 					self.path = '/error.html'
 					return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 				
-				return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(self, code, message=None)
+				return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(
+					self, code, message=None)
 		
 		try:
-			httpd = server(("", port), RequestHandler)
+			httpd = Server(("", port), RequestHandler)
 		except socket.error, e:
 			self.log('Could not start webserver. Are you running another one on the same port?')
 			return
 		
-		# if browser is True:
-		# 	print 'Opening web browser (disable by adding --browser=no to command)'
 		webbrowser.open('http://127.0.0.1:%s' % port)
 	
 		try:
@@ -441,6 +447,8 @@ class Site(object):
 			if remoteEtag == dataHash:
 				self.log('  = %s %s bytes%s (unchanged)...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
 				return
+			
+			# print '%s remoteEtag: %s dataHash: %s' % (url, remoteEtag, dataHash)
 		
 		key = awsBucket.new_key(relativePath)
 		key.content_type = mimetypes.guess_type(path)[0]
