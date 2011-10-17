@@ -11,7 +11,7 @@ Alternatives to Cactus are [Hyde](http://ringce.com/hyde) and [Jekyll](https://g
 
 First install Cactus with the following one liner
 
-	curl https://raw.github.com/koenbok/Cactus/master/install.sh | sh
+	curl -L https://raw.github.com/koenbok/Cactus/master/install.sh | sh
 
 If you saw no errors, you can now generate a new project like this
 	
