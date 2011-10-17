@@ -6,7 +6,7 @@ Cactus is based on the idea that most dynamicness on websites these days can be 
 
 Alternatives to Cactus are [Hyde](http://ringce.com/hyde) and [Jekyll](https://github.com/mojombo/jekyll) but I wanted to build something simpler our in-house designers at [Sofa](http://www.madebysofa.com) could use more easily.
 
-## Examples
+### Examples
 
 http://docs.enstore.com/ - Enstore documentation website
 
