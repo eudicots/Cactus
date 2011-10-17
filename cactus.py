@@ -180,7 +180,7 @@ def compressString(s):
 	gzip.time = FakeTime()
 	
 	zbuf = cStringIO.StringIO()
-	zfile = gzip.GzipFile(mode='wb', compresslevel=6, fileobj=zbuf)
+	zfile = gzip.GzipFile(mode='wb', compresslevel=9, fileobj=zbuf)
 	zfile.write(s)
 	zfile.close()
 	return zbuf.getvalue()
