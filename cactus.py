@@ -378,8 +378,14 @@ class Site(object):
 		# print commands.getstatusoutput('rsync -vaz "%s" "%s"' % \
 		# 	(self.paths['static'], os.path.join(self.paths['build'], 'static')))
 		
-		if not os.path.exists(os.path.join(self.paths['build'], 'static')):
-			os.symlink(self.paths['static'], os.path.join(self.paths['build'], 'static'))
+		staticBuildPath = os.path.join(self.paths['build'], 'static')
+		
+		# Fix broken symlinks
+		if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
+			os.remove(staticBuildPath)
+		
+		if not os.path.lexists(staticBuildPath):
+			os.symlink(self.paths['static'], staticBuildPath)
 	
 		self.execHook('postBuild')
 	
