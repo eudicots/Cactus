@@ -25,6 +25,7 @@ import boto
 import getpass
 import mimetypes
 import httplib
+import urllib
 import urlparse
 import hashlib
 import socket
@@ -90,6 +91,12 @@ def getError(data):
 	msg  = tree.find('.//Message/').text
 	
 	return '%s: %s' % (code, msg)
+
+def fileSize(num):
+	for x in ['b','kb','mb','gb','tb']:
+		if num < 1024.0:
+			return "%.0f%s" % (num, x)
+		num /= 1024.0
 
 class Listener(object):
 	
@@ -173,7 +180,7 @@ def compressString(s):
 	gzip.time = FakeTime()
 	
 	zbuf = cStringIO.StringIO()
-	zfile = gzip.GzipFile(mode='wb', compresslevel=6, fileobj=zbuf)
+	zfile = gzip.GzipFile(mode='wb', compresslevel=9, fileobj=zbuf)
 	zfile.write(s)
 	zfile.close()
 	return zbuf.getvalue()
@@ -183,7 +190,7 @@ def getURLHeaders(url):
 	url = urlparse.urlparse(url)
 	
 	conn = httplib.HTTPConnection(url.netloc)
-	conn.request('HEAD', url.path)
+	conn.request('HEAD', urllib.quote(url.path))
 
 	response = conn.getresponse()
 
@@ -192,7 +199,7 @@ def getURLHeaders(url):
 
 class Site(object):
 	
-	def __init__(self, path, workers=8):
+	def __init__(self, path, workers=16):
 		
 		self.path = path
 		self.paths = {
@@ -218,16 +225,20 @@ class Site(object):
 	
 	def loadExtras(self, force=False):
 		
-		sys.path.append(self.paths['extras'])
+		if not self.path in sys.path:
+			sys.path.append(self.path)
 		
 		if force:
 			for m in ['render', 'templatetags', 'hooks']:
 				if m in sys.modules:
 					del sys.modules[m]
 		
-		import render
-		import templatetags
-		import hooks
+		from extras import render
+		from extras import templatetags
+		from extras import hooks
+		
+		from django.template.loader import add_to_builtins
+		add_to_builtins('extras.templatetags')
 	
 		global render, templatetags, hooks
 	
@@ -235,12 +246,16 @@ class Site(object):
 		
 		import threadpool
 		
-		pool = threadpool.ThreadPool(self.workers)
+		self.pool = threadpool.ThreadPool(self.workers)
 		requests = threadpool.makeRequests(f, items)
 		
-		[pool.putRequest(req) for req in requests]
-		pool.wait()
-		del pool
+		[self.pool.putRequest(req) for req in requests]
+		
+		try:
+			self.pool.wait()
+		except KeyboardInterrupt:
+			pass
+		# del pool
 		
 	def execHook(self, name):
 		
@@ -275,7 +290,8 @@ class Site(object):
 		open(os.path.join(self.path, 'pages', 'robots.txt'), 'w').write(robotsFile)
 		open(os.path.join(self.path, 'extras', 'render.py'), 'w').write(renderFile)
 		open(os.path.join(self.path, 'extras', 'hooks.py'), 'w').write(hooksFile)
-		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write("")
+		open(os.path.join(self.path, 'extras', 'templatetags.py'), 'w').write(templateTagsFile)
+		open(os.path.join(self.path, 'extras', '__init__.py'), 'w').write("")
 	
 		self.log('New project generated at %s' % self.path)
 
@@ -355,11 +371,21 @@ class Site(object):
 		# self.map(self.buildPage, pages)
 		map(self.buildPage, pages)
 		
-		self.log("Copying static files... %s" % (self.paths['static']))
-		dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
+		# self.log("Copying static files... %s" % (self.paths['static']))
 		
-		# if not os.path.exists(os.path.join(self.paths['build'], 'static')):
-		# 	os.symlink(self.paths['static'], os.path.join(self.paths['build'], 'static'))
+		# dir_util.copy_tree(self.paths['static'], os.path.join(self.paths['build'], 'static'), verbose=1)
+		
+		# print commands.getstatusoutput('rsync -vaz "%s" "%s"' % \
+		# 	(self.paths['static'], os.path.join(self.paths['build'], 'static')))
+		
+		staticBuildPath = os.path.join(self.paths['build'], 'static')
+		
+		# Fix broken symlinks
+		if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
+			os.remove(staticBuildPath)
+		
+		if not os.path.lexists(staticBuildPath):
+			os.symlink(self.paths['static'], staticBuildPath)
 	
 		self.execHook('postBuild')
 	
@@ -382,11 +408,9 @@ class Site(object):
 
 		import SimpleHTTPServer
 		import SocketServer
-		
-		# server = SocketServer.ThreadingTCPServer
-		server = SocketServer.TCPServer
-		
-		server.allow_reuse_address = True
+
+		class Server(SocketServer.ForkingMixIn, SocketServer.TCPServer):
+			allow_reuse_address = True
 		
 		class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 						
@@ -396,16 +420,15 @@ class Site(object):
 					self.path = '/error.html'
 					return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 				
-				return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(self, code, message=None)
+				return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(
+					self, code, message=None)
 		
 		try:
-			httpd = server(("", port), RequestHandler)
+			httpd = Server(("", port), RequestHandler)
 		except socket.error, e:
 			self.log('Could not start webserver. Are you running another one on the same port?')
 			return
 		
-		# if browser is True:
-		# 	print 'Opening web browser (disable by adding --browser=no to command)'
 		webbrowser.open('http://127.0.0.1:%s' % port)
 	
 		try:
@@ -422,6 +445,7 @@ class Site(object):
 	
 		data = open(os.path.join(self.paths['build'], path), 'r').read()
 		gzip = (len(data) > 1024 and os.path.splitext(relativePath)[1].strip('.').lower() in self.compress.split(','))
+		self.totalSize += len(data)
 		
 		if gzip:
 			data = compressString(data)
@@ -434,16 +458,19 @@ class Site(object):
 			remoteEtag = getURLHeaders(url).get('etag', '').strip('"')
 			
 			if remoteEtag == dataHash:
-				self.log('  = %s %s bytes%s (unchanged)...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
+				self.log('  = %s %s%s (unchanged)...' % (relativePath, fileSize(len(data)), ' (gzip)' if gzip else ''))
 				return
+			
+			# print '%s remoteEtag: %s dataHash: %s' % (url, remoteEtag, dataHash)
 		
 		key = awsBucket.new_key(relativePath)
 		key.content_type = mimetypes.guess_type(path)[0]
 		key.set_contents_from_string(data, headers, policy='public-read')
 		
+		self.totalTransferredSize += len(data)
 		self.changedFilesAtLastDeploy.append(relativePath)
 		
-		self.log('  + %s %s bytes%s...' % (relativePath, len(data), ' (gzip)' if gzip else ''))
+		self.log('  + %s %s%s...' % (relativePath, fileSize(len(data)), ' (gzip)' if gzip else ''))
 
 	def deploy(self):
 	
@@ -451,7 +478,7 @@ class Site(object):
 		self.execHook('preDeploy')
 	
 		awsAccessKey = self.config.get('aws-access-key') or raw_input('Amazon access key (http://goo.gl/5OgV8): ').strip()
-		awsSecretKey = getpassword('aws', awsAccessKey) or getpass._raw_input('Amazon secret access key: ').strip()
+		awsSecretKey = getpassword('aws', awsAccessKey) or getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
 	
 		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
 	
@@ -466,7 +493,7 @@ class Site(object):
 	
 		setpassword('aws', awsAccessKey, awsSecretKey)
 	
-		awsBucketName = self.config.get('aws-bucket-name') or raw_input('S3 bucket name: ').strip().lower()
+		awsBucketName = self.config.get('aws-bucket-name') or raw_input('S3 bucket name (make one up, we will check for existence): ').strip().lower()
 	
 		if awsBucketName not in [b.name for b in buckets]:
 			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
@@ -495,6 +522,8 @@ class Site(object):
 		self.log('Uploading site to bucket %s' % awsBucketName)
 		
 		self.changedFilesAtLastDeploy = []
+		self.totalSize = 0
+		self.totalTransferredSize = 0
 		
 		self.awsBucket = awsBucket
 		filesToUpload = fileList(self.paths['build'])
@@ -503,7 +532,9 @@ class Site(object):
 		self.execHook('postDeploy')
 	
 		self.log('')
-		self.log('Upload done, %s of %s files changed' % (len(self.changedFilesAtLastDeploy), len(filesToUpload)))
+		self.log('Upload done, %s of %s files changed, %s of total %s transferred' % \
+			(len(self.changedFilesAtLastDeploy), len(filesToUpload), 
+			fileSize(self.totalTransferredSize), fileSize(self.totalSize)))
 		self.log('http://%s' % self.config.get('aws-bucket-website'))
 		self.log('')
 		
@@ -523,8 +554,28 @@ class Site(object):
 				self.log('Sending CloudFront invalidation request to %s (cname: %s)' % (d.domain_name, ' '.join(d.cnames)))
 				connection.create_invalidation_request(d.id, self.changedFilesAtLastDeploy)
 				self.log('Request sent, can take up to fifteen minutes to process...')
-				
+	
+	def report(self):
+		"""
+		Bunch of tools that report on your current project:
+		- Currently unused static files in your project
+		- [todo] Broken link detector
+		"""
+		fileTypes = ['css', 'html', 'htm', 'js']
+		
+		self.log('Unused static resources:')
+		
+		for filePath in fileList(self.paths['static']):
+			
+			fileName = os.path.basename(filePath)
 
+			c = "find . -type f \( -iname '*.html' -o -iname '*.css' -o -iname '*.js' \) | xargs grep '%s'" % (fileName)
+			result = len(commands.getstatusoutput(c)[1].splitlines())
+
+				
+			if result == 0:
+				self.log(filePath.replace(self.path, ""))
+	
 def main(argv=sys.argv):
 		
 	def exit():
@@ -535,10 +586,16 @@ def main(argv=sys.argv):
 		print '    build:   Rebuild your site from source files'
 		print '    serve:   Serve you website at local development server'
 		print '    deploy:  Upload and deploy your site to S3'
+		print ''
+		print 'Or type "cactus.py update" to update to the latest version'
 		print
 		sys.exit()
 	
 	if len(argv) < 3:
+		if argv[1] == 'update':
+			print '\n### Updating Cactus to the lastest version ###\n'
+			os.system('curl -L https://raw.github.com/koenbok/Cactus/master/install.sh | sh')
+			sys.exit()
 		exit()
 
 	# Handy shortcut for editing in TextMate
@@ -546,13 +603,12 @@ def main(argv=sys.argv):
 		commands.getstatusoutput('mate %s' % argv[1])
 		return
 	
-	if argv[2] not in ['create', 'build', 'serve', 'deploy']:
+	if argv[2] not in ['create', 'build', 'serve', 'deploy', 'report']:
 		exit()
 	
 	path = os.path.abspath(sys.argv[1])
 	
 	if argv[2] in ['build', 'serve', 'deploy']:
-	
 		for p in ['pages', 'static', 'templates']:
 			if not os.path.isdir(os.path.join(path, p)):
 				print 'This does not look like a cactus project (missing "%s" subfolder)' % p
@@ -665,6 +721,11 @@ def preDeploy(path, config):
 
 def postDeploy(path, config):
 	pass
+"""
+
+templateTagsFile = """from django import template
+
+register = template.Library()
 """
 
 ###############################################################

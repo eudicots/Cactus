@@ -13,18 +13,7 @@ python -c "import urllib; urllib.main()" http://peak.telecommunity.com/dist/ez_s
 sudo easy_install django
 sudo easy_install simplejson
 sudo easy_install threadpool
-# sudo easy_install boto
-
-# Install boto from github as we need the latest version
-
-curl -L https://github.com/boto/boto/tarball/master > boto.tar.gz
-tar -zxvf boto.tar.gz
-mv boto-boto* boto
-cd boto
-python setup.py build
-sudo python setup.py install
-cd ..
-sudo rm -Rf boto
+sudo easy_install boto
 
 # Install Cactus
 
