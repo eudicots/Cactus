@@ -257,13 +257,13 @@ class Site(object):
 			pass
 		# del pool
 		
-	def execHook(self, name):
+	def execHook(self, name, **kwargs):
 		
 		self.loadExtras()
 		hook = getattr(hooks, name, None)
 		
 		if callable(hook):
-			hook(self.path, self.config)
+			return hook(self.path, self.config, **kwargs)
 		
 	def create(self):
 		"""
@@ -297,6 +297,11 @@ class Site(object):
 
 	def buildPage(self, path):
 		
+		context = self.execHook('preBuildPage', page=path)
+		
+		if not context:
+		    context = {}
+		
 		outputPath = os.path.join(self.paths['build'], path)
 	
 		try:
@@ -315,14 +320,14 @@ class Site(object):
 		
 		prefix = '/'.join(['..' for i in xrange(len(path.split('/')) - 1)])
 	
-		context = {
+		context.update({
 			'STATIC_URL': os.path.join(prefix, 'static'),
 			'ROOT_URL': prefix,
 			'CACTUS': {
 				'path': path,
 				'pages': self._pages
 			}
-		}
+		})
 	
 		context.update(pageContext)
 	
@@ -330,6 +335,8 @@ class Site(object):
 		f.close()
 		
 		self.log("  * Built %s" % (path))
+		
+		self.execHook('postBuildPage', page=path)
 	
 	def build(self, clean=False):
 				
@@ -608,7 +615,7 @@ def main(argv=sys.argv):
 	
 	path = os.path.abspath(sys.argv[1])
 	
-	if argv[2] != 'create':
+	if argv[2] in ['build', 'serve', 'deploy']:
 		for p in ['pages', 'static', 'templates']:
 			if not os.path.isdir(os.path.join(path, p)):
 				print 'This does not look like a cactus project (missing "%s" subfolder)' % p
