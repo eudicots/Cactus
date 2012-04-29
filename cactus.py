@@ -557,10 +557,21 @@ class Site(object):
 			return
 		
 		for d in connection.get_all_distributions():
-			if d.origin.dns_name == self.config.get('aws-bucket-website').replace('http://', '') and d.status == 'Deployed':
+			if (d.origin.dns_name == self.config.get('aws-bucket-website').replace('http://', '') or
+				d.origin.dns_name.replace(".s3.amazonaws.com", "") == self.config.get('aws-bucket-name')) and d.status == 'Deployed':
+				
+				def etag():
+					return getURLHeaders("http://%s/versions.txt" % d.domain_name).get('etag', '').strip('"')
+				
+				remoteEtag = etag()
+				
 				self.log('Sending CloudFront invalidation request to %s (cname: %s)' % (d.domain_name, ' '.join(d.cnames)))
 				connection.create_invalidation_request(d.id, self.changedFilesAtLastDeploy)
 				self.log('Request sent, can take up to fifteen minutes to process...')
+				
+				while remoteEtag != etag():
+					print "Waiting for cloudfront to update... %s %s" % (remoteEtag, etag())
+					time.sleep(10)
 	
 	def report(self):
 		"""
