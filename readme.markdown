@@ -2,7 +2,7 @@
 
 Cactus is a simple but powerful static website generator using the [Django template system](http://docs.djangoproject.com/en/dev/topics/templates/). Cactus also makes it easy to develop and deploy your site to S3 directly.
 
-Cactus is based on the idea that most dynamicness on websites these days can be done using Javascript and external services while the actual site can stay static. Still, it's nice to use a well known system like Django to generate your site so you can use the template system and other goodies. The static output allows for very fast and easy hosting, especially combined with a cdn like [Amazon Cloudfront](http://aws.amazon.com/cloudfront/). More discussion about this at [hacker news](http://news.ycombinator.com/item?id=2233620)
+Cactus is based on the idea that most dynamicity on websites these days can be done using Javascript and external services while the actual site can stay static. Still, it's nice to use a well known system like Django to generate your site so you can use the template system and other goodies. The static output allows for very fast and easy hosting, especially combined with a cdn like [Amazon Cloudfront](http://aws.amazon.com/cloudfront/). More discussion about this at [hacker news](http://news.ycombinator.com/item?id=2233620)
 
 Alternatives to Cactus are [Hyde](http://ringce.com/hyde) and [Jekyll](https://github.com/mojombo/jekyll) but I wanted to build something simpler our in-house designers at [Sofa](http://www.madebysofa.com) could use more easily.
 
