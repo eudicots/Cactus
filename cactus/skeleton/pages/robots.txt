@@ -1,0 +1,2 @@
+{% for path in CACTUS.pages %}{{ path }}
+{% endfor %}
