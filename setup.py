@@ -1,7 +1,6 @@
 import os
 import sys
 
-import cactus
 import cactus.utils
 
 try:

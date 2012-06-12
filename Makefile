@@ -1,5 +1,7 @@
 REPORTER = list
 TIMEOUT = 1000
+CACTUS = `which cactus`
+SITE_PACKAGES = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`
 
 all: install
 
@@ -14,8 +16,8 @@ clean:
 	rm -Rf Cactus.egg*
 
 uninstall:
-	rm -Rf /Library/Python/2.7/site-packages/Cactus-*.egg
-	rm /usr/local/bin/cactus
+	rm -Rf $(SITE_PACKAGES)/Cactus-*.egg
+	rm $(CACTUS)
 
 test:
 	nosetests

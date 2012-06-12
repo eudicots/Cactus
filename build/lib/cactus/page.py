@@ -2,8 +2,11 @@ import os
 import codecs
 import logging
 
-from django.template import Template, Context
-from django.template import loader as templateLoader
+try:
+	from django.template import Template, Context
+	from django.template import loader as templateLoader
+except:
+	pass
 
 class Page(object):
 
