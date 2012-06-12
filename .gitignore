@@ -1,2 +1,5 @@
 .DS_Store
 *.pyc
+dist
+skeleton.tar.gz
+Cactus.egg-info

@@ -27,8 +27,6 @@ class SimpleTest(unittest.TestCase):
 			'pages/robots.txt',
 			'pages/sitemap.xml',
 			'plugins/__init__.py',
-			'plugins/render.py',
-			'plugins/templatetags.py',
 			'plugins/version.py',
 			'templates/base.html'])
 
