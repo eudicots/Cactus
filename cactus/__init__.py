@@ -1,6 +1,9 @@
 import logging
 
-logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(
+	format='%(message)s', 
+	level=logging.INFO
+)
 
 from site import Site
 

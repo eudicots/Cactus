@@ -37,6 +37,14 @@ def serve(port=8000, path=os.getcwd()):
 	site.verify()
 	site.serve(port=port)
 
+@baker.command
+def deploy(path=os.getcwd()):
+	"Upload the project to S3"
+	
+	site = cactus.Site(path)
+	site.verify()
+	site.upload()
+
 # @baker.command
 # def help():
 # 	print 'Usage: cactus [create|build|serve|deploy|update]'

@@ -4,11 +4,15 @@ import shutil
 import logging
 import subprocess
 import webbrowser
+import getpass
+
+import boto
 
 from .config import Config
-from .utils import fileList, multiMap
+from .utils import *
 from .page import Page
 from .listener import Listener
+from .file import File
 
 class Site(object):
 	
@@ -59,7 +63,8 @@ class Site(object):
 		
 		if os.path.exists(skeletonPath):
 			os.mkdir(self.path)
-			os.system('tar -zxvf "%s" -C "%s"' % (skeletonPath, self.path))
+			subprocess.check_call('tar -zxvf "%s" -C "%s"' % (skeletonPath, self.path), 
+				shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		else:
 			skeletonPath = os.path.join(os.path.dirname(__file__), 'skeleton')
 			shutil.copytree(skeletonPath, self.path)
@@ -104,23 +109,12 @@ class Site(object):
 		
 		if not os.path.lexists(staticBuildPath):
 			os.symlink(self.paths['static'], staticBuildPath)
-	
-	def upload(self):
-		"""
-		Upload the site to the server.
-		"""
-	
+
 	def pages(self):
 		"""
 		List of pages.
 		"""
 		return [Page(self, p) for p in fileList(self.paths['pages'], relative=True)]
-
-	def files(self):
-		"""
-		List of build files.
-		"""
-		return [File(self, p) for p in fileList(self.paths['build'])]
 
 	def serve(self, browser=True, port=8000):
 		"""
@@ -171,3 +165,100 @@ class Site(object):
 			httpd.serve_forever()
 		except KeyboardInterrupt:
 			pass
+
+	
+	def upload(self):
+		"""
+		Upload the site to the server.
+		"""
+		
+		# Get access information from the config or the user
+		awsAccessKey = self.config.get('aws-access-key') or \
+			raw_input('Amazon access key (http://goo.gl/5OgV8): ').strip()
+		awsSecretKey = getpassword('aws', awsAccessKey) or \
+			getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
+		
+		# Try to fetch the buckets with the given credentials
+		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
+		
+		# Exit if the information was not correct
+		try:
+			buckets = connection.get_all_buckets()
+		except:
+			logging.info('Invalid login credentials, please try again...')
+			return
+		
+		# If it was correct, save it for the future
+		self.config.set('aws-access-key', awsAccessKey)
+		self.config.write()
+	
+		setpassword('aws', awsAccessKey, awsSecretKey)
+	
+		awsBucketName = self.config.get('aws-bucket-name') or \
+			raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
+	
+		if awsBucketName not in [b.name for b in buckets]:
+			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
+				
+				try:
+					awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
+				except boto.exception.S3CreateError, e:
+					logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
+					return
+				
+				# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
+				awsBucket.configure_website('index.html', 'error.html')
+				
+				self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+				self.config.set('aws-bucket-name', awsBucketName)
+				self.config.write()
+			
+				logging.info('Bucket %s was created with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
+				logging.info('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
+			
+			else: return
+		else:
+			
+			# Grab a reference to the existing bucket
+			for b in buckets:
+				if b.name == awsBucketName:
+					awsBucket = b
+	
+		logging.info('Uploading site to bucket %s' % awsBucketName)
+		
+		totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
+		changedFiles = [r for r in totalFiles if r['changed'] == True]
+		
+		logging.info('\nDone\n')
+		
+		logging.info('%s total files with a size of %s' % \
+			(len(totalFiles), fileSize(sum([r['size'] for r in totalFiles]))))
+		logging.info('%s changed files with a size of %s' % \
+			(len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
+		
+		logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))
+		
+		
+		# self.changedFilesAtLastDeploy = []
+		# self.totalSize = 0
+		# self.totalTransferredSize = 0
+		# 
+		# self.awsBucket = awsBucket
+		# filesToUpload = fileList(self.paths['build'])
+		# self.map(self.uploadFile, filesToUpload)
+		# 
+		# self.execHook('postDeploy')
+		# 	
+		# logging.info('')
+		# logging.info('Upload done, %s of %s files changed, %s of total %s transferred' % \
+		# 	(len(self.changedFilesAtLastDeploy), len(filesToUpload), 
+		# 	fileSize(self.totalTransferredSize), fileSize(self.totalSize)))
+		# logging.info('http://%s' % self.config.get('aws-bucket-website'))
+		# logging.info('')
+
+
+	def files(self):
+		"""
+		List of build files.
+		"""
+		return [File(self, p) for p in fileList(self.paths['build'], relative=True)]

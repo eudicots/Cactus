@@ -43,8 +43,8 @@ setup(
 	install_requires=[
 		'Django',
 		'boto>=2.4.1', 
-		'simplejson',
-		'baker'
+		'baker',
+		'workerpool'
 	],
     data_files = ['skeleton.tar.gz'],
 	zip_safe=False,
