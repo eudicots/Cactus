@@ -4,7 +4,7 @@ import sys
 from setuptools import setup
 from distutils.sysconfig import get_python_lib
 
-if "install" in sys.argv:
+if "install" in sys.argv or "bdist_egg" in sys.argv:
 	
 	# Check if we have an old version of cactus installed
 	p1 = '/usr/local/bin/cactus.py'
@@ -52,10 +52,3 @@ setup(
 	test_suite='nose.collector',
 	classifiers=[],
 )
-
-# data_files=[('bitmaps', ['bm/b1.gif', 'bm/b2.gif']),
-#                   ('config', ['cfg/data.cfg']),
-#                   ('/etc/init.d', ['init-script'])]
-
-# if "install" in sys.argv:
-# 	os.system('rm skeleton.tar.gz')

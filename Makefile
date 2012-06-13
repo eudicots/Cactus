@@ -15,7 +15,7 @@ clean:
 	rm -Rf ./Cactus.egg*
 
 uninstall:
-	rm -Rf $(SITE_PACKAGES)/Cactus-*.egg
+	rm -Rf $(SITE_PACKAGES)/Cactus-*
 	rm $(CACTUS)
 
 test:
