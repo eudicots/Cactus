@@ -1,19 +1,18 @@
-REPORTER = list
-TIMEOUT = 1000
 CACTUS = `which cactus`
 SITE_PACKAGES = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`
 
 all: install
 
+build:
+	python setup.py build
+
 install:
-	make clean
 	python setup.py install
-	make clean
 
 clean:
 	python setup.py clean
-	rm -Rf dist
-	rm -Rf Cactus.egg*
+	rm -Rf ./dist
+	rm -Rf ./Cactus.egg*
 
 uninstall:
 	rm -Rf $(SITE_PACKAGES)/Cactus-*.egg
@@ -23,8 +22,9 @@ test:
 	nosetests
 
 test-shell:
-	make uninstall
-	make install
+	sudo make uninstall
+	sudo make clean
+	sudo make install
 	./tests/test.sh
 
-.PHONY: install clean watch uninstall test test-shell
+.PHONY: build install clean watch uninstall test test-shell

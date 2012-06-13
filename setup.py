@@ -1,13 +1,8 @@
 import os
 import sys
 
-import cactus.utils
-
-try:
-	from setuptools import setup
-except ImportError:
-	from distutils.core import setup
-
+from setuptools import setup
+from distutils.sysconfig import get_python_lib
 
 if "install" in sys.argv:
 	
@@ -22,8 +17,11 @@ if "install" in sys.argv:
 		sys.exit()
 	
 	# Compress the skeleton files
-	os.system('cd cactus/skeleton; find . -name "*.DS_Store" -type f -delete')
-	os.system('cd cactus/skeleton; tar -c -f ../../skeleton.tar ./*; gzip ../../skeleton.tar')
+	if os.path.exists('skeleton.tar.gz'):
+		os.unlink('skeleton.tar.gz')
+	
+	os.system('cd skeleton; find . -name "*.DS_Store" -type f -delete')
+	os.system('cd skeleton; tar -c -f ../skeleton.tar ./*; gzip ../skeleton.tar')
 
 
 setup(
@@ -49,11 +47,15 @@ setup(
 		'baker'
 	],
     data_files = ['skeleton.tar.gz'],
-	# zip_safe=False,
+	zip_safe=False,
 	tests_require=['nose'],
 	test_suite='nose.collector',
 	classifiers=[],
 )
 
-if "install" in sys.argv:
-	os.system('rm skeleton.tar.gz')
+# data_files=[('bitmaps', ['bm/b1.gif', 'bm/b2.gif']),
+#                   ('config', ['cfg/data.cfg']),
+#                   ('/etc/init.d', ['init-script'])]
+
+# if "install" in sys.argv:
+# 	os.system('rm skeleton.tar.gz')

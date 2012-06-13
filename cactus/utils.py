@@ -1,6 +1,6 @@
 import os
 
-def fileList(path, relative=False):
+def fileList(path, relative=False, folders=False):
 	"""
 	Generate a recursive list of files from a given path.
 	"""
@@ -15,6 +15,8 @@ def fileList(path, relative=False):
 		filePath = os.path.join(path, fileName)
 		
 		if os.path.isdir(filePath):
+			if folders:
+				files.append(filePath)
 			files += fileList(filePath)
 		else:
 			files.append(filePath)
