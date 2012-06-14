@@ -5,6 +5,7 @@ import logging
 import subprocess
 import webbrowser
 import getpass
+import imp
 
 import boto
 
@@ -25,7 +26,7 @@ class Site(object):
 			'build': os.path.join(path, 'build'),
 			'pages': os.path.join(path, 'pages'),
 			'templates': os.path.join(path, 'templates'),
-			'extras': os.path.join(path, 'extras'),
+			'plugins': os.path.join(path, 'plugins'),
 			'static': os.path.join(path, 'static'),
 			'script': os.path.join(os.getcwd(), __file__)
 		}
@@ -82,6 +83,8 @@ class Site(object):
 		Generate fresh site from templates.
 		"""
 		
+		self.pluginMethod('preBuild', self)
+		
 		# Set up django settings
 		self.setup()
 		
@@ -92,9 +95,15 @@ class Site(object):
 		# Copy the static files
 		self.buildStatic()
 		
+		# Load the plugin code, because we want fresh plugin code on build
+		# refreshes if we're running the web server with listen.
+		self.loadPlugins()
+		
 		# Render the pages to their output files
 		multiMap = map
 		multiMap(lambda p: p.build(), self.pages())
+		
+		self.pluginMethod('postBuild', self)
 	
 	def buildStatic(self):
 		"""
@@ -172,6 +181,10 @@ class Site(object):
 		Upload the site to the server.
 		"""
 		
+		self.build()
+		
+		self.pluginMethod('preDeploy', self)
+		
 		# Get access information from the config or the user
 		awsAccessKey = self.config.get('aws-access-key') or \
 			raw_input('Amazon access key (http://goo.gl/5OgV8): ').strip()
@@ -226,9 +239,13 @@ class Site(object):
 	
 		logging.info('Uploading site to bucket %s' % awsBucketName)
 		
+		# Upload all files concurrently in a thread pool
 		totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
 		changedFiles = [r for r in totalFiles if r['changed'] == True]
 		
+		self.pluginMethod('postDeploy', self)
+		
+		# Display done message and some statistics
 		logging.info('\nDone\n')
 		
 		logging.info('%s total files with a size of %s' % \
@@ -237,24 +254,6 @@ class Site(object):
 			(len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 		
 		logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))
-		
-		
-		# self.changedFilesAtLastDeploy = []
-		# self.totalSize = 0
-		# self.totalTransferredSize = 0
-		# 
-		# self.awsBucket = awsBucket
-		# filesToUpload = fileList(self.paths['build'])
-		# self.map(self.uploadFile, filesToUpload)
-		# 
-		# self.execHook('postDeploy')
-		# 	
-		# logging.info('')
-		# logging.info('Upload done, %s of %s files changed, %s of total %s transferred' % \
-		# 	(len(self.changedFilesAtLastDeploy), len(filesToUpload), 
-		# 	fileSize(self.totalTransferredSize), fileSize(self.totalSize)))
-		# logging.info('http://%s' % self.config.get('aws-bucket-website'))
-		# logging.info('')
 
 
 	def files(self):
@@ -262,3 +261,49 @@ class Site(object):
 		List of build files.
 		"""
 		return [File(self, p) for p in fileList(self.paths['build'], relative=True)]
+
+
+	def loadPlugins(self, force=False):
+		"""
+		Load plugins from the plugins directory and import the code.
+		"""
+		
+		plugins = []
+		
+		# Figure out the files that can possibly be plugins
+		for pluginPath in fileList(self.paths['plugins']):
+			
+			if not pluginPath.endswith('.py'):
+				continue
+
+			if 'disabled' in pluginPath:
+				continue
+			
+			# Try to load the code from a plugin
+			try:
+				plugin = imp.load_source('plugin', pluginPath)
+			except Exception, e:
+				logging.info('Error: Could not load plugin at path %s\n%s' % (pluginPath, e))
+				continue
+			
+			plugins.append(plugin)
+		
+		# Sort the plugins by their defined order (optional)
+		def getOrder(plugin):
+			if hasattr(plugin, 'ORDER'):
+				return plugin.ORDER
+			return -1
+		
+		self._plugins = sorted(plugins, key=getOrder)
+	
+	def pluginMethod(self, method, *args, **kwargs):
+		"""
+		Run this method on all plugins
+		"""
+		
+		if not hasattr(self, '_plugins'):
+			self.loadPlugins()
+		
+		for plugin in self._plugins:
+			if hasattr(plugin, method):
+				getattr(plugin, method)(*args, **kwargs)

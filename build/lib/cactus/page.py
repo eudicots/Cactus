@@ -51,9 +51,6 @@ class Page(object):
 		# Page context (parse header)
 		context.update(self.parseHeader())
 		
-		# Addon context (extras folder)
-		# context.update(self.extraContext(path, context))
-		
 		return Context(context)
 
 	def render(self):
@@ -61,8 +58,16 @@ class Page(object):
 		Takes the template data with contect and renders it to the final output file.
 		"""
 		
-		template = Template(self.data())
-		return template.render(self.context())
+		data = self.data()
+		context = self.context()
+		
+		# Run the prebuild plugins, we can't use the standard method here because
+		# plugins can chain-modify the context and data.
+		for plugin in self.site._plugins:
+			if hasattr(plugin, 'preBuildPage'):
+				context, data = plugin.preBuildPage(self.site, self.paths['full'], context, data)
+
+		return Template(data).render(context)
 
 	def build(self):
 		"""
@@ -71,7 +76,6 @@ class Page(object):
 		logging.info("Building %s", self.path)
 		
 		data = self.render()
-
 		
 		# Make sure a folder for the output path exists
 		try: os.makedirs(os.path.dirname(self.paths['full-build']))
@@ -81,3 +85,6 @@ class Page(object):
 		f = codecs.open(self.paths['full-build'], 'w', 'utf-8')
 		f.write(data)
 		f.close()
+		
+		# Run all plugins
+		self.site.pluginMethod('postBuildPage', self.site, self.paths['full-build'])
