@@ -82,7 +82,13 @@ class Site(object):
 		"""
 		Generate fresh site from templates.
 		"""
+
+		# Load the plugin code, because we want fresh plugin code on build
+		# refreshes if we're running the web server with listen.
+		self.loadPlugins()
 		
+		logging.info('Plugins: %s', [p.id for p in self._plugins])
+
 		self.pluginMethod('preBuild', self)
 		
 		# Set up django settings
@@ -94,10 +100,6 @@ class Site(object):
 		
 		# Copy the static files
 		self.buildStatic()
-		
-		# Load the plugin code, because we want fresh plugin code on build
-		# refreshes if we're running the web server with listen.
-		self.loadPlugins()
 		
 		# Render the pages to their output files
 		multiMap = map
@@ -138,10 +140,15 @@ class Site(object):
 		
 		def rebuild(change):
 			logging.info('*** Rebuilding (%s changed)' % change)
-			# self.loadExtras(force=True)
+			
+			# We will pause the listener while building so scripts that alter the output
+			# like coffeescript and less don't trigger the listener again immediately.
+			self.listener.pause()
 			self.build()
+			self.listener.resume()
 	
-		Listener(self.path, rebuild, ignore=lambda x: '/build/' in x).run()
+		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/build/' in x)
+		self.listener.run()
 
 		import SimpleHTTPServer
 		import SocketServer
@@ -187,7 +194,7 @@ class Site(object):
 		
 		# Get access information from the config or the user
 		awsAccessKey = self.config.get('aws-access-key') or \
-			raw_input('Amazon access key (http://goo.gl/5OgV8): ').strip()
+			raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
 		awsSecretKey = getpassword('aws', awsAccessKey) or \
 			getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
 		
@@ -279,12 +286,17 @@ class Site(object):
 			if 'disabled' in pluginPath:
 				continue
 			
+			pluginHandle = os.path.splitext(os.path.basename(pluginPath))[0]
+			
 			# Try to load the code from a plugin
 			try:
-				plugin = imp.load_source('plugin', pluginPath)
+				plugin = imp.load_source('plugin_%s' % pluginHandle, pluginPath)
 			except Exception, e:
 				logging.info('Error: Could not load plugin at path %s\n%s' % (pluginPath, e))
 				continue
+			
+			# Set an id based on the file name
+			plugin.id = pluginHandle
 			
 			plugins.append(plugin)
 		

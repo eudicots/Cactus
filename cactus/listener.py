@@ -13,6 +13,7 @@ class Listener(object):
 		self.delay = delay
 		self.ignore = ignore
 		self.current = None
+		self._pause = False
 	
 	def checksum(self, path):
 		
@@ -27,15 +28,25 @@ class Listener(object):
 		
 		return total
 	
+	def setCurrent(self):
+		self.current = self.checksum(self.path)
+	
 	def run(self):
 		# self._run()
 		t = thread.start_new_thread(self._run, ())
-		
+	
+	def pause(self):
+		self._pause = True
+	
+	def resume(self):
+		self.setCurrent()
+		self._pause = False
+	
 	def _run(self):
 		
-		self.current = self.checksum(self.path)
+		self.setCurrent()
 		
-		while True:
+		while True and self._pause == False:
 			
 			s = self.checksum(self.path)
 	

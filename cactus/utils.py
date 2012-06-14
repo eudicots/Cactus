@@ -3,30 +3,36 @@ import re
 import httplib
 import urlparse
 import urllib
+import types
+import logging
 
-def fileList(path, relative=False, folders=False):
+def fileList(paths, relative=False, folders=False):
 	"""
 	Generate a recursive list of files from a given path.
 	"""
 	
+	if not type(paths) == types.ListType:
+		paths = [paths]
+	
 	files = []
 	
-	for fileName in os.listdir(path):
+	for path in paths:	
+		for fileName in os.listdir(path):
 		
-		if fileName.startswith('.'):
-			continue
+			if fileName.startswith('.'):
+				continue
 		
-		filePath = os.path.join(path, fileName)
+			filePath = os.path.join(path, fileName)
 		
-		if os.path.isdir(filePath):
-			if folders:
+			if os.path.isdir(filePath):
+				if folders:
+					files.append(filePath)
+				files += fileList(filePath)
+			else:
 				files.append(filePath)
-			files += fileList(filePath)
-		else:
-			files.append(filePath)
 	
-	if relative:
-		files = map(lambda x: x[len(path)+1:], files)
+		if relative:
+			files = map(lambda x: x[len(path)+1:], files)
 		
 	return files
 
@@ -34,8 +40,14 @@ def multiMap(f, items, workers=8):
 	
 	import workerpool
 	
+	def wrapper(*args, **kwargs):
+		try:
+			return f(*args, **kwargs)
+		except Exception, e:
+			logging.error(e)
+	
 	pool = workerpool.WorkerPool(size=workers)
-	res = pool.map(f, items)
+	res = pool.map(wrapper, items)
 	
 	pool.shutdown()
 	pool.wait()
