@@ -1,9 +1,4 @@
-- Add prefix to deploy for previewing the site
-- Add deploy types (S3/sftp)
-+ Add cloudfront plus expire stuff
-+ Add deploy hooks
-+ Add deploy log (/deploy-log.txt)
-+ Add automatic robots.txt and sitemap.xml generation
-+ Add error pages (404 and 500) by default
-+ Fix issue with changing plain text files (md5 hash seems to change every time)
-- Add plugin structure
+- Add CACTUS.production variable
+- Fix sitemap/robots.txt
+- Add blog extension
+- Add optimize extension
