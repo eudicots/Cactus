@@ -76,7 +76,7 @@ class Site(object):
 		"""
 		Base context for the site.
 		"""
-		return {}
+		return {'pages': self.pages()}
 
 	def build(self):
 		"""
@@ -280,6 +280,9 @@ class Site(object):
 		# Figure out the files that can possibly be plugins
 		for pluginPath in fileList(self.paths['plugins']):
 			
+			if pluginPath.startswith('_'):
+				continue
+	
 			if not pluginPath.endswith('.py'):
 				continue
 
