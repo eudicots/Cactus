@@ -1,8 +1,38 @@
 import os
 import sys
+import subprocess
+import shutil
 
 from setuptools import setup
 from distutils.sysconfig import get_python_lib
+
+
+
+if "uninstall" in sys.argv:
+	
+	def run(command):
+		try:
+			return subprocess.check_output(command, shell=True).strip()
+		except subprocess.CalledProcessError:
+			pass
+	
+
+	cactusBinPath = run('which cactus')
+	cactusPackagePath = None
+	
+	for p in os.listdir(get_python_lib()):
+		if p.lower().startswith('cactus') and p.lower().endswith('.egg'):
+			cactusPackagePath = os.path.join(get_python_lib(), p)
+
+	if cactusBinPath and os.path.exists(cactusBinPath):
+		print 'Removing cactus script at %s' % cactusBinPath
+		os.unlink(cactusBinPath)
+	
+	if cactusPackagePath and os.path.isdir(cactusPackagePath):
+		print 'Removing cactus package at %s' % cactusPackagePath
+		shutil.rmtree(cactusPackagePath)
+
+	sys.exit()
 
 if "install" in sys.argv or "bdist_egg" in sys.argv:
 	
