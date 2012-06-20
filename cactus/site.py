@@ -87,7 +87,7 @@ class Site(object):
 		# refreshes if we're running the web server with listen.
 		self.loadPlugins()
 		
-		logging.info('Plugins: %s', [p.id for p in self._plugins])
+		logging.info('Plugins: %s', ', '.join([p.id for p in self._plugins]))
 
 		self.pluginMethod('preBuild', self)
 		
@@ -279,9 +279,6 @@ class Site(object):
 		
 		# Figure out the files that can possibly be plugins
 		for pluginPath in fileList(self.paths['plugins']):
-			
-			if pluginPath.startswith('_'):
-				continue
 	
 			if not pluginPath.endswith('.py'):
 				continue
