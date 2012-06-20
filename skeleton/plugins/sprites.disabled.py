@@ -39,9 +39,10 @@ def preBuild(site):
 	if currChecksum == prevChecksum:
 		return
 	
-	shutil.rmtree(CSS_PATH) if os.path.isdir(CSS_PATH)
-	os.mkdir(CSS_PATH)
+	if os.path.isdir(CSS_PATH):
+		shutil.rmtree(CSS_PATH)
 	
+	os.mkdir(CSS_PATH)
 	os.system('glue --cachebuster --crop --optipng "%s" "%s" --project' % (IMG_PATH, CSS_PATH))
 	
 	setattr(site, KEY, currChecksum)
