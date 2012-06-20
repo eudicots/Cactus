@@ -5,10 +5,8 @@ import sys
 import os
 import time
 
-import baker
 import cactus
 
-@baker.command(params={"path": "Path to create project at"})
 def create(path):
 	"Creates a new project at the given path."
 	
@@ -21,46 +19,76 @@ def create(path):
 	site = cactus.Site(path)
 	site.bootstrap()
 
-@baker.command
-def build(path=os.getcwd()):
+
+def build(path):
 	"Build a cactus project"
 	
 	site = cactus.Site(path)
 	site.verify()
 	site.build()
 
-@baker.command
-def serve(port=8000, path=os.getcwd()):
+def serve(path, port=8000):
 	"Serve the project and watch changes"
 	
 	site = cactus.Site(path)
 	site.verify()
 	site.serve(port=port)
 
-@baker.command
-def deploy(path=os.getcwd()):
+def deploy(path):
 	"Upload the project to S3"
 	
 	site = cactus.Site(path)
 	site.verify()
 	site.upload()
 
-# @baker.command
-# def help():
-# 	print 'Usage: cactus [create|build|serve|deploy|update]'
-# 	print 
-# 	print '    create <path>: Create a new website skeleton at path'
-# 	print '    build: Rebuild your site from source files'
-# 	print '    serve: Serve you website at local development server'
-# 	print '    deploy: Upload and deploy your site to S3'
-# 	print ''
-# 	print 'Or type "cactus.py update" to update to the latest version'
-# 	print
+def help():
+	print
+	print 'Usage: cactus [create|build|serve|deploy]'
+	print 
+	print '    create: Create a new website skeleton at path'
+	print '    build: Rebuild your site from source files'
+	print '    serve <port>: Serve you website at local development server'
+	print '    deploy: Upload and deploy your site to S3'
+	print
 
-def main(argv=None):
-	try:
-		baker.run()
-	except baker.CommandError, e:
-		print e
-		print
-		# baker.usage()
+def exit(msg):
+	print msg
+	sys.exit()
+
+def main():
+	
+	command = sys.argv[1] if len(sys.argv) > 1 else None
+	option1 = sys.argv[2] if len(sys.argv) > 2 else None
+	
+	# If we miss a command we exit and print help
+	if not command:
+		help()
+		sys.exit()
+	
+	# Run the command
+	if command == 'create':
+		if not option1: exit('Missing path')
+		create(option1)
+	
+	elif command == 'build':
+		build(os.getcwd())
+
+	elif command == 'serve':
+		
+		if option1:
+			try: option1 = int(option1)
+			except: exit('port should be a round number like 5000, 8000, 8080')
+		else:
+			option1 = 8000
+		
+		serve(os.getcwd(), port=option1)
+
+	elif command == 'deploy':
+		deploy(os.getcwd())
+	
+	else:
+		print 'Unknown command: %s' % command
+		help()
+		
+if __name__ == "__main__":
+	sys.exit(main())
