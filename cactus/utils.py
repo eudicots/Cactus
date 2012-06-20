@@ -37,22 +37,14 @@ def fileList(paths, relative=False, folders=False):
 	return files
 
 def multiMap(f, items, workers=8):
+
+	try:
+		from multiprocessing.pool import ThreadPool
+	except ImportError:
+		return map(f, items)
 	
-	import workerpool
-	
-	def wrapper(*args, **kwargs):
-		try:
-			return f(*args, **kwargs)
-		except Exception, e:
-			logging.error(e)
-	
-	pool = workerpool.WorkerPool(size=workers)
-	res = pool.map(wrapper, items)
-	
-	pool.shutdown()
-	pool.wait()
-	
-	return res
+	pool = ThreadPool(workers)
+	return pool.map(f, items)
 	
 def getpassword(service, account):
 	
