@@ -9,7 +9,9 @@ except:
 	pass
 
 class Page(object):
-
+	
+	SPLIT_CHARACTER = ':'
+	
 	def __init__(self, site, path):
 		self.site = site
 		self.path = path
@@ -30,7 +32,16 @@ class Page(object):
 		"""
 		Parse the page header in the format key:value<newline>
 		"""
-		return {}
+		context = {}
+		
+		# for line in self.data().spitlines():
+		# 	if self.SPLIT_CHARACTER in line:
+		# 		line = line.split(self.SPLIT_CHARACTER)
+		# 		context[line[0]] = line[1:].join(self.SPLIT_CHARACTER)
+		# 	else:
+		# 		break
+		
+		return context
 	
 	def context(self):
 		"""
