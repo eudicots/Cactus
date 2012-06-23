@@ -14,6 +14,13 @@ test:
 shelltest:
 	tests/test.sh
 
+alltests:
+	make clean
+	make uninstall
+	make install
+	make test
+	make shelltest
+
 skeleton:
 	rm -Rf skeleton.tar.gz
 	tar  zcf skeleton.tar.gz --exclude='.*' skeleton
