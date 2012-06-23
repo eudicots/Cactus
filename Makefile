@@ -24,7 +24,7 @@ alltests:
 
 skeleton:
 	rm -Rf skeleton.tar.gz
-	tar  zcf skeleton.tar.gz --exclude='.*' skeleton
+	tar c --exclude='.*' skeleton | gzip -n > skeleton.tar.gz
 
 	echo 'data = """' > cactus/skeleton.py
 	cat skeleton.tar.gz | base64 | fold -sw 60 >> cactus/skeleton.py
