@@ -16,6 +16,7 @@ shelltest:
 
 alltests:
 	make clean
+	make skeleton
 	make uninstall
 	make install
 	make test

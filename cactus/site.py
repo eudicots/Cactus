@@ -187,7 +187,7 @@ class Site(object):
 		finally: 
 			httpd.server_close() 
 
-		print "See you!" 
+		logging.info('See you!')
 
 	
 	def upload(self):

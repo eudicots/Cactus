@@ -64,19 +64,17 @@ class SimpleTest(unittest.TestCase):
 		
 		self.site.build()
 		
-		print os.path.join(TEST_PATH, 'build', 'test.html')
-		
 		self.assertEqual(
 			readFile(os.path.join(TEST_PATH, 'build', 'test.html')),
 			mockFile('test-out.html')
 		)
-# 	
-# 	def testSiteContext(self):
-# 		
-# 		self.assertEqual(
-# 			[page.path for page in self.site.context()['CACTUS']['pages']],
-# 			['error.html', 'index.html', 'robots.txt', 'sitemap.xml', 'test.html']
-# 		)
+	
+	def testSiteContext(self):
+		
+		self.assertEqual(
+			[page.path for page in self.site.context()['CACTUS']['pages']],
+			['error.html', 'index.html', 'robots.txt', 'sitemap.xml', 'test.html']
+		)
 # 	
 # 	def testPageContext(self):
 # 
