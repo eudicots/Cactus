@@ -45,14 +45,6 @@ if "install" in sys.argv or "bdist_egg" in sys.argv:
 		if os.path.exists(p1): print "  sudo rm %s" % p1 
 		if os.path.exists(p2): print "  sudo rm %s" % p2
 		sys.exit()
-	
-	# Compress the skeleton files
-	if os.path.exists('skeleton.tar.gz'):
-		os.unlink('skeleton.tar.gz')
-	
-	os.system('cd skeleton; find . -name "*.DS_Store" -type f -delete')
-	os.system('cd skeleton; tar -c -f ../skeleton.tar ./*; gzip ../skeleton.tar')
-
 
 setup(
 	name='Cactus',
@@ -74,7 +66,6 @@ setup(
 		'Django',
 		'boto>=2.4.1'
 	],
-    data_files = ['skeleton.tar.gz'],
 	zip_safe=False,
 	tests_require=['nose'],
 	test_suite='nose.collector',

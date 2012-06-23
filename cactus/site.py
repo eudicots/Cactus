@@ -6,6 +6,7 @@ import subprocess
 import webbrowser
 import getpass
 import imp
+import base64
 
 import boto
 
@@ -58,25 +59,27 @@ class Site(object):
 		Bootstrap a new project at a given path.
 		"""
 		
-		# If we're running a version installed with distutils, we need to 
-		# uncompress the skeleton files to the given location.
-		skeletonPath = os.path.join(os.path.dirname(__file__), '..', 'skeleton.tar.gz')
+		from .skeleton import data
 		
-		if os.path.exists(skeletonPath):
-			os.mkdir(self.path)
-			subprocess.check_call('tar -zxvf "%s" -C "%s"' % (skeletonPath, self.path), 
-				shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		else:
-			skeletonPath = os.path.join(os.path.dirname(__file__), 'skeleton')
-			shutil.copytree(skeletonPath, self.path)
-	
+		tempSkeletonPath = '/tmp/skeleton.tar.gz'
+		
+		# Write the data to a file
+		f = open(tempSkeletonPath, 'w')
+		f.write(base64.b64decode(data))
+		f.close()
+
+		os.mkdir(self.path)
+		
+		subprocess.check_call('tar -zxvf "%s" --strip-components 1 -C "%s"' % (tempSkeletonPath, self.path), 
+			shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		
 		logging.info('New project generated at %s', self.path)
 
 	def context(self):
 		"""
 		Base context for the site.
 		"""
-		return {'pages': self.pages()}
+		return {'CACTUS': {'pages': self.pages()}}
 
 	def build(self):
 		"""
