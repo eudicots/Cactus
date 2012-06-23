@@ -8,6 +8,21 @@ from cactus.utils import fileList
 
 TEST_PATH = '/tmp/www.testcactus.com'
 
+
+def readFile(path):
+	f = codecs.open(path, 'r', 'utf8')
+	d = f.read()
+	f.close()
+	return d
+
+def writeFile(path, data):
+	f = codecs.open(path, 'w', 'utf8')
+	f.write(data)
+	f.close()
+
+def mockFile(name):
+	return readFile(os.path.join('tests', 'data', name))
+
 class SimpleTest(unittest.TestCase):
 	
 	@classmethod
@@ -21,22 +36,59 @@ class SimpleTest(unittest.TestCase):
 		
 		self.site.bootstrap()
 		
-		self.assertEqual(fileList(TEST_PATH, relative=True), [
-			'pages/error.html',
-			'pages/index.html',
-			'pages/robots.txt',
-			'pages/sitemap.xml',
-			'plugins/__init__.py',
-			'plugins/version.py',
-			'templates/base.html'])
+		self.assertEqual(
+			fileList(TEST_PATH, relative=True), 
+			fileList("skeleton", relative=True), 
+		)
 
 
 	def testBuild(self):
 		
 		self.site.build()
-
+	
 		self.assertEqual(fileList(os.path.join(TEST_PATH, 'build'), relative=True), [
 			'error.html',
 			'index.html',
 			'robots.txt',
 			'sitemap.xml'])
+	
+	
+	def testRenderPage(self):
+		
+		# Create a new page called test.html and see if it get rendered
+		
+		writeFile(
+			os.path.join(TEST_PATH, 'pages', 'test.html'),
+			mockFile('test-in.html')
+		)
+		
+		self.site.build()
+		
+		print os.path.join(TEST_PATH, 'build', 'test.html')
+		
+		self.assertEqual(
+			readFile(os.path.join(TEST_PATH, 'build', 'test.html')),
+			mockFile('test-out.html')
+		)
+# 	
+# 	def testSiteContext(self):
+# 		
+# 		self.assertEqual(
+# 			[page.path for page in self.site.context()['CACTUS']['pages']],
+# 			['error.html', 'index.html', 'robots.txt', 'sitemap.xml', 'test.html']
+# 		)
+# 	
+# 	def testPageContext(self):
+# 
+# 		writeFile(
+# 			os.path.join(TEST_PATH, 'pages', 'about.html'),
+# 			"""
+# name: Koen Bok
+# age: 29
+# {% extends "base.html" %}
+# {% block content %}
+# I am {{ name }} and {{ age }} years old.
+# {% endblock %}'
+# """)
+# 
+# 	
