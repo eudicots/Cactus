@@ -179,11 +179,15 @@ class Site(object):
 			return
 		
 		webbrowser.open('http://127.0.0.1:%s' % port)
-	
-		try:
-			httpd.serve_forever()
-		except KeyboardInterrupt:
-			pass
+
+		try: 
+			httpd.serve_forever() 
+		except KeyboardInterrupt: 
+			pass 
+		finally: 
+			httpd.server_close() 
+
+		print "See you!" 
 
 	
 	def upload(self):
