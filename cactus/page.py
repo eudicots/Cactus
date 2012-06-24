@@ -22,7 +22,7 @@ class Page(object):
 			'full-build': os.path.join(site.path, 'build', self.path),
 		}
 		
-	def data(self):		
+	def data(self):
 		f = codecs.open(self.paths['full'], 'r', 'utf-8')
 		data = f.read()
 		f.close()
@@ -61,7 +61,7 @@ class Page(object):
 		# plugins can chain-modify the context and data.
 		for plugin in self.site._plugins:
 			if hasattr(plugin, 'preBuildPage'):
-				context, data = plugin.preBuildPage(self.site, self.paths['full'], context, data)
+				context, data = plugin.preBuildPage(self.site, self, context, data)
 
 		return Template(data).render(context)
 
