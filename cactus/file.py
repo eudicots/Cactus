@@ -8,7 +8,7 @@ from .utils import compressString, getURLHeaders, fileSize
 
 class File(object):
 	
-	CACHE_EXPIRATION = 3600 * 24 * 365
+	CACHE_EXPIRATION = 60 * 60 * 24 # 24 hours
 	COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml']
 	COMPRESS_MIN_SIZE = 1024 # 1kb
 	
@@ -68,7 +68,7 @@ class File(object):
 	
 	def upload(self, bucket):
 		
-		headers = {'Cache-Control': self.CACHE_EXPIRATION}
+		headers = {'Cache-Control': 'max-age=%s' % self.CACHE_EXPIRATION}
 		
 		if self.shouldCompress():
 			headers['Content-Encoding'] = 'gzip'
