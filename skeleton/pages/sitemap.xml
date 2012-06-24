@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?> 
-<urlset xmlns="http://www.google.com/schemas/sitemap/0.84"> 
-{% for path in CACTUS.pages %}
+<urlset xmlns="http://www.google.com/schemas/sitemap/0.84">
+{% for page in CACTUS.pages %}
+	{% if page.path != 'error.html' %}
 	<url>
-		<loc>{{ path }}</loc>
-		<changefreq>daily</changefreq> 
-		<priority>1.0</priority> 
+		<loc>{{ page.path }}</loc>
+		<changefreq>daily</changefreq>
+		<priority>1.0</priority>
 	</url>
+	{% endif %}
 {% endfor %}
 </urlset>

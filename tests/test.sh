@@ -1,5 +1,6 @@
 #!/bin/sh
 
+rm -Rf /tmp/catus-test
 cactus create /tmp/catus-test
 
 cd /tmp/catus-test
@@ -23,4 +24,3 @@ cactus deploy
 
 curl http://cactus-test-test.s3-website-us-east-1.amazonaws.com/versions.txt
 
-rm -Rf /tmp/catus-test

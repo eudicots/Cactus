@@ -73,7 +73,7 @@ class SimpleTest(unittest.TestCase):
 		
 		self.assertEqual(
 			[page.path for page in self.site.context()['CACTUS']['pages']],
-			['error.html', 'index.html', 'robots.txt', 'sitemap.xml', 'test.html']
+			['error.html', 'index.html', 'test.html']
 		)
 	
 	#def testPageContext(self):

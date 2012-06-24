@@ -63,6 +63,9 @@ class Site(object):
 		
 		tempSkeletonPath = '/tmp/skeleton.tar.gz'
 		
+		if os.path.exists(tempSkeletonPath):
+			os.remove(tempSkeletonPath)
+		
 		# Write the data to a file
 		f = open(tempSkeletonPath, 'w')
 		f.write(base64.b64decode(data))
@@ -77,9 +80,9 @@ class Site(object):
 
 	def context(self):
 		"""
-		Base context for the site.
+		Base context for the site: all the html pages.
 		"""
-		return {'CACTUS': {'pages': self.pages()}}
+		return {'CACTUS': {'pages': [p for p in self.pages() if p.path.endswith('.html')]}}
 
 	def build(self):
 		"""
