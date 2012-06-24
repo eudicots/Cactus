@@ -37,7 +37,7 @@ class Page(object):
 		context = self.site.context()
 		
 		# Relative url context
-		prefix = '/'.join(['..' for i in xrange(len(self.path.split('/')) - 1)])
+		prefix = '/'.join(['..' for i in xrange(len(self.path.split('/')) - 1)]) or '.'
 		
 		context.update({
 			'STATIC_URL': os.path.join(prefix, 'static'),
