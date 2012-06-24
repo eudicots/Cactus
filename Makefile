@@ -1,9 +1,14 @@
 install:
+	make skeleton
 	python setup.py install
 	make clean
 
 uninstall:
 	python setup.py uninstall
+
+reinstall:
+	make uninstall
+	make install
 
 clean:
 	rm -Rf build Cactus.egg-info dist
