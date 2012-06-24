@@ -159,10 +159,14 @@ class Site(object):
 		import SimpleHTTPServer
 		import SocketServer
 		import socket
-
-		class Server(SocketServer.ForkingMixIn, SocketServer.TCPServer):
-			allow_reuse_address = True
 		
+		# See: https://github.com/koenbok/Cactus/issues/8
+		# class Server(SocketServer.ForkingMixIn, SocketServer.TCPServer):
+		# 	allow_reuse_address = True
+
+		class Server(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+			allow_reuse_address = True
+
 		class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 			
 			def send_error(self, code, message=None):
