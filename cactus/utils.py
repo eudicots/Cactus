@@ -111,3 +111,35 @@ def fileSize(num):
 		if num < 1024.0:
 			return "%.0f%s" % (num, x)
 		num /= 1024.0
+
+
+def parseValues(data, splitChar=':'):
+	"""
+	Values like
+	
+	name: koen
+	age: 29
+	
+	will be converted in a dict: {'name': 'koen', 'age': '29'}
+	"""
+
+	values = {}
+	lines  = data.splitlines()
+
+	for i in xrange(len(lines)):
+
+		line = lines[i]
+
+		if not line:
+			continue
+		
+		elif splitChar in line:
+			line = line.split(splitChar)
+			values[line[0].strip()] = (splitChar.join(line[1:])).strip()
+		
+		else:
+			break
+	
+	return values, '\n'.join(lines[i:])
+		
+	

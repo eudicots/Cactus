@@ -53,7 +53,7 @@ class SimpleTest(unittest.TestCase):
 			'sitemap.xml'])
 	
 	
-	def testRenderPage(self):
+	#def testRenderPage(self):
 		
 		# Create a new page called test.html and see if it get rendered
 		
@@ -69,24 +69,31 @@ class SimpleTest(unittest.TestCase):
 			mockFile('test-out.html')
 		)
 	
-	def testSiteContext(self):
+	#def testSiteContext(self):
 		
 		self.assertEqual(
 			[page.path for page in self.site.context()['CACTUS']['pages']],
 			['error.html', 'index.html', 'robots.txt', 'sitemap.xml', 'test.html']
 		)
-# 	
-# 	def testPageContext(self):
-# 
-# 		writeFile(
-# 			os.path.join(TEST_PATH, 'pages', 'about.html'),
-# 			"""
-# name: Koen Bok
-# age: 29
-# {% extends "base.html" %}
-# {% block content %}
-# I am {{ name }} and {{ age }} years old.
-# {% endblock %}'
-# """)
-# 
-# 	
+	
+	#def testPageContext(self):
+
+		writeFile(
+			os.path.join(TEST_PATH, 'pages', 'koenpage.html'),
+			mockFile('koenpage-in.html')
+		)
+		
+		for page in self.site.context()['CACTUS']['pages']:
+			if page.path == 'koenpage.html':
+				context = page.context()
+				self.assertEqual(context['name'], 'Koen Bok')
+				self.assertEqual(context['age'], '29')
+
+		self.site.build()
+
+		self.assertEqual(
+			readFile(os.path.join(TEST_PATH, 'build', 'koenpage.html')),
+			mockFile('koenpage-out.html')
+		)
+
+	

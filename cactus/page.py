@@ -2,6 +2,8 @@ import os
 import codecs
 import logging
 
+from .utils import parseValues
+
 try:
 	from django.template import Template, Context
 	from django.template import loader as templateLoader
@@ -9,8 +11,6 @@ except:
 	pass
 
 class Page(object):
-	
-	SPLIT_CHARACTER = ':'
 	
 	def __init__(self, site, path):
 		self.site = site
@@ -27,21 +27,6 @@ class Page(object):
 		data = f.read()
 		f.close()
 		return data
-	
-	def parseHeader(self):
-		"""
-		Parse the page header in the format key:value<newline>
-		"""
-		context = {}
-		
-		# for line in self.data().spitlines():
-		# 	if self.SPLIT_CHARACTER in line:
-		# 		line = line.split(self.SPLIT_CHARACTER)
-		# 		context[line[0]] = line[1:].join(self.SPLIT_CHARACTER)
-		# 	else:
-		# 		break
-		
-		return context
 	
 	def context(self):
 		"""
@@ -60,7 +45,7 @@ class Page(object):
 		})
 		
 		# Page context (parse header)
-		context.update(self.parseHeader())
+		context.update(parseValues(self.data())[0])
 		
 		return Context(context)
 
@@ -69,7 +54,7 @@ class Page(object):
 		Takes the template data with contect and renders it to the final output file.
 		"""
 		
-		data = self.data()
+		data = parseValues(self.data())[1]
 		context = self.context()
 		
 		# Run the prebuild plugins, we can't use the standard method here because
