@@ -150,7 +150,8 @@ class Site(object):
 			# We will pause the listener while building so scripts that alter the output
 			# like coffeescript and less don't trigger the listener again immediately.
 			self.listener.pause()
-			self.build()
+			try: self.build()
+			except Exception, e: logging.info('*** Error while building\n%s', e)
 			self.listener.resume()
 	
 		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/build/' in x)
