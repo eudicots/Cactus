@@ -2,3 +2,5 @@
 - Fix sitemap/robots.txt
 - Add blog extension
 - Add optimize extension
+- Make fresh build before uploading (rm build folder)
+- GC old stuff from s3?
