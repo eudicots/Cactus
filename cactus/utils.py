@@ -125,7 +125,10 @@ def parseValues(data, splitChar=':'):
 
 	values = {}
 	lines  = data.splitlines()
-
+	
+	if not lines:
+		return {}, ''
+	
 	for i in xrange(len(lines)):
 
 		line = lines[i]
