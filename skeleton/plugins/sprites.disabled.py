@@ -1,4 +1,5 @@
 import os
+import sys
 import pipes
 import shutil
 import subprocess
@@ -20,6 +21,12 @@ sudo pip uninstall pil
 sudo pip install pil
 sudo pip install glue
 """
+
+try:
+	import glue
+except Exception, e:
+	sys.exit('Could not use glue: %s\nMaybe install: sudo easy_install glue' % e)
+
 
 IMG_PATH = 'static/img/sprites'
 CSS_PATH = 'static/css/sprites'
