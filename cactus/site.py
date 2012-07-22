@@ -7,6 +7,7 @@ import webbrowser
 import getpass
 import imp
 import base64
+import traceback
 
 import boto
 
@@ -151,7 +152,9 @@ class Site(object):
 			# like coffeescript and less don't trigger the listener again immediately.
 			self.listener.pause()
 			try: self.build()
-			except Exception, e: logging.info('*** Error while building\n%s', e)
+			except Exception, e: 
+				logging.info('*** Error while building\n%s', e)
+				traceback.print_exc(file=sys.stdout)
 			self.listener.resume()
 	
 		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/build/' in x)
