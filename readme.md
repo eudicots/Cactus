@@ -94,6 +94,8 @@ Cactus can deploy your website directly to S3, all you need are your Amazon cred
 
 After deploying you can visit the website directly. You can find a deploy log at [site url]/versions.txt.
 
+Cactus also makes sure all your text files are compressed and adds caching headers.
+
 ### Extras
 
 Cactus will auto generate a robots.txt and sitemap.xml file for you based on your pages. This will help bots to index your pages for Google and Bing for example.
