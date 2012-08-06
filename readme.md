@@ -34,7 +34,7 @@ To start editing and previewing your site type the following. Cactus will start 
 	cd ~/www.mysite.com
 	cactus serve
 
-Once you are ready to deploy your site to S3 you can run the following. You will need your [Amazon access keys](https://payments.amazon.com/sdui/sdui/helpTab/Checkout-by-Amazon/Advanced-Integration-Help/Using-Your-Access-Key). If you don't have one yet, [read how to get one here](http://www.hongkiat.com/blog/amazon-s3-the-beginners-guide/).
+Once you are ready to deploy your site to S3 you can run the following. You will need your [Amazon access keys](https://payments.amazon.com/sdui/sdui/helpTab/Checkout-by-Amazon/Advanced-Integration-Help/Using-Your-Access-Key). If you don't have one yet, [read how to get one here](http://www.hongkiat.com/blog/amazon-s3-the-beginners-guide/#Gettting_an_Amazon_S3_Account).
 
 	cactus deploy
 
