@@ -2,7 +2,7 @@
 
 Cactus is a simple but powerful [static website generator](http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html) using the [Django template system](http://docs.djangoproject.com/en/dev/topics/templates/). Cactus also makes it easy to develop locally and deploy your site to S3 directly. It works great for company, portfolio, personal, support websites and blogs.
 
-[Watch the one minute video tutorial here.](https://vimeo.com/46999791)
+To get a quick overview [watch this short video tutorial](https://vimeo.com/46999791).
 
 Cactus is based on the idea that most dynamicness on websites these days can be done using Javascript while the actual site can stay static. Static websites are easy to host and typically very fast.
 
