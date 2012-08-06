@@ -2,7 +2,6 @@ import os
 import datetime
 import logging
 
-ORDER = 999
 POSTS_PATH = 'posts/'
 POSTS = []
 
