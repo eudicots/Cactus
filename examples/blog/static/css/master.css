@@ -30,14 +30,6 @@ p.note 		{border:1px solid #BFBFBF;padding:10px;}
 span.code	{font-family:Menlo, Monaco, Courier; background-color:#EEE; font-size:14px;}
 pre			{font-family:Menlo, Monaco, Courier; white-space:pre-wrap; border: 1px solid #d0d4da; padding:10px; margin-bottom:3em; background-color:#fdfdfd; font-size:14px;  overflow:auto;}
 
-td.sublevel1 {padding-left:30px;background: url("../images/sublevel1-cell.gif") no-repeat 0 -6px;}
-td.sublevel2 {padding-left:60px;background: url("../images/sublevel2-cell.gif") no-repeat 0 -6px;}
-td.sublevel3 {padding-left:90px;background: url("../images/sublevel3-cell.gif") no-repeat 0 -6px;}
-td.sublevel4 {padding-left:120px;background: url("../images/sublevel3-cell.gif") no-repeat 0 -6px;}
-td.path		 {font-family:Menlo, Monaco, Courier;font-size:0.9em;}
-
-/*.scroll		{overflow:auto;}*/
-
 table td {border-color:#dadadc; border-style:solid; padding:1em 15px; border-width:0 0 1px 0;}
 thead th, th {
 	text-align:left;
@@ -51,5 +43,5 @@ thead th, th {
  	white-space:nowrap;
 	background-color:#fafafa;}
 
-#nav {margin-top:40px}
+#nav {margin:40px 0px 20px 0px}
 #nav .next {float:right}

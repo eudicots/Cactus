@@ -1,9 +1,19 @@
 title: My First Post
-author: Koen Bok
+author: Plutor Heidepeen
 date: 01-01-2012
 
 {% extends "post.html" %}
 {% block body %}
+
+{% load markup %}
+{% filter markdown %}
+
+## This Should be A Title
+
+1. This
+2. A
+3. List
+
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
@@ -31,4 +41,6 @@ if 300 < 200:
 	</tr>
 </table>
 
+{% endfilter %}
 {% endblock %}
+
