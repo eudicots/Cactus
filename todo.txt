@@ -1,6 +1,3 @@
-- Add CACTUS.production variable
-- Fix sitemap/robots.txt
-- Add blog extension
-- Add optimize extension
-- Make fresh build before uploading (rm build folder)
+- Minify/Clojure extension?
+- Less extension?
 - GC old stuff from s3?
