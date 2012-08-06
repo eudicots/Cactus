@@ -1,14 +1,14 @@
 # What is Cactus
 
-Cactus is a simple but powerful static website generator using the [Django template system](http://docs.djangoproject.com/en/dev/topics/templates/). Cactus also makes it easy to develop locally and deploy your site to S3 directly. It is great for company, portfolio, personal, support websites and blogs.
+Cactus is a simple but powerful [static website generator](http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html) using the [Django template system](http://docs.djangoproject.com/en/dev/topics/templates/). Cactus also makes it easy to develop locally and deploy your site to S3 directly. It works great for company, portfolio, personal, support websites and blogs.
 
-Cactus is based on the idea that most dynamicity on websites these days can be done using Javascript while the actual site can stay static. Static websites are easy to host and typically very fast.
+Cactus is based on the idea that most dynamicness on websites these days can be done using Javascript while the actual site can stay static. Static websites are easy to host and typically very fast.
 
-I developed Cactus because I wanted a standard, easy system that designers at [Sofa](http://www.madebysofa.com) could use to build and deploy fast websites. Typical users would be designers that are tech-savvy, want to use templates, but don't like to mess with setting up django or S3.
+I developed Cactus because I wanted a standard, easy system that designers at [Sofa](http://www.madebysofa.com) could use to build and deploy fast websites. So typical users would be designers that are tech-savvy, want to use templates, but don't like to mess with setting up django or S3.
 
 Since then it has evolved quite a bit with a plugin system that supports blogging, spriting, versioning and is extensible.
 
-You can find more information about static site generators in this [Hacker News discussion](http://news.ycombinator.com/item?id=2233620) or this (article)[http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html].
+You can find more discussion about static site generators in this [Hacker News discussion](http://news.ycombinator.com/item?id=2233620).
 
 ### Examples
 
@@ -46,7 +46,7 @@ You can install Cactus using this one liner in the terminal. It will download ca
 
 ## Creating a new project
 
-You can create a new project by generating a new project stucture like this. Make sure the destination folder does not exist yet.
+You can create a new project by generating a new project structure like this. Make sure the destination folder does not exist yet.
 
 	cactus [path] create
 
@@ -64,10 +64,7 @@ If you did not see any errors, the path you pointed to should now look like this
 		- images
 		- css
 		- js
-	- plugins
-		- hooks.py			Optional hooks to extend building, deploying
-		- render.py			Allows for custom page contexts and modification at render time
-		- templatetags.py	Holds custom django template tags
+	- plugins				A list of plugins. To enable remove disabled from the name
 
 ## Making your site
 
@@ -76,12 +73,13 @@ After generating your site you can start building by adding pages to contents, w
 ## Building your site
 
 When you build your site it will generate a static version in the build folder that you can upload to any host. Basically it will render each page from your pages folder, copy it over to the build folder and add all the static assets to it so it becomes a self contained website. You can build your site like this:
-
-	cactus [path] build
+	
+	cd [your-cactus-path]
+	cactus build
 
 Your rendered website can now be found in the [path]/build folder. Cactus can also run a small webserver to preview your site and update it when you make any changes. This is really handy when developing. You can run it like this:
 
-	cactus [path] serve
+	cactus serve
 
 ### Linking and contexts
 
@@ -89,24 +87,15 @@ Cactus makes it easy to relatively link to pages and static assets inside your p
 
 	<a href={{ ROOT_URL }}/contact.html>Contact</a>
 
-Optionally you can add variables to the context per page, by modifying the context function in render.py
-
-### Custom Django template tags
-
-TODO
 
 ## Deploying
 	
 Cactus can deploy your website directly to S3, all you need are your Amazon credentials and a bucket name. Cactus remembers these in a configuration file name config.json to make future deploys painless. The secret key is stored securely in the Keychain or similar services on other OSs.
 	
-	cactus [path] deploy
+	cactus deploy
 
-After deploying you can visit the website directly. You can find a deploy log at [site url]/versions.txt. When you add a CloudFront CDN, Cactus also will automatically expire all changed files at the edge locations. This may take up to 15 minutes.
+After deploying you can visit the website directly. You can find a deploy log at [site url]/versions.txt.
 
 # Extras
 
 Cactus will auto generate a robots.txt and sitemap.xml file for you based on your pages. This will help bots to index your pages for Google and Bing for example.
-
-# Advanced usage
-
-Before deploying you could compress your Javascript and CSS using for example [Google Closure](http://code.google.com/closure/compiler/docs/gettingstarted_ui.html) and [CSSMin](http://code.google.com/p/cssmin/) for even more performant sites.
