@@ -13,6 +13,7 @@ You can find more discussion about static site generators in this [Hacker News d
 ### Examples
 
 http://www.madebysofa.com -  Sofa website
+
 http://docs.enstore.com - Enstore documentation website
 
 ## Super quick tutorial for the impatient
