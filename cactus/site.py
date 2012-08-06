@@ -42,7 +42,10 @@ class Site(object):
 		"""
 		try:
 			from django.conf import settings
-			settings.configure(TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']])
+			settings.configure(
+				TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']],
+				INSTALLED_APPS=['django.contrib.markup']
+			)
 		except:
 			pass
 	
@@ -84,7 +87,14 @@ class Site(object):
 		Base context for the site: all the html pages.
 		"""
 		return {'CACTUS': {'pages': [p for p in self.pages() if p.path.endswith('.html')]}}
-
+	
+	def clean(self):
+		"""
+		Remove all build files.
+		"""
+		if os.path.isdir(self.paths['build']):
+			shutil.rmtree(self.paths['build'])
+	
 	def build(self):
 		"""
 		Generate fresh site from templates.
@@ -206,6 +216,7 @@ class Site(object):
 		Upload the site to the server.
 		"""
 		
+		self.clean()
 		self.build()
 		
 		self.pluginMethod('preDeploy', self)
@@ -311,7 +322,7 @@ class Site(object):
 				plugin = imp.load_source('plugin_%s' % pluginHandle, pluginPath)
 			except Exception, e:
 				logging.info('Error: Could not load plugin at path %s\n%s' % (pluginPath, e))
-				continue
+				sys.exit()
 			
 			# Set an id based on the file name
 			plugin.id = pluginHandle
