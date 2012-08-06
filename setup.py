@@ -50,7 +50,7 @@ setup(
 	name='Cactus',
 	version='2.0',
 	description="Static site generation and deployment.",
-	long_description=open('README.markdown').read(),
+	long_description=open('README.md').read(),
 	url='http://github.com/koenbok/Cactus',
 	download_url='http://github.com/koenbok/Cactus',
 	author='Koen Bok',
