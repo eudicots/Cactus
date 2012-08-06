@@ -12,8 +12,10 @@ You can find more discussion about static site generators in this [Hacker News d
 
 ### Examples
 
-	http://www.madebysofa.com -  Sofa website
-	http://docs.enstore.com - Enstore documentation website
+- http://www.madebysofa.com -  Sofa website
+- http://docs.enstore.com - Enstore documentation website
+
+There is also an example blog project included.
 
 ## Super quick tutorial for the impatient
 
