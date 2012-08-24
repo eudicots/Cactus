@@ -48,7 +48,7 @@ if "install" in sys.argv or "bdist_egg" in sys.argv:
 
 setup(
 	name='Cactus',
-	version='2.0.1',
+	version='2.0.2',
 	description="Static site generation and deployment.",
 	long_description=open('README.md').read(),
 	url='http://github.com/koenbok/Cactus',
