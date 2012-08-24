@@ -50,8 +50,10 @@ class SimpleTest(unittest.TestCase):
 			'error.html',
 			'index.html',
 			'robots.txt',
-			'sitemap.xml'])
-	
+			'sitemap.xml',
+			'static/css/style.css',
+			'static/js/main.js'
+		])
 	
 	#def testRenderPage(self):
 		
@@ -90,7 +92,7 @@ class SimpleTest(unittest.TestCase):
 				self.assertEqual(context['age'], '29')
 
 		self.site.build()
-
+		
 		self.assertEqual(
 			readFile(os.path.join(TEST_PATH, 'build', 'koenpage.html')),
 			mockFile('koenpage-out.html')
