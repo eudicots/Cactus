@@ -5,6 +5,7 @@ import urlparse
 import urllib
 import types
 import logging
+import multiprocessing.pool
 
 def fileList(paths, relative=False, folders=False):
 	"""
@@ -37,13 +38,7 @@ def fileList(paths, relative=False, folders=False):
 	return files
 
 def multiMap(f, items, workers=8):
-
-	try:
-		from multiprocessing.pool import ThreadPool
-	except ImportError:
-		return map(f, items)
-	
-	pool = ThreadPool(workers)
+	pool = multiprocessing.pool.ThreadPool(workers)
 	return pool.map(f, items)
 	
 def getpassword(service, account):

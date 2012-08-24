@@ -99,7 +99,10 @@ class Site(object):
 		"""
 		Generate fresh site from templates.
 		"""
-
+		
+		# Bust the context cache
+		self._contextCache = self.context()
+		
 		# Load the plugin code, because we want fresh plugin code on build
 		# refreshes if we're running the web server with listen.
 		self.loadPlugins()
@@ -119,7 +122,10 @@ class Site(object):
 		self.buildStatic()
 		
 		# Render the pages to their output files
+		
+		# Uncomment for non threaded building, crashes randomly
 		multiMap = map
+		
 		multiMap(lambda p: p.build(), self.pages())
 		
 		self.pluginMethod('postBuild', self)

@@ -34,7 +34,7 @@ class Page(object):
 		"""
 		
 		# Site context
-		context = self.site.context()
+		context = self.site._contextCache
 		
 		# Relative url context
 		prefix = '/'.join(['..' for i in xrange(len(self.path.split('/')) - 1)]) or '.'
