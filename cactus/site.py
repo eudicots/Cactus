@@ -18,6 +18,7 @@ from .page import Page
 from .listener import Listener
 from .file import File
 from .server import Server, RequestHandler
+from .browser import insertJavascript
 
 class Site(object):
 	
@@ -173,6 +174,10 @@ class Site(object):
 			except Exception, e: 
 				logging.info('*** Error while building\n%s', e)
 				traceback.print_exc(file=sys.stdout)
+			
+			# Reload the browsers (only mac safari and chrome)
+			insertJavascript(":%s" % port, "window.location.reload()")
+			
 			self.listener.resume()
 	
 		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/build/' in x)

@@ -1,3 +1,12 @@
-- Minify/Clojure plugin?
-- Less plugin?
+# Features
+
 - GC old stuff from s3?
+- See if all assets are used
+- Update html, css last on deploy to prevent/minimize weirdness
+
+# Plugins
+
+- Less CSS
+- Javascript Clojure/Minify
+- Offline Manifest
+- CloudFront
