@@ -8,6 +8,7 @@ import getpass
 import imp
 import base64
 import traceback
+import socket
 
 import boto
 
@@ -16,6 +17,7 @@ from .utils import *
 from .page import Page
 from .listener import Listener
 from .file import File
+from .server import Server, RequestHandler
 
 class Site(object):
 	
@@ -53,9 +55,9 @@ class Site(object):
 		"""
 		Check if this path looks like a Cactus website
 		"""
-		for p in ['pages', 'static', 'templates']:
+		for p in ['pages', 'static', 'templates', 'plugins']:
 			if not os.path.isdir(os.path.join(self.path, p)):
-				logging.info('This does not look like a cactus project (missing "%s" subfolder)', p)
+				logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
 				sys.exit()
 	
 	def bootstrap(self):
@@ -175,28 +177,6 @@ class Site(object):
 	
 		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/build/' in x)
 		self.listener.run()
-
-		import SimpleHTTPServer
-		import SocketServer
-		import socket
-		
-		# See: https://github.com/koenbok/Cactus/issues/8
-		# class Server(SocketServer.ForkingMixIn, SocketServer.TCPServer):
-		# 	allow_reuse_address = True
-
-		class Server(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-			allow_reuse_address = True
-
-		class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
-			
-			def send_error(self, code, message=None):
-				
-				if code == 404:
-					self.path = '/error.html'
-					return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
-				
-				return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(
-					self, code, message=None)
 		
 		try:
 			httpd = Server(("", port), RequestHandler)
