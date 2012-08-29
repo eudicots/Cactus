@@ -2,15 +2,17 @@ import subprocess
 import platform
 
 s1 = """
-tell application "Google Chrome"
-	set windowsList to windows as list
-	repeat with currWindow in windowsList
-		set tabsList to currWindow's tabs as list
-		repeat with currTab in tabsList
-			if "%s" is in currTab's URL then execute currTab javascript "%s"
+if application "Google Chrome" is running then
+	tell application "Google Chrome"
+		set windowsList to windows as list
+		repeat with currWindow in windowsList
+			set tabsList to currWindow's tabs as list
+			repeat with currTab in tabsList
+				if "%s" is in currTab's URL then execute currTab javascript "%s"
+			end repeat
 		end repeat
-	end repeat
-end tell
+	end tell
+end if
 """
 
 s2 = """
@@ -37,11 +39,17 @@ def applescript(input):
 		
 	return subprocess.check_output("osascript<<END%sEND" % input, shell=True)
 
-def insertJavascript(urlMatch, js):
+def _insertJavascript(urlMatch, js):
 
 	try: applescript(s1 % (urlMatch, js))
 	except Exception, e: pass
 
 	try: applescript(s2 % (urlMatch, js))
 	except Exception, e: pass
+
+def browserReload(url):
+	_insertJavascript(url, "window.location.reload()")
+
+def browserReloadCSS(url):
+	_insertJavascript(url, "var links = document.getElementsByTagName('link'); for (var i = 0; i < links.length;i++) { var link = links[i]; if (link.rel === 'stylesheet') {link.href += '?'; }}")
 
