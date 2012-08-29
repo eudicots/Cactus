@@ -18,7 +18,8 @@ from .page import Page
 from .listener import Listener
 from .file import File
 from .server import Server, RequestHandler
-from .browser import insertJavascript
+from .browser import browserReload, browserReloadCSS
+
 
 class Site(object):
 	
@@ -164,8 +165,8 @@ class Site(object):
 	
 		os.chdir(self.paths['build'])
 		
-		def rebuild(change):
-			logging.info('*** Rebuilding (%s changed)' % change)
+		def rebuild(changes):
+			logging.info('*** Rebuilding (%s changed)' % self.path)
 			
 			# We will pause the listener while building so scripts that alter the output
 			# like coffeescript and less don't trigger the listener again immediately.
@@ -175,8 +176,15 @@ class Site(object):
 				logging.info('*** Error while building\n%s', e)
 				traceback.print_exc(file=sys.stdout)
 			
-			# Reload the browsers (only mac safari and chrome)
-			insertJavascript(":%s" % port, "window.location.reload()")
+			# When we have changes, we want to refresh the browser tabs with the updates.
+			# Mostly we just refresh the browser except when there are just css changes,
+			# then we reload the css in place.
+			if  len(changes["added"]) == 0 and \
+				len(changes["deleted"]) == 0 and \
+				set(map(lambda x: os.path.splitext(x)[1], changes["changed"])) == set([".css"]):
+				browserReloadCSS('http://127.0.0.1:%s' % port)
+			else:
+				browserReload('http://127.0.0.1:%s' % port)
 			
 			self.listener.resume()
 	
