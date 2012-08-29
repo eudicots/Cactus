@@ -12,24 +12,20 @@ class Listener(object):
 		self.f = f
 		self.delay = delay
 		self.ignore = ignore
-		self.current = None
 		self._pause = False
+		self._checksums = {}
 	
-	def checksum(self, path):
+	def checksums(self):
+		checksumMap = {}
 		
-		total = 0
-		
-		for f in fileList(path):
+		for f in fileList(self.path):
 			if f.startswith('.'):
 				continue
 			if self.ignore and self.ignore(f) == True:
 				continue
-			total += int(os.stat(f).st_mtime)
+			checksumMap[f] = int(os.stat(f).st_mtime)
 		
-		return total
-	
-	def setCurrent(self):
-		self.current = self.checksum(self.path)
+		return checksumMap
 	
 	def run(self):
 		# self._run()
@@ -39,19 +35,38 @@ class Listener(object):
 		self._pause = True
 	
 	def resume(self):
-		self.setCurrent()
+		self._checksums = self.checksums()
 		self._pause = False
 	
 	def _run(self):
 		
-		self.setCurrent()
+		self._checksums = self.checksums()
 		
 		while True and self._pause == False:
 			
-			s = self.checksum(self.path)
-	
-			if s != self.current:
-				self.current = s
-				self.f(self.path)
+			oldChecksums = self._checksums
+			newChecksums = self.checksums()
+			
+			result = {
+				'added': [],
+				'deleted': [],
+				'changed': [],
+			}
+			
+			for k, v in oldChecksums.iteritems():
+				if k not in newChecksums:
+					result['deleted'].append(k)
+				elif v != newChecksums[k]:
+					result['changed'].append(k)
+			
+			for k, v in newChecksums.iteritems():
+				if k not in oldChecksums:
+					result['added'].append(k)
+				
+			result['any'] = result['added'] + result['deleted'] + result['changed']
+			
+			if result['any']:
+				self._checksums = newChecksums
+				self.f(result)
 			
 			time.sleep(self.delay)
