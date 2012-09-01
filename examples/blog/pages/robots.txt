@@ -1,2 +1,0 @@
-{% for page in CACTUS.pages %}{% if page.path != 'error.html' %}{{ page.path }}{% endif %}
-{% endfor %}
