@@ -6,7 +6,7 @@ import shutil
 from setuptools import setup
 from distutils.sysconfig import get_python_lib
 
-
+VERSION = "2.1.0"
 
 if "uninstall" in sys.argv:
 	
@@ -48,11 +48,11 @@ if "install" in sys.argv or "bdist_egg" in sys.argv:
 
 setup(
 	name='Cactus',
-	version='2.1.0',
+	version=VERSION,
 	description="Static site generation and deployment.",
 	long_description=open('README.md').read(),
 	url='http://github.com/koenbok/Cactus',
-	download_url='https://github.com/koenbok/Cactus/zipball/master',
+	download_url='https://github.com/koenbok/Cactus/zipball/master#egg=Cactus-%s' % VERSION,
 	author='Koen Bok',
 	author_email='koen@madebysofa.com',
 	license='BSD',
