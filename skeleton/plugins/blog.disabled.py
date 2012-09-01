@@ -16,16 +16,25 @@ def preBuild(site):
 			if not page.path.endswith('.html'):
 				continue
 			
-			c = page.context()
+			def find(name):
+				c = page.context()
+				if not name in c:
+					logging.info("Missing info '%s' for post %s" % (name, page.path))
+					return ''
+				return c.get(name, '')
 			
 			postContext = {}
-			postContext['title'] = c.get('title', '')
-			postContext['author'] = c.get('author', '')
-			postContext['date'] = c.get('date', '')
+			postContext['title'] = find('title')
+			postContext['author'] = find('author')
+			postContext['date'] = find('date')
 			postContext['path'] = page.path
 			
 			# Parse the date into a date object
-			postContext['date'] = datetime.datetime.strptime(postContext['date'], '%d-%m-%Y')
+			try:
+				postContext['date'] = datetime.datetime.strptime(postContext['date'], '%d-%m-%Y')
+			except Exception, e:
+				logging.warning("Date format not correct for page %s, should be dd-mm-yy\n%s" % (page.path, e))
+				continue
 			
 			POSTS.append(postContext)
 	
