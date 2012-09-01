@@ -202,9 +202,7 @@ class Site(object):
 
 		try: 
 			httpd.serve_forever() 
-		except KeyboardInterrupt: 
-			pass 
-		finally: 
+		except (KeyboardInterrupt, SystemExit):
 			httpd.server_close() 
 
 		logging.info('See you!')
