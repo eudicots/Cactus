@@ -52,7 +52,7 @@ setup(
 	description="Static site generation and deployment.",
 	long_description=open('README.md').read(),
 	url='http://github.com/koenbok/Cactus',
-	download_url='https://github.com/koenbok/Cactus/zipball/master#egg=Cactus-%s' % VERSION,
+	download_url='https://github.com/koenbok/Cactus/tarball/v%s#egg=Cactus-%s' % (VERSION, VERSION),
 	author='Koen Bok',
 	author_email='koen@madebysofa.com',
 	license='BSD',
