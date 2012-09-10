@@ -254,13 +254,6 @@ class Site(object):
 				
 				# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
 				awsBucket.configure_website('index.html', 'error.html')
-				
-				self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
-				self.config.set('aws-bucket-name', awsBucketName)
-				self.config.write()
-			
-				logging.info('Bucket %s was created with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
-				logging.info('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
 			
 			else: return
 		else:
@@ -269,7 +262,14 @@ class Site(object):
 			for b in buckets:
 				if b.name == awsBucketName:
 					awsBucket = b
-	
+
+		self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+		self.config.set('aws-bucket-name', awsBucketName)
+		self.config.write()
+
+		logging.info('Bucket %s was selected with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
+		logging.info('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
+		
 		logging.info('Uploading site to bucket %s' % awsBucketName)
 		
 		# Upload all files concurrently in a thread pool
