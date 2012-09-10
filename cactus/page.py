@@ -4,11 +4,8 @@ import logging
 
 from .utils import parseValues
 
-try:
-	from django.template import Template, Context
-	from django.template import loader as templateLoader
-except:
-	pass
+from django.template import Template, Context
+from django.template import loader as templateLoader
 
 class Page(object):
 	
