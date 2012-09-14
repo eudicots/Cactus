@@ -270,11 +270,9 @@ class Site(object):
 			for b in buckets:
 				if b.name == awsBucketName:
 					awsBucket = b
-		
-		# Make sure we have the endpoint in the config
-		if not self.config.get('aws-bucket-website'):
-			self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
-			self.config.write()
+
+		self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+		self.config.write()
 		
 		logging.info('Uploading site to bucket %s' % awsBucketName)
 		
