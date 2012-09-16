@@ -6,7 +6,7 @@ import shutil
 from setuptools import setup
 from distutils.sysconfig import get_python_lib
 
-VERSION = "2.1.1"
+VERSION = "2.1.2"
 
 if "uninstall" in sys.argv:
 	
