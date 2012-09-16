@@ -152,7 +152,9 @@ class Site(object):
 		"""
 		List of pages.
 		"""
-		return [Page(self, p) for p in fileList(self.paths['pages'], relative=True)]
+		paths = fileList(self.paths['pages'], relative=True)
+		paths = filter(lambda x: not x.endswith("~"), paths)
+		return [Page(self, p) for p in paths]
 
 	def serve(self, browser=True, port=8000):
 		"""
