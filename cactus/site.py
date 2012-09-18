@@ -200,7 +200,8 @@ class Site(object):
 			logging.info('  cactus serve %s' % (int(port) + 1))
 			return
 		
-		webbrowser.open('http://127.0.0.1:%s' % port)
+		if browser is True:
+			webbrowser.open('http://127.0.0.1:%s' % port)
 
 		try: 
 			httpd.serve_forever() 

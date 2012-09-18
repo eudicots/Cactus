@@ -27,12 +27,12 @@ def build(path):
 	site.verify()
 	site.build()
 
-def serve(path, port=8000):
+def serve(path, port=8000, browser=True):
 	"Serve the project and watch changes"
 	
 	site = cactus.Site(path)
 	site.verify()
-	site.serve(port=port)
+	site.serve(port=port, browser=browser)
 
 def deploy(path):
 	"Upload the project to S3"
@@ -59,6 +59,7 @@ def main():
 	
 	command = sys.argv[1] if len(sys.argv) > 1 else None
 	option1 = sys.argv[2] if len(sys.argv) > 2 else None
+	option2 = sys.argv[3] if len(sys.argv) > 3 else None
 	
 	# If we miss a command we exit and print help
 	if not command:
@@ -81,7 +82,9 @@ def main():
 		else:
 			option1 = 8000
 		
-		serve(os.getcwd(), port=option1)
+		browser = False if option2 == '-n' else True 
+		
+		serve(os.getcwd(), port=option1, browser=browser)
 
 	elif command == 'deploy':
 		deploy(os.getcwd())
