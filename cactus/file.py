@@ -2,7 +2,7 @@ import os
 import codecs
 import logging
 import hashlib
-import mimetypes
+import mime
 
 from .utils import compressString, getURLHeaders, fileSize
 
@@ -77,7 +77,7 @@ class File(object):
 		
 		if changed:
 			key = bucket.new_key(self.path)
-			mimeType = mimetypes.guess_type(self.path)[0]
+			mimeType = mime.guess(self.path)[0]
 			if mimeType: key.content_type = mimeType
 			key.set_contents_from_string(self.payload(), headers, policy='public-read')
  		
