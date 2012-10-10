@@ -45,9 +45,13 @@ def preDeploy(site):
 	url = site.config.get('aws-bucket-website')
 	data = u''
 	
-	# Get the current content of versions.txt
-	try: data = urllib2.urlopen('http://%s/versions.txt' % url).read() + u'\n'
-	except: pass
+	# If this is the first deploy we don't have to fetch the old file
+	if url:
+		try:
+			data = urllib2.urlopen('http://%s/versions.txt' % url, timeout=8.0).read() + u'\n'
+		except:
+			print "Could not fetch the previous versions.txt, skipping..."
+			return
 	
 	data += u'\t'.join([datetime.datetime.now().isoformat(), platform.node(), getpass.getuser()])
 	codecs.open(os.path.join(site.paths['build'], 'versions.txt'), 'w', 'utf8').write(data)
