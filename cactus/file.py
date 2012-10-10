@@ -77,7 +77,7 @@ class File(object):
 		
 		if changed:
 			key = bucket.new_key(self.path)
-			mimeType = mime.guess(self.path)[0]
+			mimeType = mime.guess(self.path)
 			if mimeType: key.content_type = mimeType
 			key.set_contents_from_string(self.payload(), headers, policy='public-read')
  		
