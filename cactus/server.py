@@ -1,6 +1,6 @@
 import os
 import sys
-
+import logging
 import SimpleHTTPServer
 import SocketServer
 
@@ -41,9 +41,12 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 				if os.path.exists(index):
 					path = index
 					break
-			# else:
-			# 	return self.list_directory(path)
+			#if it's still a directory, just list the contents
+			if os.path.isdir(path):
+			 	return self.list_directory(path)
+			
 		ctype = self.guess_type(path)
+		
 		try:
 			# Always read in binary mode. Opening files in text mode may cause
 			# newline translations, making the actual size of the content
@@ -67,7 +70,7 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 	
 	def send_error(self, code, message=None):
 		
-		if code == 404:
+		if code == 404 and os.path.exists(self.translate_path('/error.html')):
 			self.path = '/error.html'
 			return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 		
