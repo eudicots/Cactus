@@ -5,6 +5,7 @@ import urlparse
 import urllib
 import types
 import logging
+import time
 import multiprocessing.pool
 
 def fileList(paths, relative=False, folders=False):
@@ -140,4 +141,61 @@ def parseValues(data, splitChar=':'):
 	
 	return values, '\n'.join(lines[i:])
 		
+def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
+	def deco_retry(f):
+		def f_retry(*args, **kwargs):
+			mtries, mdelay = tries, delay
+			try_one_last_time = True
+			while mtries > 1:
+				try:
+					return f(*args, **kwargs)
+					try_one_last_time = False
+					break
+				except ExceptionToCheck, e:
+					logging.warning("%s, Retrying in %.1f seconds..." % (str(e), mdelay))
+					time.sleep(mdelay)
+					mtries -= 1
+					mdelay *= backoff
+			if try_one_last_time:
+				return f(*args, **kwargs)
+			return
+		return f_retry  # true decorator
+	return deco_retry
+
+from functools import partial
+
+class memoize(object):
+	def __init__(self, func):
+		self.func = func
+	def __get__(self, obj, objtype=None):
+		if obj is None:
+			return self.func
+		return partial(self, obj)
+	def __call__(self, *args, **kw):
+		obj = args[0]
+		try:
+			cache = obj.__cache
+		except AttributeError:
+			cache = obj.__cache = {}
+		key = (self.func, args[1:], frozenset(kw.items()))
+		try:
+			res = cache[key]
+		except KeyError:
+			res = cache[key] = self.func(*args, **kw)
+		return res
+
+import urllib2
+
+def internetWorking():
 	
+	def check(url):
+		try:
+			response = urllib2.urlopen(url, timeout=1)
+			return True
+		except urllib2.URLError as err: pass
+		return False
+	
+	return True in multiMap(check, [
+		'http://www.google.com', 
+		'http://www.apple.com'])
+
