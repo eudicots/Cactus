@@ -3,8 +3,8 @@ import logging
 import json
 import socket
 
-socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.settimeout(5)
+# I don't think this is actually working
+socket.setdefaulttimeout(5.0)
 
 logLevel = logging.INFO
 

@@ -215,11 +215,20 @@ class Site(object):
 		"""
 		Upload the site to the server.
 		"""
+
+		# Make sure we have internet
+		if not internetWorking():
+			logging.info('There does not seem to be internet here, check your connection')
+			return
+
+		logging.debug('Start upload')
 		
 		self.clean()
 		self.build()
 		
+		logging.debug('Start preDeploy')
 		self.pluginMethod('preDeploy', self)
+		logging.debug('End preDeploy')
 		
 		# Get access information from the config or the user
 		awsAccessKey = self.config.get('aws-access-key') or \
@@ -230,12 +239,14 @@ class Site(object):
 		# Try to fetch the buckets with the given credentials
 		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
 		
+		logging.debug('Start get_all_buckets')
 		# Exit if the information was not correct
 		try:
 			buckets = connection.get_all_buckets()
 		except:
 			logging.info('Invalid login credentials, please try again...')
 			return
+		logging.debug('end get_all_buckets')
 		
 		# If it was correct, save it for the future
 		self.config.set('aws-access-key', awsAccessKey)
@@ -249,11 +260,13 @@ class Site(object):
 		if awsBucketName not in [b.name for b in buckets]:
 			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
 				
+				logging.debug('Start create_bucket')
 				try:
 					awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
 				except boto.exception.S3CreateError, e:
 					logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
 					return
+				logging.debug('end create_bucket')
 				
 				# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
 				awsBucket.configure_website('index.html', 'error.html')
