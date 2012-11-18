@@ -4,6 +4,7 @@ import time
 import thread
 
 from .utils import fileList
+from .utils import retry
 
 class Listener(object):
 	
@@ -28,8 +29,8 @@ class Listener(object):
 		return checksumMap
 	
 	def run(self):
-		# self._run()
-		t = thread.start_new_thread(self._run, ())
+		# self._loop()
+		t = thread.start_new_thread(self._loop, ())
 	
 	def pause(self):
 		self._pause = True
@@ -38,35 +39,39 @@ class Listener(object):
 		self._checksums = self.checksums()
 		self._pause = False
 	
-	def _run(self):
+	def _loop(self):
 		
 		self._checksums = self.checksums()
 		
 		while True and self._pause == False:
+			self._run()
+	
+	@retry(Exception, tries=5, delay=0.5)
+	def _run(self):
 			
-			oldChecksums = self._checksums
-			newChecksums = self.checksums()
+		oldChecksums = self._checksums
+		newChecksums = self.checksums()
+		
+		result = {
+			'added': [],
+			'deleted': [],
+			'changed': [],
+		}
+		
+		for k, v in oldChecksums.iteritems():
+			if k not in newChecksums:
+				result['deleted'].append(k)
+			elif v != newChecksums[k]:
+				result['changed'].append(k)
+		
+		for k, v in newChecksums.iteritems():
+			if k not in oldChecksums:
+				result['added'].append(k)
 			
-			result = {
-				'added': [],
-				'deleted': [],
-				'changed': [],
-			}
-			
-			for k, v in oldChecksums.iteritems():
-				if k not in newChecksums:
-					result['deleted'].append(k)
-				elif v != newChecksums[k]:
-					result['changed'].append(k)
-			
-			for k, v in newChecksums.iteritems():
-				if k not in oldChecksums:
-					result['added'].append(k)
-				
-			result['any'] = result['added'] + result['deleted'] + result['changed']
-			
-			if result['any']:
-				self._checksums = newChecksums
-				self.f(result)
-			
-			time.sleep(self.delay)
+		result['any'] = result['added'] + result['deleted'] + result['changed']
+		
+		if result['any']:
+			self._checksums = newChecksums
+			self.f(result)
+		
+		time.sleep(self.delay)
