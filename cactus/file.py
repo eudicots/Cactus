@@ -3,14 +3,16 @@ import codecs
 import logging
 import hashlib
 import mime
+import socket
 
-from .utils import compressString, getURLHeaders, fileSize
+from .utils import compressString, getURLHeaders, fileSize, retry, memoize
 
 class File(object):
 	
-	CACHE_EXPIRATION = 60 * 60 * 24 # 24 hours
+	CACHE_EXPIRATION = 60 * 60 * 24 * 7 # One week
 	COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml']
 	COMPRESS_MIN_SIZE = 1024 # 1kb
+	PROGRESS_MIN_SIZE = (1024 * 1024) / 2 # 521 kb
 	
 	def __init__(self, site, path):
 		self.site = site
@@ -26,20 +28,18 @@ class File(object):
 			self._data = f.read()
 			f.close()
 		return self._data
-		
+	
+	@memoize
 	def payload(self):
 		"""
 		The representation of the data that should be uploaded to the
 		server. This might be compressed based on the content type and size.
 		"""
 		
-		if not self.shouldCompress():
-			return self.data()
-		
-		if not hasattr(self, '_compressedData'):
-			self._compressedData = compressString(self.data())
-		
-		return self._compressedData
+		if self.shouldCompress():
+			return compressString(self.data())
+			
+		return self.data()
 	
 	def checksum(self):
 		"""
@@ -66,6 +66,7 @@ class File(object):
 		
 		return True
 	
+	@retry((socket.error), tries=3, delay=2, backoff=2)
 	def upload(self, bucket):
 		
 		headers = {'Cache-Control': 'max-age=%s' % self.CACHE_EXPIRATION}
@@ -76,10 +77,25 @@ class File(object):
 		changed = self.checksum() != self.remoteChecksum()
 		
 		if changed:
+		
+			# Show progress if the file size is big
+			progressCallback = None
+		
+			if len(self.payload()) > self.PROGRESS_MIN_SIZE:
+				def progressCallback(current, total):
+					logging.info('+ %s upload progress %s %s' % (self.path, current, total))
+			
+			# Create a new key from the file path and guess the mime type
 			key = bucket.new_key(self.path)
 			mimeType = mime.guess(self.path)
-			if mimeType: key.content_type = mimeType
-			key.set_contents_from_string(self.payload(), headers, policy='public-read')
+			
+			if mimeType:
+				key.content_type = mimeType
+			
+			# Upload the data
+			key.set_contents_from_string(self.payload(), headers, 
+				policy='public-read',
+				cb=progressCallback)
  		
 		op1 = '+' if changed else '-'
 		op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.shouldCompress() else ''
