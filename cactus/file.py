@@ -69,6 +69,7 @@ class File(object):
 	@retry(socket.error, tries=5, delay=3, backoff=2)
 	def upload(self, bucket):
 		
+		self.lastUpload = 0
 		headers = {'Cache-Control': 'max-age=%s' % self.CACHE_EXPIRATION}
 		
 		if self.shouldCompress():
@@ -83,8 +84,10 @@ class File(object):
 		
 			if len(self.payload()) > self.PROGRESS_MIN_SIZE:
 				def progressCallback(current, total):
-					uploadPercentage = (current / total) * 100
-					logging.info('+ %s upload progress %.1f' % (self.path, uploadPercentage))
+					if current > self.lastUpload:
+						uploadPercentage = (float(current) / float(total)) * 100
+						logging.info('+ %s upload progress %.1f%%' % (self.path, uploadPercentage))
+						self.lastUpload = current
 			
 			# Create a new key from the file path and guess the mime type
 			key = bucket.new_key(self.path)
