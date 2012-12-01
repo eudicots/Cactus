@@ -1,6 +1,6 @@
 import os
 import sys
-import logging
+
 import SimpleHTTPServer
 import SocketServer
 
@@ -28,6 +28,7 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 		"""
 		
 		path = self.translate_path(self.path)
+		
 		f = None
 		if os.path.isdir(path):
 			if not self.path.endswith('/'):
@@ -41,41 +42,50 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 				if os.path.exists(index):
 					path = index
 					break
-			#if it's still a directory, just list the contents
-			if os.path.isdir(path):
-			 	return self.list_directory(path)
-			
-		ctype = self.guess_type(path)
+			# else:
+			# 	return self.list_directory(path)
 		
 		try:
 			# Always read in binary mode. Opening files in text mode may cause
 			# newline translations, making the actual size of the content
 			# transmitted *less* than the content-length!
 			f = open(path, 'rb')
+			
 		except IOError:
-			self.send_error(404, "File not found")
+			
+			errorPagePath = self.translate_path('/error.html')
+			
+			if os.path.exists(errorPagePath):
+				return self.send_content(404, 
+					{"Content-type": "text/html"}, 
+					open(errorPagePath, 'rb'))
+			else:
+				self.send_error(404, "File not found")
 			return None
-		self.send_response(200)
-		self.send_header("Content-type", ctype)
 		
 		fs = os.fstat(f.fileno())
+		tp = self.guess_type(path)
 		
-		self.send_header("Content-Length", str(fs[6]))
-		if ctype and ctype.startswith("text"):
-			self.send_header("Cache-Control", "no-cache, must-revalidate")
-		else:
-			self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
-		self.end_headers()
-		return f
+		headers = {
+			"Content-type": tp,
+			"Content-Length": str(fs[6]),
+			"Cache-Control": "no-cache, must-revalidate",
+		}
+		
+		# Last-Modified", self.date_time_string(fs.st_mtime)
+		
+		return self.send_content(200, headers, f)
 	
-	def send_error(self, code, message=None):
+	def send_content(self, code, headers, fileHandler):
 		
-		if code == 404 and os.path.exists(self.translate_path('/error.html')):
-			self.path = '/error.html'
-			return SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+		self.send_response(code)
 		
-		return SimpleHTTPServer.SimpleHTTPRequestHandler.send_error(
-			self, code, message=None)
+		for key, value in headers.iteritems():
+			self.send_header(key, value)
+		
+		self.end_headers()
+		
+		return fileHandler
 	
 	def log_message(self, format, *args):
 		sys.stdout.write("%s\n" % format%args)

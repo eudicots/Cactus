@@ -45,8 +45,11 @@ class SimpleTest(unittest.TestCase):
 	def testBuild(self):
 		
 		self.site.build()
-	
-		self.assertEqual(fileList(os.path.join(TEST_PATH, 'build'), relative=True), [
+		
+		# Make sure we build to .build and not build
+		self.assertEqual(os.path.exists(os.path.join(TEST_PATH, 'build')), False)
+		
+		self.assertEqual(fileList(os.path.join(TEST_PATH, '.build'), relative=True), [
 			'error.html',
 			'index.html',
 			'robots.txt',
@@ -67,7 +70,7 @@ class SimpleTest(unittest.TestCase):
 		self.site.build()
 		
 		self.assertEqual(
-			readFile(os.path.join(TEST_PATH, 'build', 'test.html')),
+			readFile(os.path.join(TEST_PATH, '.build', 'test.html')),
 			mockFile('test-out.html')
 		)
 	
@@ -94,7 +97,7 @@ class SimpleTest(unittest.TestCase):
 		self.site.build()
 		
 		self.assertEqual(
-			readFile(os.path.join(TEST_PATH, 'build', 'koenpage.html')),
+			readFile(os.path.join(TEST_PATH, '.build', 'koenpage.html')),
 			mockFile('koenpage-out.html')
 		)
 

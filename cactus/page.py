@@ -15,8 +15,8 @@ class Page(object):
 
 		self.paths = {
 			'full': os.path.join(self.site.path, 'pages', self.path),
-			'build': os.path.join('build', self.path),
-			'full-build': os.path.join(site.path, 'build', self.path),
+			# 'build': os.path.join('.build', self.path),
+			'full-build': os.path.join(site.paths['build'], self.path),
 		}
 		
 	def data(self):

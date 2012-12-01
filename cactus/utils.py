@@ -3,10 +3,13 @@ import re
 import httplib
 import urlparse
 import urllib
+import urllib2
 import types
 import logging
 import time
 import multiprocessing.pool
+
+from functools import partial
 
 def fileList(paths, relative=False, folders=False):
 	"""
@@ -162,8 +165,6 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
 		return f_retry  # true decorator
 	return deco_retry
 
-from functools import partial
-
 class memoize(object):
 	def __init__(self, func):
 		self.func = func
@@ -184,18 +185,15 @@ class memoize(object):
 			res = cache[key] = self.func(*args, **kw)
 		return res
 
-import urllib2
-
 def internetWorking():
-	
+
 	def check(url):
 		try:
 			response = urllib2.urlopen(url, timeout=1)
 			return True
 		except urllib2.URLError as err: pass
 		return False
-	
+
 	return True in multiMap(check, [
 		'http://www.google.com', 
 		'http://www.apple.com'])
-

@@ -19,7 +19,7 @@ class File(object):
 		self.path = path
 
 		self.paths = {
-			'full': os.path.join(site.path, 'build', self.path)
+			'full': os.path.join(site.path, '.build', self.path)
 		}
 	
 	def data(self):
@@ -29,7 +29,7 @@ class File(object):
 			f.close()
 		return self._data
 	
-	@memoize
+	# @memoize
 	def payload(self):
 		"""
 		The representation of the data that should be uploaded to the
@@ -66,7 +66,7 @@ class File(object):
 		
 		return True
 	
-	@retry((socket.error), tries=3, delay=2, backoff=2)
+	@retry(socket.error, tries=5, delay=3, backoff=2)
 	def upload(self, bucket):
 		
 		headers = {'Cache-Control': 'max-age=%s' % self.CACHE_EXPIRATION}
@@ -83,7 +83,8 @@ class File(object):
 		
 			if len(self.payload()) > self.PROGRESS_MIN_SIZE:
 				def progressCallback(current, total):
-					logging.info('+ %s upload progress %s %s' % (self.path, current, total))
+					uploadPercentage = (current / total) * 100
+					logging.info('+ %s upload progress %.1f' % (self.path, uploadPercentage))
 			
 			# Create a new key from the file path and guess the mime type
 			key = bucket.new_key(self.path)

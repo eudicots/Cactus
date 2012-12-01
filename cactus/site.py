@@ -29,7 +29,7 @@ class Site(object):
 
 		self.paths = {
 			'config': os.path.join(path, 'config.json'),
-			'build': os.path.join(path, 'build'),
+			'build': os.path.join(path, '.build'),
 			'pages': os.path.join(path, 'pages'),
 			'templates': os.path.join(path, 'templates'),
 			'plugins': os.path.join(path, 'plugins'),
@@ -160,6 +160,7 @@ class Site(object):
 		"""
 		Start a http server and rebuild on changes.
 		"""
+		self.clean()
 		self.build()
 	
 		logging.info('Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build']))
