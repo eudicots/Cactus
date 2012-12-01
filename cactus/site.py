@@ -191,7 +191,7 @@ class Site(object):
 			
 			self.listener.resume()
 	
-		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/build/' in x)
+		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/.build/' in x)
 		self.listener.run()
 		
 		try:
