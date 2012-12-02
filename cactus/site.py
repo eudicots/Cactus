@@ -9,6 +9,7 @@ import imp
 import base64
 import traceback
 import socket
+import tempfile
 
 import boto
 
@@ -69,19 +70,13 @@ class Site(object):
 		
 		from .skeleton import data
 		
-		tempSkeletonPath = '/tmp/skeleton.tar.gz'
-		
-		if os.path.exists(tempSkeletonPath):
-			os.remove(tempSkeletonPath)
-		
-		# Write the data to a file
-		f = open(tempSkeletonPath, 'w')
-		f.write(base64.b64decode(data))
-		f.close()
+		skeletonFile = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
+		skeletonFile.write(base64.b64decode(data))
+		skeletonFile.close()
 
 		os.mkdir(self.path)
 		
-		subprocess.check_call('tar -zxvf "%s" --strip-components 1 -C "%s"' % (tempSkeletonPath, self.path), 
+		subprocess.check_call('tar -zxvf "%s" --strip-components 1 -C "%s"' % (skeletonFile.name, self.path), 
 			shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		
 		logging.info('New project generated at %s', self.path)
