@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+    <channel>
+    <title></title>
+    <link></link>
+    <description></description>
+    <language></language>
+    <image>
+      <title></title>
+      <url></url>
+      <link></link>
+    </image>
+    {% for post in posts %}
+    <item>
+      <title>{{ post.title }}</title>
+      <link>{{ post.path }}</link>
+      <description>{{ post.body }}</description>
+      <pubDate>{{ post.date|date:"c" }}</pubDate>
+    </item>
+    {% endfor %}
+  </channel>
+</rss>
