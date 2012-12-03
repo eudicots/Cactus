@@ -85,6 +85,9 @@ Cactus makes it easy to relatively link to pages and static assets inside your p
 
 	<a href={{ ROOT_URL }}/contact.html>Contact</a>
 
+### Templates
+
+Cactus uses the Django templates. They should be very similar to other templating systems and have some nice capabilities like inheritance. In a nutshell: a variable looks like this `{{ name }}` and a tag like this `{% block title %}Welcome{% endblock %}`. You can read the [full documentation](https://docs.djangoproject.com/en/dev/topics/templates/) at the django site.
 
 ### Enabling Plugins
 
