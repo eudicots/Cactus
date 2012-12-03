@@ -86,6 +86,10 @@ Cactus makes it easy to relatively link to pages and static assets inside your p
 	<a href={{ ROOT_URL }}/contact.html>Contact</a>
 
 
+### Enabling Plugins
+
+To enable a plugin for your site, change the file name from [PLUGIN].disabled.py to [PLUGIN].py. For an example of how to build a blog on top of Cactus, see [CactusBlog](https://github.com/koenbok/CactusBlog/)
+
 ### Deploying
 	
 Cactus can deploy your website directly to S3, all you need are your Amazon credentials and a bucket name. Cactus remembers these in a configuration file name config.json to make future deploys painless. The secret key is stored securely in the Keychain or similar services on other OSs.
