@@ -98,7 +98,10 @@ class Site(object):
 		"""
 		Generate fresh site from templates.
 		"""
-		
+
+		# Set up django settings
+		self.setup()
+
 		# Bust the context cache
 		self._contextCache = self.context()
 		
@@ -109,9 +112,6 @@ class Site(object):
 		logging.info('Plugins: %s', ', '.join([p.id for p in self._plugins]))
 
 		self.pluginMethod('preBuild', self)
-		
-		# Set up django settings
-		self.setup()
 		
 		# Make sure the build path exists
 		if not os.path.exists(self.paths['build']):
