@@ -35,9 +35,14 @@ class File(object):
 		The representation of the data that should be uploaded to the
 		server. This might be compressed based on the content type and size.
 		"""
-		
-		if self.shouldCompress():
-			return compressString(self.data())
+		if not hasattr(self, '_payload'):
+			if self.shouldCompress():
+				self._payload = compressString(self.data())
+			else:
+				self._payload = self.data()
+				
+		return self._payload
+
 			
 		return self.data()
 	
@@ -81,6 +86,7 @@ class File(object):
 		
 			# Show progress if the file size is big
 			progressCallback = None
+			progressCallbackCount = int(len(self.payload()) / (1024 * 1024))
 		
 			if len(self.payload()) > self.PROGRESS_MIN_SIZE:
 				def progressCallback(current, total):
@@ -99,7 +105,8 @@ class File(object):
 			# Upload the data
 			key.set_contents_from_string(self.payload(), headers, 
 				policy='public-read',
-				cb=progressCallback)
+				cb=progressCallback,
+				num_cb=progressCallbackCount)
  		
 		op1 = '+' if changed else '-'
 		op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.shouldCompress() else ''
