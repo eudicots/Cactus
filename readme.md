@@ -50,7 +50,7 @@ You can create a new project by generating a new project structure like this. Ma
 
 If you did not see any errors, the path you pointed to should now look like this.
 	
-	- build					Generated site (upload this to your host)
+	- .build				Generated site (upload this to your host)
 	- pages					Your actual site pages
 		- index.html
 		- sitemap.xml
@@ -75,7 +75,7 @@ When you build your site it will generate a static version in the build folder t
 	cd [your-cactus-path]
 	cactus build
 
-Your rendered website can now be found in the [path]/build folder. Cactus can also run a small webserver to preview your site and update it when you make any changes. This is really handy when developing. You can run it like this:
+Your rendered website can now be found in the (hidden) [path]/.build folder. Cactus can also run a small webserver to preview your site and update it when you make any changes. This is really handy when developing. You can run it like this:
 
 	cactus serve
 
