@@ -6,7 +6,6 @@ def postBuild(site):
         root_name = filename.rsplit('.', 1)[0]
         src = filename
         dest = "%s.css" % root_name
-        print 'lessc', '--compress', src, dest
         try:
             subprocess.check_call(['lessc', '--compress', src, dest])
         except subprocess.CalledProcessError:
