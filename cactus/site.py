@@ -10,6 +10,7 @@ import base64
 import traceback
 import socket
 import tempfile
+import tarfile
 
 import boto
 
@@ -76,8 +77,9 @@ class Site(object):
 
 		os.mkdir(self.path)
 		
-		subprocess.check_call('tar -zxvf "%s" --strip-components 1 -C "%s"' % (skeletonFile.name, self.path), 
-			shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		skeletonArchive = tarfile.open(name=skeletonFile.name, mode='r')
+		skeletonArchive.extractall(path=self.path)
+		skeletonArchive.close()
 		
 		logging.info('New project generated at %s', self.path)
 
