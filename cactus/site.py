@@ -11,6 +11,7 @@ import traceback
 import socket
 import tempfile
 import tarfile
+import shutil
 
 import boto
 
@@ -132,17 +133,15 @@ class Site(object):
 	
 	def buildStatic(self):
 		"""
-		Move static files to build folder. To be fast we symlink it for now,
-		but we should actually copy these files in the future.
+		Copy static files to build folder.
 		"""
 		staticBuildPath = os.path.join(self.paths['build'], 'static')
 		
-		# If there is a folder, replace it with a symlink
-		if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
+		# Delete existing build folder if it exists
+		if os.path.exists(staticBuildPath):
 			os.remove(staticBuildPath)
 		
-		if not os.path.lexists(staticBuildPath):
-			os.symlink(self.paths['static'], staticBuildPath)
+		shutil.copytree(self.paths['static'], staticBuildPath)
 
 	def pages(self):
 		"""
