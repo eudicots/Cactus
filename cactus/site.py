@@ -31,7 +31,7 @@ class Site(object):
 
 		self.paths = {
 			'config': os.path.join(path, 'config.json'),
-			'build': os.path.join(path, 'build'),
+			'build': os.path.join(path, '.build'),
 			'pages': os.path.join(path, 'pages'),
 			'templates': os.path.join(path, 'templates'),
 			'plugins': os.path.join(path, 'plugins'),
@@ -100,6 +100,9 @@ class Site(object):
 		Generate fresh site from templates.
 		"""
 		
+		# Set up Django settings
+		self.setup()
+		
 		# Bust the context cache
 		self._contextCache = self.context()
 		
@@ -110,9 +113,6 @@ class Site(object):
 		logging.info('Plugins: %s', ', '.join([p.id for p in self._plugins]))
 
 		self.pluginMethod('preBuild', self)
-		
-		# Set up django settings
-		self.setup()
 		
 		# Make sure the build path exists
 		if not os.path.exists(self.paths['build']):
@@ -156,6 +156,7 @@ class Site(object):
 		"""
 		Start a http server and rebuild on changes.
 		"""
+		self.clean()
 		self.build()
 	
 		logging.info('Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build']))
@@ -186,7 +187,7 @@ class Site(object):
 			
 			self.listener.resume()
 	
-		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/build/' in x)
+		self.listener = Listener(self.path, rebuild, ignore=lambda x: '/.build/' in x)
 		self.listener.run()
 		
 		try:
