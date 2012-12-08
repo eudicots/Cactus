@@ -20,12 +20,18 @@ class Listener(object):
 		checksumMap = {}
 		
 		for f in fileList(self.path):
+			
 			if f.startswith('.'):
 				continue
+			
 			if self.ignore and self.ignore(f) == True:
 				continue
-			checksumMap[f] = int(os.stat(f).st_mtime)
-		
+			
+			try:
+				checksumMap[f] = int(os.stat(f).st_mtime)
+			except OSError, e:
+				continue
+
 		return checksumMap
 	
 	def run(self):
