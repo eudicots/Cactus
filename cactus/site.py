@@ -10,6 +10,8 @@ import base64
 import traceback
 import socket
 import tempfile
+import tarfile
+import shutil
 
 import boto
 
@@ -75,10 +77,10 @@ class Site(object):
 		skeletonFile.close()
 
 		os.mkdir(self.path)
-		
-		subprocess.check_call('tar -zxvf "%s" --strip-components 1 -C "%s"' % (skeletonFile.name, self.path), 
-			shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		
+
+		with tarfile.open(skeletonFile.name) as tf:
+			tf.extractall(self.path)
+        
 		logging.info('New project generated at %s', self.path)
 
 	def context(self):
@@ -98,10 +100,10 @@ class Site(object):
 		"""
 		Generate fresh site from templates.
 		"""
-
-		# Set up django settings
+		
+		# Set up Django settings
 		self.setup()
-
+		
 		# Bust the context cache
 		self._contextCache = self.context()
 		
@@ -131,17 +133,15 @@ class Site(object):
 	
 	def buildStatic(self):
 		"""
-		Move static files to build folder. To be fast we symlink it for now,
-		but we should actually copy these files in the future.
+		Copy static files to build folder.
 		"""
 		staticBuildPath = os.path.join(self.paths['build'], 'static')
 		
-		# If there is a folder, replace it with a symlink
-		if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
-			os.remove(staticBuildPath)
+		# Delete existing build folder if it exists
+		if os.path.exists(staticBuildPath):
+			shutil.rmtree(staticBuildPath)
 		
-		if not os.path.lexists(staticBuildPath):
-			os.symlink(self.paths['static'], staticBuildPath)
+		shutil.copytree(self.paths['static'], staticBuildPath)
 
 	def pages(self):
 		"""

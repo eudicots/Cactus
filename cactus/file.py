@@ -19,12 +19,13 @@ class File(object):
 		self.path = path
 
 		self.paths = {
-			'full': os.path.join(site.path, '.build', self.path)
+			'full': os.path.join(site.path, '.build', self.path),
+            'deploy': self.path.replace(os.path.sep, '/')
 		}
 	
 	def data(self):
 		if not hasattr(self, '_data'):
-			f = open(self.paths['full'], 'r')
+			f = open(self.paths['full'], 'rb')
 			self._data = f.read()
 			f.close()
 		return self._data
@@ -56,7 +57,7 @@ class File(object):
 		return getURLHeaders(self.remoteURL()).get('etag', '').strip('"')
 		
 	def remoteURL(self):
-		return 'http://%s/%s' % (self.site.config.get('aws-bucket-website'), self.path)
+		return 'http://%s/%s' % (self.site.config.get('aws-bucket-website'), self.paths['deploy'])
 	
 	def extension(self):
 		return os.path.splitext(self.path)[1].strip('.').lower()
@@ -92,11 +93,11 @@ class File(object):
 				def progressCallback(current, total):
 					if current > self.lastUpload:
 						uploadPercentage = (float(current) / float(total)) * 100
-						logging.info('+ %s upload progress %.1f%%' % (self.path, uploadPercentage))
+						logging.info('+ %s upload progress %.1f%%' % (self.paths['deploy'], uploadPercentage))
 						self.lastUpload = current
 			
 			# Create a new key from the file path and guess the mime type
-			key = bucket.new_key(self.path)
+			key = bucket.new_key(self.paths['deploy'])
 			mimeType = mime.guess(self.path)
 			
 			if mimeType:
@@ -111,7 +112,7 @@ class File(object):
 		op1 = '+' if changed else '-'
 		op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.shouldCompress() else ''
 		
-		logging.info('%s %s - %s%s' % (op1, self.path, fileSize(len(self.data())), op2))
+		logging.info('%s %s - %s%s' % (op1, self.paths['deploy'], fileSize(len(self.data())), op2))
 		
 		return {'changed': changed, 'size': len(self.payload())}
 		

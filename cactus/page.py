@@ -34,10 +34,10 @@ class Page(object):
 		context = self.site._contextCache
 		
 		# Relative url context
-		prefix = '/'.join(['..' for i in xrange(len(self.path.split('/')) - 1)]) or '.'
+		prefix = '/'.join(['..' for i in xrange(len(self.path.split(os.path.sep)) - 1)]) or '.'
 		
 		context.update({
-			'STATIC_URL': os.path.join(prefix, 'static'),
+			'STATIC_URL': '/'.join([prefix, 'static']),
 			'ROOT_URL': prefix,
 		})
 		
