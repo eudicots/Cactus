@@ -139,7 +139,7 @@ class Site(object):
 		
 		# Delete existing build folder if it exists
 		if os.path.exists(staticBuildPath):
-			os.remove(staticBuildPath)
+			shutil.rmtree(staticBuildPath)
 		
 		shutil.copytree(self.paths['static'], staticBuildPath)
 
