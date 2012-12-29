@@ -30,8 +30,12 @@ class Page(object):
 		The page context.
 		"""
 		
-		# Site context
-		context = self.site._contextCache
+                # Site context, making a shallow-copy using dict so that the
+                # things we add to this page's context below won't be added to
+                # the site's context. if in the future we make non-top-level
+                # changes to the page's context the shallow copy won't be
+                # enough, we'd need to look at copy.deepcopy
+		context = dict(self.site._contextCache)
 		
 		# Relative url context
 		prefix = '/'.join(['..' for i in xrange(len(self.path.split('/')) - 1)]) or '.'
