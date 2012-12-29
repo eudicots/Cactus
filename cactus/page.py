@@ -1,6 +1,7 @@
 import os
 import codecs
 import logging
+import shutil
 
 from .utils import parseValues
 
@@ -67,17 +68,20 @@ class Page(object):
 		Save the rendered output to the output file.
 		"""
 		logging.info("Building %s", self.path)
-		
-		data = self.render()
-		
+			
 		# Make sure a folder for the output path exists
 		try: os.makedirs(os.path.dirname(self.paths['full-build']))
 		except OSError: pass
 		
-		# Write the data to the output file
-		f = codecs.open(self.paths['full-build'], 'w', 'utf-8')
-		f.write(data)
-		f.close()
+		filename = self.paths['full']
+		ext = os.path.splitext(filename)[1]
+		if ext in ('.png', '.jpg', '.gif', '.ico'):
+			shutil.copyfile(filename, self.paths['full-build'])
+		else:
+			# Write the data to the output file
+			f = codecs.open(self.paths['full-build'], 'w', 'utf-8')
+			f.write(self.render())
+			f.close()
 		
 		# Run all plugins
 		self.site.pluginMethod('postBuildPage', self.site, self.paths['full-build'])
