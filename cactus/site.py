@@ -10,6 +10,8 @@ import base64
 import traceback
 import socket
 import tempfile
+import yaml
+import codecs
 
 import boto
 
@@ -35,7 +37,8 @@ class Site(object):
 			'templates': os.path.join(path, 'templates'),
 			'plugins': os.path.join(path, 'plugins'),
 			'static': os.path.join(path, 'static'),
-			'script': os.path.join(os.getcwd(), __file__)
+			'script': os.path.join(os.getcwd(), __file__),
+			'_config': os.path.join(path, '_config.yaml'),
 		}
 		
 		self.config = Config(self.paths['config'])
@@ -44,16 +47,31 @@ class Site(object):
 		"""
 		Configure django to use both our template and pages folder as locations
 		to look for included templates.
+		
+		If a file named _config.yaml is present, pass the content of that file
+		to django configuration system.
 		"""
+		from django.conf import settings
+
 		try:
-			from django.conf import settings
-			settings.configure(
-				TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']],
-				INSTALLED_APPS=['django.contrib.markup']
+			config = yaml.load(
+				codecs.open(self.paths['_config'], 'r', 'utf-8').read()
 			)
+		except Exception, e:
+			logging.exception("Caught exception while opening config file")
+			config = {}
+
+		config.setdefault("INSTALLED_APPS", []).append("django.contrib.markup")
+		config.setdefault("TEMPLATE_DIRS", []).extend(
+			[self.paths['templates'], self.paths['pages']],
+		)
+
+		logging.info("Config: %s" % config)
+		try:
+			settings.configure(**config)
 		except:
 			pass
-	
+
 	def verify(self):
 		"""
 		Check if this path looks like a Cactus website
@@ -177,7 +195,7 @@ class Site(object):
 			# When we have changes, we want to refresh the browser tabs with the updates.
 			# Mostly we just refresh the browser except when there are just css changes,
 			# then we reload the css in place.
-			if  len(changes["added"]) == 0 and \
+			if	len(changes["added"]) == 0 and \
 				len(changes["deleted"]) == 0 and \
 				set(map(lambda x: os.path.splitext(x)[1], changes["changed"])) == set([".css"]):
 				browserReloadCSS('http://127.0.0.1:%s' % port)
@@ -193,7 +211,7 @@ class Site(object):
 			httpd = Server(("", port), RequestHandler)
 		except socket.error, e:
 			logging.info('Could not start webserver, port is in use. To use another port:')
-			logging.info('  cactus serve %s' % (int(port) + 1))
+			logging.info('	cactus serve %s' % (int(port) + 1))
 			return
 		
 		if browser is True:
