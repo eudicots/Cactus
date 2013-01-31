@@ -1,5 +1,8 @@
 # Features
 
+- Attempt to re-use the same port
+- Kill process when parent dies
+
 - GC old stuff from s3?
 - See if all assets are used
 - Update html, css last on deploy to prevent/minimize weirdness
