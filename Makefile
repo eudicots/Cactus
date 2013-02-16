@@ -36,4 +36,7 @@ skeleton:
 	echo '"""' >> cactus/skeleton.py
 	rm -Rf skeleton.tar.gz
 
+submit:
+	python setup.py register
+
 .PHONY: test skeleton
