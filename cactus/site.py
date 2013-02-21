@@ -286,6 +286,7 @@ class Site(object):
 					awsBucket = b
 
 		self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+		self.config.set('aws-bucket-name', awsBucketName)
 		self.config.write()
 		
 		logging.info('Uploading site to bucket %s' % awsBucketName)
