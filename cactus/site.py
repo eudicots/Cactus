@@ -1,4 +1,4 @@
-import os
+import os, os.path
 import sys
 import shutil
 import logging
@@ -64,22 +64,33 @@ class Site(object):
 				logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
 				sys.exit()
 	
-	def bootstrap(self):
+	def bootstrap(self,skeleton=None):
 		"""
 		Bootstrap a new project at a given path.
 		"""
 		
-		from .skeleton import data
+		skeleton_tarball = None
+		if skeleton is None:
+			from .skeleton import data
+			logging.info("Building from data")
+			skeletonFile = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
+			skeletonFile.write(base64.b64decode(data))
+			skeletonFile.close()
+			skeleton_tarball = skeletonFile.name
+		elif os.path.isfile(skeleton):
+			if skeleton.endswith('.tar.gz') or skeleton.endswith('.tgz'):
+				skeleton_tarball = skeleton
+			else:
+				logging.error("At this time, skeleton argument must be a tarball or a directory (ending with .tar.gz or .tgz extension).")
+				sys.exit()
 		
-		skeletonFile = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
-		skeletonFile.write(base64.b64decode(data))
-		skeletonFile.close()
-
-		os.mkdir(self.path)
-		
-		skeletonArchive = tarfile.open(name=skeletonFile.name, mode='r')
-		skeletonArchive.extractall(path=self.path)
-		skeletonArchive.close()
+		if skeleton_tarball:
+			os.mkdir(self.path)
+			skeletonArchive = tarfile.open(name=skeleton_tarball, mode='r')
+			skeletonArchive.extractall(path=self.path)
+			skeletonArchive.close()
+		elif os.path.isdir(skeleton):
+		    shutil.copytree(skeleton,self.path)
 		
 		logging.info('New project generated at %s', self.path)
 

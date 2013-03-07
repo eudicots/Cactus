@@ -1,0 +1,4 @@
+Django==1.5
+Markdown==2.2.1
+boto==2.8.0
+wsgiref==0.1.2
