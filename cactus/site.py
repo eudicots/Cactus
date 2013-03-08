@@ -11,6 +11,7 @@ import traceback
 import socket
 import tempfile
 import tarfile
+import zipfile
 
 import boto
 
@@ -64,12 +65,12 @@ class Site(object):
 				logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
 				sys.exit()
 	
-	def bootstrap(self,skeleton=None):
+	def bootstrap(self, skeleton=None):
 		"""
 		Bootstrap a new project at a given path.
 		"""
 		
-		skeleton_tarball = None
+		skeletonArchive = None
 		if skeleton is None:
 			from .skeleton import data
 			logging.info("Building from data")
@@ -77,22 +78,27 @@ class Site(object):
 			skeletonFile.write(base64.b64decode(data))
 			skeletonFile.close()
 			skeleton_tarball = skeletonFile.name
+			skeletonArchive = tarfile.open(name=skeleton_tarball, mode='r')
 		elif os.path.isfile(skeleton):
-			if skeleton.endswith('.tar.gz') or skeleton.endswith('.tgz'):
-				skeleton_tarball = skeleton
+			if tarfile.is_tarfile(skeleton):
+				skeletonArchive = tarfile.open(name=skeleton, mode='r')
+			elif zipfile.is_zipfile(skeleton):
+				skeletonArchive = zipfile.ZipFile(skeleton)
 			else:
-				logging.error("At this time, skeleton argument must be a tarball or a directory (ending with .tar.gz or .tgz extension).")
+				logging.error("Unknown file archive type. At this time, skeleton argument must be a directory, a zipfile, or a tarball.")
 				sys.exit()
 		
-		if skeleton_tarball:
+		if skeletonArchive:
+			print skeletonArchive
 			os.mkdir(self.path)
-			skeletonArchive = tarfile.open(name=skeleton_tarball, mode='r')
 			skeletonArchive.extractall(path=self.path)
 			skeletonArchive.close()
+			logging.info('New project generated at %s', self.path)
 		elif os.path.isdir(skeleton):
-		    shutil.copytree(skeleton,self.path)
-		
-		logging.info('New project generated at %s', self.path)
+			shutil.copytree(skeleton, self.path)
+			logging.info('New project generated at %s', self.path)
+		else:
+			logging.error("Cannot process skeleton '%s'. At this time, skeleton argument must be a directory, a zipfile, or a tarball." % skeleton)
 
 	def context(self):
 		"""

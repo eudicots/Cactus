@@ -20,9 +20,9 @@ Usage: cactus [create|build|serve|deploy]
 '''
 def _init_parser():
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('command',metavar="COMMAND", help="The command to execute (one of [create|build|serve|deploy] )")
-    parser.add_argument('option1',metavar="OPTION1", nargs='?', help="option 1")
-    parser.add_argument('option2',metavar="OPTION2", nargs='?', help="option 2")
+    parser.add_argument('command', metavar="COMMAND", help="The command to execute (one of [create|build|serve|deploy] )")
+    parser.add_argument('option1', metavar="OPTION1", nargs='?', help="option 1")
+    parser.add_argument('option2', metavar="OPTION2", nargs='?', help="option 2")
     parser.add_argument('--skeleton', required=False, help="If provided, the path to a .tar.gz file or a directory which will be used in place of the default 'skeleton' for a cactus project.")
     return parser
 
@@ -83,7 +83,7 @@ def main():
 	# Run the command
 	if command == 'create':
 		if not option1: exit('Missing path')
-		create(option1,args)
+		create(option1, args)
 	
 	elif command == 'build':
 		build(os.getcwd())
