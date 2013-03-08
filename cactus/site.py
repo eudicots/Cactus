@@ -1,4 +1,4 @@
-import os
+import os, os.path
 import sys
 import shutil
 import logging
@@ -11,6 +11,8 @@ import traceback
 import socket
 import tempfile
 import tarfile
+import zipfile
+import urllib
 
 import boto
 
@@ -64,24 +66,44 @@ class Site(object):
 				logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
 				sys.exit()
 	
-	def bootstrap(self):
+	def bootstrap(self, skeleton=None):
 		"""
-		Bootstrap a new project at a given path.
+		Bootstrap a new project at a given path. If provided, the skeleton argument will be used as the basis for the new cactus project, in place of the default skeleton. If provided, the argument can be a filesystem path to a directory, a tarfile, a zipfile, or a URL which retrieves a tarfile or a zipfile.
 		"""
 		
-		from .skeleton import data
-		
-		skeletonFile = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
-		skeletonFile.write(base64.b64decode(data))
-		skeletonFile.close()
+		skeletonArchive = skeletonFile = None
+		if skeleton is None:
+			from .skeleton import data
+			logging.info("Building from data")
+			temp = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
+			temp.write(base64.b64decode(data))
+			temp.close()
+			skeletonArchive = tarfile.open(name=temp.name, mode='r')
+		elif os.path.isfile(skeleton):
+			skeletonFile = skeleton
+		else: # assume it's a URL
+			skeletonFile, headers = urllib.urlretrieve(skeleton)
 
-		os.mkdir(self.path)
-		
-		skeletonArchive = tarfile.open(name=skeletonFile.name, mode='r')
-		skeletonArchive.extractall(path=self.path)
-		skeletonArchive.close()
-		
-		logging.info('New project generated at %s', self.path)
+		if skeletonFile:
+			if tarfile.is_tarfile(skeletonFile):
+				skeletonArchive = tarfile.open(name=skeletonFile, mode='r')
+			elif zipfile.is_zipfile(skeletonFile):
+				skeletonArchive = zipfile.ZipFile(skeletonFile)
+			else:
+				import pdb; pdb.set_trace()
+				logging.error("File %s is an unknown file archive type. At this time, skeleton argument must be a directory, a zipfile, or a tarball." % skeletonFile)
+				sys.exit()
+
+		if skeletonArchive:
+			os.mkdir(self.path)
+			skeletonArchive.extractall(path=self.path)
+			skeletonArchive.close()
+			logging.info('New project generated at %s', self.path)
+		elif os.path.isdir(skeleton):
+			shutil.copytree(skeleton, self.path)
+			logging.info('New project generated at %s', self.path)
+		else:
+			logging.error("Cannot process skeleton '%s'. At this time, skeleton argument must be a directory, a zipfile, or a tarball." % skeleton)
 
 	def context(self):
 		"""
