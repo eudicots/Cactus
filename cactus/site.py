@@ -12,6 +12,7 @@ import socket
 import tempfile
 import tarfile
 import zipfile
+import urllib
 
 import boto
 
@@ -67,10 +68,10 @@ class Site(object):
 	
 	def bootstrap(self, skeleton=None):
 		"""
-		Bootstrap a new project at a given path.
+		Bootstrap a new project at a given path. If provided, the skeleton argument will be used as the basis for the new cactus project, in place of the default skeleton. If provided, the argument can be a filesystem path to a directory, a tarfile, a zipfile, or a URL which retrieves a tarfile or a zipfile.
 		"""
 		
-		skeletonArchive = None
+		skeletonArchive = skeletonFile = None
 		if skeleton is None:
 			from .skeleton import data
 			logging.info("Building from data")
@@ -80,16 +81,21 @@ class Site(object):
 			skeleton_tarball = skeletonFile.name
 			skeletonArchive = tarfile.open(name=skeleton_tarball, mode='r')
 		elif os.path.isfile(skeleton):
-			if tarfile.is_tarfile(skeleton):
-				skeletonArchive = tarfile.open(name=skeleton, mode='r')
-			elif zipfile.is_zipfile(skeleton):
-				skeletonArchive = zipfile.ZipFile(skeleton)
+			skeletonFile = skeleton
+		else: # assume it's a URL
+			skeletonFile, headers = urllib.urlretrieve(skeleton)
+
+		if skeletonFile:
+			if tarfile.is_tarfile(skeletonFile):
+				skeletonArchive = tarfile.open(name=skeletonFile, mode='r')
+			elif zipfile.is_zipfile(skeletonFile):
+				skeletonArchive = zipfile.ZipFile(skeletonFile)
 			else:
-				logging.error("Unknown file archive type. At this time, skeleton argument must be a directory, a zipfile, or a tarball.")
+				import pdb; pdb.set_trace()
+				logging.error("File %s is an unknown file archive type. At this time, skeleton argument must be a directory, a zipfile, or a tarball." % skeletonFile)
 				sys.exit()
-		
+
 		if skeletonArchive:
-			print skeletonArchive
 			os.mkdir(self.path)
 			skeletonArchive.extractall(path=self.path)
 			skeletonArchive.close()
