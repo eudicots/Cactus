@@ -75,11 +75,10 @@ class Site(object):
 		if skeleton is None:
 			from .skeleton import data
 			logging.info("Building from data")
-			skeletonFile = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
-			skeletonFile.write(base64.b64decode(data))
-			skeletonFile.close()
-			skeleton_tarball = skeletonFile.name
-			skeletonArchive = tarfile.open(name=skeleton_tarball, mode='r')
+			temp = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
+			temp.write(base64.b64decode(data))
+			temp.close()
+			skeletonArchive = tarfile.open(name=temp.name, mode='r')
 		elif os.path.isfile(skeleton):
 			skeletonFile = skeleton
 		else: # assume it's a URL
