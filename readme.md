@@ -23,7 +23,7 @@ There is also an example blog project included.
 
 Install Cactus with the following one liner
 
-	sudo easy_install https://github.com/koenbok/Cactus/zipball/master
+	sudo easy_install cactus
 
 If you saw no errors, you can now generate a new project
 	
