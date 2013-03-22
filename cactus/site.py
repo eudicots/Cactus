@@ -81,7 +81,8 @@ class Site(object):
 			skeletonArchive = tarfile.open(name=temp.name, mode='r')
 		elif os.path.isfile(skeleton):
 			skeletonFile = skeleton
-		else: # assume it's a URL
+		else: 
+			# Assume it's a URL
 			skeletonFile, headers = urllib.urlretrieve(skeleton)
 
 		if skeletonFile:
@@ -90,7 +91,6 @@ class Site(object):
 			elif zipfile.is_zipfile(skeletonFile):
 				skeletonArchive = zipfile.ZipFile(skeletonFile)
 			else:
-				import pdb; pdb.set_trace()
 				logging.error("File %s is an unknown file archive type. At this time, skeleton argument must be a directory, a zipfile, or a tarball." % skeletonFile)
 				sys.exit()
 
