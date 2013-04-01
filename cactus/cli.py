@@ -7,26 +7,7 @@ import time
 
 import cactus
 
-import argparse
-
-description = '''
-Usage: cactus [create|build|serve|deploy]
-
-    create: Create a new website skeleton at path
-    build: Rebuild your site from source files
-    serve <port>: Serve you website at local development server
-    deploy: Upload and deploy your site to S3
-
-'''
-def _init_parser():
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('command', metavar='COMMAND', help='The command to execute (one of [create|build|serve|deploy] )')
-    parser.add_argument('option1', metavar='OPTION1', nargs='?', help='option 1')
-    parser.add_argument('option2', metavar='OPTION2', nargs='?', help='option 2')
-    parser.add_argument('--skeleton', required=False, help="If provided, the path to a .tar.gz file or a directory which will be used in place of the default 'skeleton' for a cactus project.")
-    return parser
-
-def create(path, args):
+def create(path):
 	"Creates a new project at the given path."
 	
 	if os.path.exists(path):
@@ -36,7 +17,7 @@ def create(path, args):
 			sys.exit()
 	
 	site = cactus.Site(path)
-	site.bootstrap(skeleton=args.skeleton)
+	site.bootstrap()
 
 
 def build(path):
@@ -61,7 +42,14 @@ def deploy(path):
 	site.upload()
 
 def help():
-	print description
+	print
+	print 'Usage: cactus [create|build|serve|deploy]'
+	print
+	print '    create: Create a new website skeleton at path'
+	print '    build: Rebuild your site from source files'
+	print '    serve <port>: Serve you website at local development server'
+	print '    deploy: Upload and deploy your site to S3'
+	print
 
 def exit(msg):
 	print msg
@@ -69,22 +57,20 @@ def exit(msg):
 
 def main():
 	
-	parser = _init_parser()
-	args = parser.parse_args()
-	command = args.command
-	option1 = args.option1
-	option2 = args.option2
+	command = sys.argv[1] if len(sys.argv) > 1 else None
+	option1 = sys.argv[2] if len(sys.argv) > 2 else None
+	option2 = sys.argv[3] if len(sys.argv) > 3 else None
 	
 	# If we miss a command we exit and print help
 	if not command:
 		help()
 		sys.exit()
-	
+
 	# Run the command
 	if command == 'create':
 		if not option1: exit('Missing path')
-		create(option1, args)
-	
+		create(option1)
+
 	elif command == 'build':
 		build(os.getcwd())
 
@@ -95,17 +81,17 @@ def main():
 			except: exit('port should be a round number like 5000, 8000, 8080')
 		else:
 			option1 = 8000
-		
-		browser = False if option2 == '-n' else True 
-		
+
+		browser = False if option2 == '-n' else True
+
 		serve(os.getcwd(), port=option1, browser=browser)
 
 	elif command == 'deploy':
 		deploy(os.getcwd())
-	
+
 	else:
 		print 'Unknown command: %s' % command
 		help()
-		
+
 if __name__ == "__main__":
 	sys.exit(main())
