@@ -17,6 +17,7 @@ import boto
 from .config import Config
 from .utils import *
 from .page import Page
+from .static import Static
 from .listener import Listener
 from .file import File
 from .server import Server, RequestHandler
@@ -28,6 +29,7 @@ class Site(object):
 	def __init__(self, path):
 		
 		self.path = path
+		self.optimize = optimize
 
 		self.paths = {
 			'config': os.path.join(path, 'config.json'),
@@ -131,19 +133,19 @@ class Site(object):
 		
 		self.pluginMethod('postBuild', self)
 	
+	def static(self):
+		paths = fileList(self.paths['static'], relative = True)
+		return [Static(self, path) for path in paths]
+
 	def buildStatic(self):
 		"""
 		Move static files to build folder. To be fast we symlink it for now,
 		but we should actually copy these files in the future.
 		"""
-		staticBuildPath = os.path.join(self.paths['build'], 'static')
+		multiMap = map
 		
-		# If there is a folder, replace it with a symlink
-		if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
-			os.remove(staticBuildPath)
-		
-		if not os.path.lexists(staticBuildPath):
-			os.symlink(self.paths['static'], staticBuildPath)
+		multiMap(lambda s: s.build(), self.static())
+
 
 	def pages(self):
 		"""

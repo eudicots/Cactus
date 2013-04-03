@@ -20,10 +20,10 @@ def create(path):
 	site.bootstrap()
 
 
-def build(path):
+def build(path, optimize = False):
 	"Build a cactus project"
 	
-	site = cactus.Site(path)
+	site = cactus.Site(path, optimize)
 	site.verify()
 	site.build()
 
@@ -72,7 +72,8 @@ def main():
 		create(option1)
 	
 	elif command == 'build':
-		build(os.getcwd())
+		optimize = option1 == 'optimize' or option2 == 'optimize'
+		build(os.getcwd(), optimize)
 
 	elif command == 'serve':
 		
