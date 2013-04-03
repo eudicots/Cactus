@@ -25,11 +25,20 @@ from .browser import browserReload, browserReloadCSS
 
 
 class Site(object):
+	_path = None
 	
-	def __init__(self, path):
-		
+	def __init__(self, path, optimize = False):
 		self.path = path
+		self.config = Config(self.paths['config'])
 		self.optimize = optimize
+
+	@property
+	def path(self):
+		return self._path
+
+	@path.setter
+	def path(self, path):
+		self._path = path
 
 		self.paths = {
 			'config': os.path.join(path, 'config.json'),
@@ -40,8 +49,6 @@ class Site(object):
 			'static': os.path.join(path, 'static'),
 			'script': os.path.join(os.getcwd(), __file__)
 		}
-		
-		self.config = Config(self.paths['config'])
 	
 	def setup(self):
 		"""
@@ -61,10 +68,17 @@ class Site(object):
 		"""
 		Check if this path looks like a Cactus website
 		"""
-		for p in ['pages', 'static', 'templates', 'plugins']:
-			if not os.path.isdir(os.path.join(self.path, p)):
-				logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
-				sys.exit()
+		while 1:
+			for p in ['pages', 'static', 'templates', 'plugins']:
+				if not os.path.isdir(os.path.join(self.path, p)):
+					new_path = os.path.normpath(os.path.join(self.path, os.path.pardir))
+					if new_path == self.path:
+						break
+					self.path = new_path
+					continue
+			return
+		logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
+		sys.exit()
 	
 	def bootstrap(self):
 		"""
