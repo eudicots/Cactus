@@ -1,6 +1,7 @@
 #coding:utf-8
 import os
 import logging
+import subprocess
 import shutil
 
 class Static(object):
@@ -13,8 +14,8 @@ class Static(object):
 				'full-build': os.path.join(site.paths['build'], 'static', self.path),
 				}
 
-		def build(self):
-			logging.info('Building static %s' % self.path)
+	def build(self):
+		logging.info('Building static %s' % self.path)
 		# Make sure a folder for the output path exists
 		try: os.makedirs(os.path.dirname(self.paths['full-build']))
 		except OSError: pass
