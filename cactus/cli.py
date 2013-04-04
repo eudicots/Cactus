@@ -32,10 +32,9 @@ def serve(path, port=8000, browser=True):
 	site = cactus.Site(path)
 	site.serve(port=port, browser=browser)
 
-def deploy(path):
+def deploy(path, optimize = False):
 	"Upload the project to S3"
-	
-	site = cactus.Site(path)
+	site = cactus.Site(path, optimize)
 	site.upload()
 
 def help():
@@ -62,6 +61,8 @@ def main():
 	if not command:
 		help()
 		sys.exit()
+
+	optimize = option1 == 'optimize' or option2 == 'optimize'
 	
 	# Run the command
 	if command == 'create':
@@ -69,7 +70,6 @@ def main():
 		create(option1)
 	
 	elif command == 'build':
-		optimize = option1 == 'optimize' or option2 == 'optimize'
 		build(os.getcwd(), optimize)
 
 	elif command == 'serve':
@@ -85,7 +85,7 @@ def main():
 		serve(os.getcwd(), port=option1, browser=browser)
 
 	elif command == 'deploy':
-		deploy(os.getcwd())
+		deploy(os.getcwd(), optimize)
 	
 	else:
 		print 'Unknown command: %s' % command
