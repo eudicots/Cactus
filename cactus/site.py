@@ -29,6 +29,7 @@ class Site(object):
 	
 	def __init__(self, path, optimize = False):
 		self.path = path
+		self.verify()
 		self.config = Config(self.paths['config'])
 		self.optimize = optimize
 

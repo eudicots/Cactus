@@ -24,21 +24,18 @@ def build(path, optimize = False):
 	"Build a cactus project"
 	
 	site = cactus.Site(path, optimize)
-	site.verify()
 	site.build()
 
 def serve(path, port=8000, browser=True):
 	"Serve the project and watch changes"
 	
 	site = cactus.Site(path)
-	site.verify()
 	site.serve(port=port, browser=browser)
 
 def deploy(path):
 	"Upload the project to S3"
 	
 	site = cactus.Site(path)
-	site.verify()
 	site.upload()
 
 def help():
