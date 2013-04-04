@@ -148,6 +148,7 @@ class Site(object):
 		
 		self.pluginMethod('postBuild', self)
 	
+	@memoize
 	def static(self):
 		paths = fileList(self.paths['static'], relative = True)
 		return [Static(self, path) for path in paths]
@@ -162,6 +163,7 @@ class Site(object):
 		multiMap(lambda s: s.build(), self.static())
 
 
+	@memoize
 	def pages(self):
 		"""
 		List of pages.
