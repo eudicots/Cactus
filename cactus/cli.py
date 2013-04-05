@@ -43,7 +43,7 @@ def serve(path, config, optimize, port, browser):
 
 
 
-if __name__ == "__main__":
+def main():
 	parser = argparse.ArgumentParser(description = "Build and deploy static websites using Django templates.")
 
 	subparsers = parser.add_subparsers(title = 'subcommands', description = 'Valid subcommands', help = 'Select a command to run.')
@@ -70,3 +70,6 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 	args.target(**{k:v for k, v in vars(args).items() if k != 'target'})
+
+if __name__ == "__main__":
+	main()
