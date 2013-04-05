@@ -197,3 +197,12 @@ def internetWorking():
 	return True in multiMap(check, [
 		'http://www.google.com', 
 		'http://www.apple.com'])
+
+
+EXTERNAL_SCHEMES = ("//", "http://", "https://", "mailto:")
+
+def is_external(url):
+	for scheme in EXTERNAL_SCHEMES:
+		if url.startswith(scheme):
+				return True
+	return False

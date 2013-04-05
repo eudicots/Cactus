@@ -153,6 +153,21 @@ class Site(object):
 		paths = fileList(self.paths['static'], relative = True)
 		return [Static(self, path) for path in paths]
 
+	def get_path_for_static(self, src_path):
+		if is_external(src_path):
+			return src_path
+
+		static_dict = {static.src_path: static for static in self.static()}
+
+		try:
+			if src_path[0] == '/': # Handle len < 2..
+				return '/' + static_dict[src_path[1:]].build_path
+			else:
+				return static_dict[src_path].build_path
+		except KeyError:
+			raise Exception('Static does not exist: {0}'.format(src_path))
+
+
 	def buildStatic(self):
 		"""
 		Move static files to build folder. To be fast we symlink it for now,
