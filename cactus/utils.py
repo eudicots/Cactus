@@ -8,6 +8,9 @@ import types
 import logging
 import time
 import multiprocessing.pool
+import tarfile
+import base64
+import tempfile
 
 from functools import partial
 
@@ -15,38 +18,38 @@ def fileList(paths, relative=False, folders=False):
 	"""
 	Generate a recursive list of files from a given path.
 	"""
-	
+
 	if not type(paths) == types.ListType:
 		paths = [paths]
-	
+
 	files = []
-	
-	for path in paths:	
+
+	for path in paths:
 		for fileName in os.listdir(path):
-		
+
 			if fileName.startswith('.'):
 				continue
-		
+
 			filePath = os.path.join(path, fileName)
-		
+
 			if os.path.isdir(filePath):
 				if folders:
 					files.append(filePath)
 				files += fileList(filePath)
 			else:
 				files.append(filePath)
-	
+
 		if relative:
 			files = map(lambda x: x[len(path)+1:], files)
-		
+
 	return files
 
 def multiMap(f, items, workers=8):
 	pool = multiprocessing.pool.ThreadPool(workers)
 	return pool.map(f, items)
-	
+
 def getpassword(service, account):
-	
+
 	def decode_hex(s):
 		s = eval('"' + re.sub(r"(..)", r"\x\1", s) + '"')
 		if "" in s: s = s[:s.index("")]
@@ -85,7 +88,7 @@ def compressString(s):
 			return 1111111111.111
 
 	gzip.time = FakeTime()
-	
+
 	zbuf = cStringIO.StringIO()
 	zfile = gzip.GzipFile(mode='wb', compresslevel=9, fileobj=zbuf)
 	zfile.write(s)
@@ -94,9 +97,9 @@ def compressString(s):
 
 
 def getURLHeaders(url):
-	
+
 	url = urlparse.urlparse(url)
-	
+
 	conn = httplib.HTTPConnection(url.netloc)
 	conn.request('HEAD', urllib.quote(url.path))
 
@@ -115,35 +118,35 @@ def fileSize(num):
 def parseValues(data, splitChar=':'):
 	"""
 	Values like
-	
+
 	name: koen
 	age: 29
-	
+
 	will be converted in a dict: {'name': 'koen', 'age': '29'}
 	"""
 
 	values = {}
 	lines  = data.splitlines()
-	
+
 	if not lines:
 		return {}, ''
-	
+
 	for i in xrange(len(lines)):
 
 		line = lines[i]
 
 		if not line:
 			continue
-		
+
 		elif splitChar in line:
 			line = line.split(splitChar)
 			values[line[0].strip()] = (splitChar.join(line[1:])).strip()
-		
+
 		else:
 			break
-	
+
 	return values, '\n'.join(lines[i:])
-		
+
 def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
 	def deco_retry(f):
 		def f_retry(*args, **kwargs):
@@ -206,3 +209,23 @@ def is_external(url):
 		if url.startswith(scheme):
 				return True
 	return False
+
+
+def bootstrap(path):
+	"""
+	Bootstrap a new project at a given path.
+	"""
+
+	from .skeleton import data
+
+	skeletonFile = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
+	skeletonFile.write(base64.b64decode(data))
+	skeletonFile.close()
+
+	os.mkdir(path)
+
+	skeletonArchive = tarfile.open(name=skeletonFile.name, mode='r')
+	skeletonArchive.extractall(path=path)
+	skeletonArchive.close()
+
+	logging.info('New project generated at %s', path)

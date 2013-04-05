@@ -2,35 +2,32 @@ import os
 import sys
 import shutil
 import logging
-import subprocess
 import webbrowser
 import getpass
 import imp
-import base64
 import traceback
 import socket
-import tempfile
-import tarfile
 
 import boto
 
-from .config import Config
-from .utils import *
-from .page import Page
-from .static import Static
-from .listener import Listener
-from .file import File
-from .server import Server, RequestHandler
-from .browser import browserReload, browserReloadCSS
+from cactus.config import Config
+from cactus.utils import *
+from cactus.page import Page
+from cactus.static import Static
+from cactus.listener import Listener
+from cactus.file import File
+from cactus.server import Server, RequestHandler
+from cactus.browser import browserReload, browserReloadCSS
 
 
 class Site(object):
 	_path = None
 	
-	def __init__(self, path, optimize = False):
+	def __init__(self, path, config_path, optimize = False):
+		self.config = Config(config_path)
+
 		self.path = path
 		self.verify()
-		self.config = Config(self.paths['config'])
 		self.optimize = optimize
 
 	@property
@@ -42,7 +39,6 @@ class Site(object):
 		self._path = path
 
 		self.paths = {
-			'config': os.path.join(path, 'config.json'),
 			'build': os.path.join(path, '.build'),
 			'pages': os.path.join(path, 'pages'),
 			'templates': os.path.join(path, 'templates'),
@@ -81,25 +77,6 @@ class Site(object):
 		logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
 		sys.exit()
 	
-	def bootstrap(self):
-		"""
-		Bootstrap a new project at a given path.
-		"""
-		
-		from .skeleton import data
-		
-		skeletonFile = tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz')
-		skeletonFile.write(base64.b64decode(data))
-		skeletonFile.close()
-
-		os.mkdir(self.path)
-		
-		skeletonArchive = tarfile.open(name=skeletonFile.name, mode='r')
-		skeletonArchive.extractall(path=self.path)
-		skeletonArchive.close()
-		
-		logging.info('New project generated at %s', self.path)
-
 	def context(self):
 		"""
 		Base context for the site: all the html pages.

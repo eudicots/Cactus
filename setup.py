@@ -65,7 +65,8 @@ setup(
 	install_requires=[
 		'Django',
 		'boto>=2.4.1',
-		'markdown'
+		'markdown',
+		'argparse'
 	],
 	zip_safe=False,
 	tests_require=['nose'],
