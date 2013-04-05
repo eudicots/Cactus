@@ -53,6 +53,8 @@ class Static(object):
 		try: os.makedirs(os.path.dirname(self.paths['full-build']))
 		except OSError: pass
 
+		copy = lambda: shutil.copy(self.paths['full'], self.paths['full-build'])
+
 		if self.site.optimize:
 			try:
 				if self.src_path.endswith('.js'):
@@ -72,12 +74,16 @@ class Static(object):
 						'-o', self.paths['full-build'],
 						self.paths['full']
 					])
+
+				else:
+					copy()
 			except OSError:
 				logging.warning('Aborted optimization: missing external.')
 			else:
 				return
 
-		shutil.copy(self.paths['full'], self.paths['full-build'])
+		copy()
+
 
 
 	def __repr__(self):
