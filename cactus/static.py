@@ -2,10 +2,15 @@
 import os
 import logging
 import subprocess
+import tempfile
 import shutil
 import hashlib
+from contextlib import contextmanager
+
 
 FINGERPRINT_EXTENSIONS = ("js", "css")
+
+CONVERSIONS = {"sass": "css", "scss": "css"}
 
 def calculate_file_checksum(path):
 	"""
@@ -22,69 +27,119 @@ class Static(object):
 
 	def __init__(self, site, path):
 		self.site = site
-		self.src_path = os.path.join('static', path)
 
-		full_path = os.path.join(self.site.path, self.src_path)
-		checksum = calculate_file_checksum(full_path)
+		_static_path, filename = os.path.split(path)
 
-		prefix, _filename = os.path.split(self.src_path)
-		filename, extension = os.path.basename(full_path).rsplit('.', 1)
+		# Actual source file
+		self.src_dir = os.path.join('static', _static_path)
+		self.src_filename = filename
+		self.src_name, self.src_extension = filename.rsplit('.', 1)
 
-		assert extension, "No extension for file?! {0}".format(full_path)
+		# Useless we'll crash before.
+		# TODO
+		assert self.src_extension, "No extension for file?! {0}".format(self.src_name)
 
+		# Where the file should be referenced in source files
+		self.final_extension = CONVERSIONS.get(self.src_extension, self.src_extension)
 
-		if extension in FINGERPRINT_EXTENSIONS:
-			new_filename = "{0}.{1}.{2}".format(filename, checksum, extension)
+		# Do some pre-processing (e.g. optimizations): 
+		# must be done before fingerprinting
+		self.build_path = self.pre_process() 
+
+		# Where the file will have to be referenced in output files
+
+		if self.final_extension in FINGERPRINT_EXTENSIONS:
+			checksum = calculate_file_checksum(self.build_path)
+			new_name = "{0}.{1}".format(self.src_name, checksum)
 		else:
-			new_filename = _filename
+			new_name = self.src_name
 
+		self.final_name = "{0}.{1}".format(new_name, self.final_extension)
+		self.final_path = os.path.join(self.src_dir, self.final_name)
 
-		self.build_path = os.path.join(prefix, new_filename)
+		# Path where this file should be referenced in source files
+		self.rel_path = os.path.join(self.src_dir, '{0}.{1}'.format(self.src_name, self.final_extension))
 
 		self.paths = {
-			'full': full_path,
-			'full-build': os.path.join(site.paths['build'], self.build_path),
+			'full': self.build_path,
+			'full-build': os.path.join(site.paths['build'], self.final_path),
 		}
 
 
+	def pre_process(self):
+		"""
+		Does file pre-processing if required
+		"""
+		self.pre_dir = tempfile.mkdtemp()
+		pre_path = os.path.join(self.pre_dir, 'file')
+
+		shutil.copy(os.path.join(self.site.path, self.src_dir, self.src_filename), pre_path)
+
+		# Pre-process
+		logging.info('Pre-processing: %s' % self.src_name)
+
+		@contextmanager
+		def alt_file(current_file):
+			_alt_file = current_file + '-alt'
+			yield _alt_file
+			try:
+				shutil.move(_alt_file, current_file)
+			except IOError:
+				# We didn't use an alt file.
+				pass
+
+		with alt_file(pre_path) as tmp_file:
+			try:
+				if self.src_extension == 'sass':
+					logging.info('Processing (sass) {0}'.format(self))
+					subprocess.call([ 'sass', pre_path, tmp_file])
+				if self.src_extension == 'scss':
+					logging.info('Processing (scss) {0}'.format(self))
+					subprocess.call([ 'sass', '--scss', pre_path, tmp_file])
+			except OSError:
+				raise Exception('SASS file found, but sass not installed.')
+
+		# Optimize
+
+		with alt_file(pre_path) as tmp_file:
+
+			if self.site.optimize:
+				try:
+					if self.final_extension == 'js':
+						logging.info('Compiling (closure) {0}'.format(self))
+						subprocess.call([
+							'closure-compiler',
+							'--js', pre_path,
+							'--js_output_file', tmp_file,
+							'--compilation_level', 'SIMPLE_OPTIMIZATIONS'
+						])
+
+					elif self.final_extension == 'css':
+						logging.info('Minifying (yui) {0}'.format(self))
+						subprocess.call([
+							'yuicompressor',
+							'--type', 'css',
+							'-o', tmp_file,
+							pre_path,
+						])
+
+				except OSError:
+					logging.warning('Aborted optimization: missing external.')
+
+		return pre_path
+
+
+
 	def build(self):
-		logging.info('Building {0} --> {1}'.format(self.src_path, self.build_path))
+		logging.info('Building {0} --> {1}'.format(self.src_name, self.final_path))
 
 		try: os.makedirs(os.path.dirname(self.paths['full-build']))
 		except OSError: pass
 
 		copy = lambda: shutil.copy(self.paths['full'], self.paths['full-build'])
 
-		if self.site.optimize:
-			try:
-				if self.src_path.endswith('.js'):
-					logging.info('Compiling (closure): %s' % self.src_path)
-					subprocess.call([
-						'closure-compiler',
-						'--js', self.paths['full'],
-						'--js_output_file', self.paths['full-build'],
-						'--compilation_level', 'SIMPLE_OPTIMIZATIONS'
-					])
-
-				elif self.src_path.endswith('.css'):
-					logging.info('Minifying (yui) %s' % self.src_path)
-					subprocess.call([
-						'yuicompressor',
-						'--type', 'css',
-						'-o', self.paths['full-build'],
-						self.paths['full']
-					])
-
-				else:
-					copy()
-			except OSError:
-				logging.warning('Aborted optimization: missing external.')
-			else:
-				return
-
 		copy()
 
 
-
 	def __repr__(self):
-		return '<Static: {0}>'.format(self.src_path)
+		return '<Static: {0}>'.format(self.src_filename)

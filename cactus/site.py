@@ -130,6 +130,9 @@ class Site(object):
 		multiMap(lambda p: p.build(), self.pages())
 		
 		self.pluginMethod('postBuild', self)
+
+		for static in self.static():
+			shutil.rmtree(static.pre_dir)
 	
 	@memoize
 	def static(self):
@@ -140,14 +143,15 @@ class Site(object):
 		if is_external(src_path):
 			return src_path
 
-		static_dict = {static.src_path: static for static in self.static()}
+		static_dict = {static.rel_path: static for static in self.static()}
 
 		try:
 			if src_path[0] == '/': # Handle len < 2..
-				return '/' + static_dict[src_path[1:]].build_path
+				return '/' + static_dict[src_path[1:]].final_path
 			else:
-				return static_dict[src_path].build_path
+				return static_dict[src_path].final_path
 		except KeyError:
+			print "EXISTING STATICS", "\n".join(sorted(static_dict.keys()))
 			raise Exception('Static does not exist: {0}'.format(src_path))
 
 
