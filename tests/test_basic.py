@@ -100,5 +100,18 @@ class SimpleTest(unittest.TestCase):
 			readFile(os.path.join(TEST_PATH, '.build', 'koenpage.html')),
 			mockFile('koenpage-out.html')
 		)
+	
+	##def testIgnoreFiles
+	
+		writeFile(os.path.join(TEST_PATH, 'pages', 'koen.psd'), "Not really a psd")
+		
+		self.site.config.set("ignore", ["*.psd"])
+		
+		self.site.config.write()
+		self.site.config.load()
+		
+		self.site.build()
+
+		self.assertEqual(os.path.exists(os.path.join(TEST_PATH, '.build', 'koen.psd')), False)
 
 	

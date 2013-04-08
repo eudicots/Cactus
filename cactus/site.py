@@ -146,7 +146,7 @@ class Site(object):
 		
 		# Render the pages to their output files
 		
-		# Uncomment for non threaded building, crashes randomly
+		# Comment for non threaded building, crashes randomly
 		multiMap = map
 		
 		multiMap(lambda p: p.build(), self.pages())
@@ -166,13 +166,29 @@ class Site(object):
 		
 		if not os.path.lexists(staticBuildPath):
 			os.symlink(self.paths['static'], staticBuildPath)
-
+	
+	def ignorePatterns(self):
+		
+		# Page filters
+		defaultPatterns = [".*", "*~"]
+		configPatterns  = self.config.get("ignore")
+		
+		# Add the config values to the default ignore list
+		if type(configPatterns) is types.ListType:
+			defaultPatterns += configPatterns
+		
+		return defaultPatterns
+	
 	def pages(self):
 		"""
 		List of pages.
 		"""
+		
 		paths = fileList(self.paths['pages'], relative=True)
-		paths = filter(lambda x: not x.endswith("~"), paths)
+
+		# Filter out the ignored paths
+		paths = filterPaths(paths, self.ignorePatterns())
+		
 		return [Page(self, p) for p in paths]
 
 	def serve(self, browser=True, port=8000):
@@ -334,7 +350,11 @@ class Site(object):
 		"""
 		List of build files.
 		"""
-		return [File(self, p) for p in fileList(self.paths['build'], relative=True)]
+		
+		paths = fileList(self.paths['build'], relative=True)
+		paths = filterPaths(paths, self.ignorePatterns())
+		
+		return [File(self, p) for p in paths]
 
 
 	def loadPlugins(self, force=False):

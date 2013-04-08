@@ -7,6 +7,7 @@ import urllib2
 import types
 import logging
 import time
+import fnmatch
 import multiprocessing.pool
 
 from functools import partial
@@ -197,3 +198,17 @@ def internetWorking():
 	return True in multiMap(check, [
 		'http://www.google.com', 
 		'http://www.apple.com'])
+
+
+def filterPaths(paths, patterns):
+
+	def ignorePath(path):
+
+		fileName = os.path.basename(path)
+		
+		for pattern in patterns:
+			if fnmatch.fnmatch(fileName, pattern):
+				return True
+		return False
+			
+	return filter(lambda x: not ignorePath(x), paths)
