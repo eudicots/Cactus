@@ -3,7 +3,7 @@ import datetime
 import logging
 
 ORDER = 999
-POSTS_PATH = 'posts/'
+POSTS_PATH = 'posts' + os.sep
 POSTS = []
 
 from django.template import Context
