@@ -58,6 +58,7 @@ class Site(object):
 				TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']],
 				INSTALLED_APPS=['django.contrib.markup']
 			)
+			from django.template import loader # Initialize the template loader.
 		except:
 			pass
 	
