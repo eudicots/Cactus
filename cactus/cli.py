@@ -41,6 +41,18 @@ def deploy(path):
 	site.verify()
 	site.upload()
 
+def setupDNS(path):
+	"Configure your dns servers"
+	
+	site = cactus.Site(path)
+	site.verify()
+	servers = site.setupDNS()
+	if servers: 
+		print '\nConfigure these dns servers with your domain provider:\n'
+		print '\n'.join(servers)
+		print
+		
+
 def help():
 	print
 	print 'Usage: cactus [create|build|serve|deploy]'
@@ -49,6 +61,7 @@ def help():
 	print '    build: Rebuild your site from source files'
 	print '    serve <port>: Serve you website at local development server'
 	print '    deploy: Upload and deploy your site to S3'
+	print '    setup-dns: Configure and list your dns servers with route53'
 	print
 
 def exit(msg):
@@ -88,6 +101,9 @@ def main():
 
 	elif command == 'deploy':
 		deploy(os.getcwd())
+	
+	elif command == 'setup-dns':
+		setupDNS(os.getcwd())
 
 	else:
 		print 'Unknown command: %s' % command

@@ -13,6 +13,7 @@ import tempfile
 import tarfile
 import zipfile
 import urllib
+import urlparse
 
 import boto
 
@@ -23,7 +24,7 @@ from .listener import Listener
 from .file import File
 from .server import Server, RequestHandler
 from .browser import browserReload, browserReloadCSS
-
+from .aws import AWSDomain, AWSBucket
 
 class Site(object):
 	
@@ -406,3 +407,40 @@ class Site(object):
 		for plugin in self._plugins:
 			if hasattr(plugin, method):
 				getattr(plugin, method)(*args, **kwargs)
+	
+	def setup(self):
+		"""
+		Get an access and secret key
+		"""
+		pass
+	
+	def setupBucket(self):
+		"""
+		Create a new bucket
+		"""
+		pass
+	
+	def setupDNS(self):
+		"""
+		Set up dns configuration for a full domain and return a list of dns servers
+		"""
+		
+		# self.setup()
+		
+		domain = self.config.get('aws-bucket-name')
+		awsAccessKey = self.config.get('aws-access-key')
+		
+		# Check if this is a naked domain
+		if domain.count('.') is not 1:
+			logging.info('%s does not seem like a naked domain like yourdomain.com')
+			return
+		
+		dns = AWSDomain(
+			awsAccessKey, 
+			getpassword('aws', awsAccessKey), 
+			domain
+		)
+		
+		dns.setup()
+		
+		return dns.nameServers()
