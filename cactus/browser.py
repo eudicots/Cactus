@@ -29,6 +29,36 @@ tell application "Safari"
 end tell
 """
 
+s3 = """
+window.location.reload()
+"""
+
+s4 = """
+(function() {
+	function updateQueryStringParameter(uri, key, value) {
+		var re = new RegExp("([?|&])" + key + "=.*?(&|$)", "i");
+		separator = uri.indexOf('?') !== -1 ? "&" : "?";
+		
+		if (uri.match(re)) {
+			return uri.replace(re, '$1' + key + "=" + value + '$2');
+		} else {
+			return uri + separator + key + "=" + value;
+		}
+	}
+	
+	var links = document.getElementsByTagName('link'); 
+	
+	for (var i = 0; i < links.length;i++) { 
+	
+		var link = links[i]; 
+	
+		if (link.rel === 'stylesheet') {
+			link.href = updateQueryStringParameter(link.href, 'cactus.reload', new Date().getTime())
+		}
+	}
+})()
+"""
+
 def applescript(input):
 	
 	# Bail if we're not on mac os for now
@@ -51,10 +81,10 @@ def _insertJavascript(urlMatch, js):
 		except Exception, e: pass
 
 def browserReload(url):
-	_insertJavascript(url, "window.location.reload()")
+	_insertJavascript(url, s3)
 
 def browserReloadCSS(url):
-	_insertJavascript(url, "var links = document.getElementsByTagName('link'); for (var i = 0; i < links.length;i++) { var link = links[i]; if (link.rel === 'stylesheet') {link.href += '?'; }}")
+	_insertJavascript(url, s4)
 
 def appsRunning(l):
 	psdata = subprocess.check_output(['ps aux'], shell=True)
