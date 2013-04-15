@@ -32,10 +32,14 @@ class SimpleTest(unittest.TestCase):
 		self.test_dir = tempfile.mkdtemp()
 		self.path = os.path.join(self.test_dir, 'test')
 
-		django.conf.settings._wrapped = django.conf.empty
+		self.clear_django_settings()
 
 		bootstrap(self.path)
 		self.site = Site(self.path, os.path.join(self.path, 'config.json'), variables = ['a=b', 'c'])
+
+
+	def clear_django_settings(self):
+		django.conf.settings._wrapped = django.conf.empty
 
 
 	def tearDown(self):
@@ -110,4 +114,20 @@ class SimpleTest(unittest.TestCase):
 		self.assertEqual(
 			readFile(os.path.join(self.path, '.build', 'koenpage.html')),
 			mockFile('koenpage-out.html')
+		)
+
+	def testStaticLoader(self):
+		static = '/static/css/style.css'
+		page = "{%% static '%s' %%}" % static
+
+		writeFile(
+			os.path.join(self.path, 'pages', 'staticpage.html'),
+			page
+		)
+
+		self.site.build()
+
+		self.assertEqual(
+			readFile(os.path.join(self.path, '.build', 'staticpage.html')),
+			self.site.get_path_for_static(static)
 		)

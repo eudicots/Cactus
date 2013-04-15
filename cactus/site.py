@@ -10,6 +10,7 @@ import socket
 
 import boto
 import django.conf
+from django.template.loader import add_to_builtins
 
 from cactus.config import Config
 from cactus.utils import (memoize, fileList, is_external, internetWorking, 
@@ -65,7 +66,8 @@ class Site(object):
 			TEMPLATE_DIRS= [self.paths['templates'], self.paths['pages']],
 			INSTALLED_APPS= ['django.contrib.markup']
 		)
-		from django.template import loader # Initialize the template loader.
+
+		add_to_builtins('cactus.template_tags')
 	
 	def verify(self):
 		"""
@@ -88,7 +90,10 @@ class Site(object):
 		"""
 		Base context for the site: all the html pages.
 		"""
-		ctx =  {'CACTUS': {'pages': [p for p in self.pages() if p.path.endswith('.html')]},}
+		ctx =  {
+			'CACTUS': {'pages': [p for p in self.pages() if p.path.endswith('.html')]},
+			'__CACTUS_SITE__': self,
+		}
 		ctx.update(self.variables)
 		return ctx
 	
