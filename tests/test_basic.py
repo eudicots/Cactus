@@ -2,11 +2,12 @@ import os
 import shutil
 import codecs
 import unittest
+import tempfile
+
+import django.conf
 
 from cactus import Site
-from cactus.utils import fileList
-
-TEST_PATH = '/tmp/www.testcactus.com'
+from cactus.utils import fileList, bootstrap
 
 
 def readFile(path):
@@ -23,68 +24,78 @@ def writeFile(path, data):
 def mockFile(name):
 	return readFile(os.path.join('tests', 'data', name))
 
+
+
 class SimpleTest(unittest.TestCase):
 	
-	@classmethod
-	def setUpClass(cls):
-		if os.path.exists(TEST_PATH):
-			shutil.rmtree(TEST_PATH)
+	def setUp(self):
+		self.test_dir = tempfile.mkdtemp()
+		self.path = os.path.join(self.test_dir, 'test')
 
-		cls.site = Site(TEST_PATH)
-	
+		django.conf.settings._wrapped = django.conf.empty
+
+		bootstrap(self.path)
+		self.site = Site(self.path, os.path.join(self.path, 'config.json'), variables = ['a=b', 'c'])
+
+
+	def tearDown(self):
+		shutil.rmtree(self.test_dir)
+
+
 	def testBootstrap(self):
-		
-		self.site.bootstrap()
-		
 		self.assertEqual(
-			fileList(TEST_PATH, relative=True), 
+			fileList(self.path, relative=True),
 			fileList("skeleton", relative=True), 
 		)
 
 
 	def testBuild(self):
-		
 		self.site.build()
 		
 		# Make sure we build to .build and not build
-		self.assertEqual(os.path.exists(os.path.join(TEST_PATH, 'build')), False)
+		self.assertEqual(os.path.exists(os.path.join(self.path, 'build')), False)
 		
-		self.assertEqual(fileList(os.path.join(TEST_PATH, '.build'), relative=True), [
+		self.assertEqual(fileList(os.path.join(self.path, '.build'), relative=True), [
 			'error.html',
 			'index.html',
 			'robots.txt',
 			'sitemap.xml',
-			'static/css/style.css',
-			'static/js/main.js'
+			self.site.get_path_for_static('static/css/style.css'),
+			self.site.get_path_for_static('static/js/main.js'),
 		])
 	
-	#def testRenderPage(self):
+
+	def testRenderPage(self):
 		
 		# Create a new page called test.html and see if it get rendered
 		
 		writeFile(
-			os.path.join(TEST_PATH, 'pages', 'test.html'),
+			os.path.join(self.path, 'pages', 'test.html'),
 			mockFile('test-in.html')
 		)
 		
 		self.site.build()
 		
 		self.assertEqual(
-			readFile(os.path.join(TEST_PATH, '.build', 'test.html')),
+			readFile(os.path.join(self.path, '.build', 'test.html')),
 			mockFile('test-out.html')
 		)
-	
-	#def testSiteContext(self):
-		
+
+
+	def testSiteContext(self):
 		self.assertEqual(
 			[page.path for page in self.site.context()['CACTUS']['pages']],
-			['error.html', 'index.html', 'test.html']
+			['error.html', 'index.html']
 		)
-	
-	#def testPageContext(self):
+
+		self.assertEqual(self.site.context()['a'], 'b')
+		self.assertEqual(self.site.context()['c'], True)
+
+
+	def testPageContext(self):
 
 		writeFile(
-			os.path.join(TEST_PATH, 'pages', 'koenpage.html'),
+			os.path.join(self.path, 'pages', 'koenpage.html'),
 			mockFile('koenpage-in.html')
 		)
 		
@@ -97,8 +108,6 @@ class SimpleTest(unittest.TestCase):
 		self.site.build()
 		
 		self.assertEqual(
-			readFile(os.path.join(TEST_PATH, '.build', 'koenpage.html')),
+			readFile(os.path.join(self.path, '.build', 'koenpage.html')),
 			mockFile('koenpage-out.html')
 		)
-
-	
