@@ -9,9 +9,12 @@ import traceback
 import socket
 
 import boto
+import django.conf
 
 from cactus.config import Config
-from cactus.utils import *
+from cactus.utils import (memoize, fileList, is_external, internetWorking, 
+		getpassword)
+from cactus.variables import parse_site_variable
 from cactus.page import Page
 from cactus.static import Static
 from cactus.listener import Listener
@@ -23,12 +26,18 @@ from cactus.browser import browserReload, browserReloadCSS
 class Site(object):
 	_path = None
 	
-	def __init__(self, path, config_path, optimize = False):
+	def __init__(self, path, config_path, variables = None, optimize = False):
 		self.config = Config(config_path)
 
 		self.path = path
 		self.verify()
 		self.optimize = optimize
+
+		if variables is None:
+			self.variables = {}
+		else:
+			self.variables = dict(map(parse_site_variable, variables))
+
 
 	@property
 	def path(self):
@@ -52,15 +61,11 @@ class Site(object):
 		Configure django to use both our template and pages folder as locations
 		to look for included templates.
 		"""
-		try:
-			from django.conf import settings
-			settings.configure(
-				TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']],
-				INSTALLED_APPS=['django.contrib.markup']
-			)
-			from django.template import loader # Initialize the template loader.
-		except:
-			pass
+		django.conf.settings.configure(
+			TEMPLATE_DIRS= [self.paths['templates'], self.paths['pages']],
+			INSTALLED_APPS= ['django.contrib.markup']
+		)
+		from django.template import loader # Initialize the template loader.
 	
 	def verify(self):
 		"""
@@ -78,11 +83,14 @@ class Site(object):
 		logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
 		sys.exit()
 	
+	@memoize
 	def context(self):
 		"""
 		Base context for the site: all the html pages.
 		"""
-		return {'CACTUS': {'pages': [p for p in self.pages() if p.path.endswith('.html')]}}
+		ctx =  {'CACTUS': {'pages': [p for p in self.pages() if p.path.endswith('.html')]},}
+		ctx.update(self.variables)
+		return ctx
 	
 	def clean(self):
 		"""
@@ -98,9 +106,6 @@ class Site(object):
 
 		# Set up django settings
 		self.setup()
-
-		# Bust the context cache
-		self._contextCache = self.context()
 		
 		# Load the plugin code, because we want fresh plugin code on build
 		# refreshes if we're running the web server with listen.
@@ -205,7 +210,7 @@ class Site(object):
 		
 		try:
 			httpd = Server(("", port), RequestHandler)
-		except socket.error, e:
+		except socket.error:
 			logging.info('Could not start webserver, port is in use. To use another port:')
 			logging.info('  cactus serve %s' % (int(port) + 1))
 			return

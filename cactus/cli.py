@@ -22,23 +22,23 @@ def create(path):
 	bootstrap(path)
 
 
-def build(path, config, optimize):
+def build(path, config, var, optimize):
 	"Build a cactus project"
 	
-	site = cactus.Site(path, config, optimize = optimize)
+	site = cactus.Site(path, config, variables = var, optimize = optimize)
 	site.build()
 
 
-def deploy(path, config, optimize):
+def deploy(path, config, var, optimize):
 	"Upload the project to S3"
-	site = cactus.Site(path, config, optimize)
+	site = cactus.Site(path, config, variables = var, optimize = optimize)
 	site.upload()
 
 
-def serve(path, config, optimize, port, browser):
+def serve(path, config, var, optimize, port, browser):
 	"Serve the project and watch changes"
 	
-	site = cactus.Site(path, config)
+	site = cactus.Site(path, config, variables = var)
 	site.serve(port=port, browser=browser)
 
 
@@ -66,6 +66,7 @@ def main():
 	for subparser in (parser_build, parser_serve, parser_deploy):
 		subparser.add_argument('-o', '--optimize', action = 'store_true', help = 'Run optimizations on files.')
 		subparser.add_argument('-c', '--config', default = 'config.json', help = 'Path to the config file you want to use.')
+		subparser.add_argument('-v', '--var', action = 'append', help = "Add one or more variables to pass to your templates")
 		subparser.set_defaults(path = os.getcwd())
 
 	args = parser.parse_args()

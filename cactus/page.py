@@ -1,6 +1,7 @@
 import os
 import codecs
 import logging
+import copy
 
 from django.template import Template, Context
 
@@ -35,7 +36,7 @@ class Page(object):
 		# the site's context. if in the future we make non-top-level
 		# changes to the page's context the shallow copy won't be
 		# enough, we'd need to look at copy.deepcopy
-		context = dict(self.site._contextCache)
+		context = copy.copy(self.site.context())
 
 		# Relative url context
 		prefix = '/'.join(['..' for i in xrange(len(self.path.split('/')) - 1)]) or '.'
