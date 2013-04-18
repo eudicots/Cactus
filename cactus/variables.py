@@ -1,5 +1,6 @@
 #coding:utf-8
 
+
 def parse_site_variable(var):
     """
     Basic parsing of site variables. If the variables contains an "=" use a

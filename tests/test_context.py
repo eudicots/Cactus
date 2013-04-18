@@ -1,7 +1,6 @@
 #coding:utf-8
 import unittest
 
-from cactus.site import Site
 from cactus.variables import parse_site_variable
 
 
