@@ -154,7 +154,6 @@ class Site(object):
             else:
                 return static_dict[src_path].final_path
         except KeyError:
-            print "EXISTING STATICS", "\n".join(sorted(static_dict.keys()))
             raise Exception('Static does not exist: {0}'.format(src_path))
 
     def buildStatic(self):
