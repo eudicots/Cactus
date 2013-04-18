@@ -2,11 +2,9 @@ import os
 import logging
 import socket
 
-socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.settimeout(5)
+from cactus.site import Site
 
-
-logLevel = logging.INFO
+socket.setdefaulttimeout(5)
 
 if os.environ.get('DEBUG'):
     logging.basicConfig(
@@ -18,7 +16,3 @@ else:
         format = '%(message)s',
         level = logging.INFO
     )
-
-from site import Site
-
-
