@@ -29,15 +29,29 @@ class Site(object):
 
     def __init__(self, path, config_path, variables = None, optimize = False):
         self.config = Config(config_path)
+        self.verify_config()
 
         self.path = path
-        self.verify()
+        self.verify_path()
         self.optimize = optimize
 
         if variables is None:
             self.variables = {}
         else:
             self.variables = dict(map(parse_site_variable, variables))
+
+    def verify_config(self):
+        """
+        We need the site url to generate the sitemap.
+        """
+        self.url = self.config.get('site-url')
+        if self.url is None:
+            self.url = raw_input('Enter your site URL (e.g. http://example.com): ').strip()
+            self.config.set('site-url', self.url)
+            self.config.write()
+
+        if not self.url.endswith('/'):
+            self.url += '/'
 
     @property
     def path(self):
@@ -68,7 +82,7 @@ class Site(object):
 
         add_to_builtins('cactus.template_tags')
 
-    def verify(self):
+    def verify_path(self):
         """
         Check if this path looks like a Cactus website
         """

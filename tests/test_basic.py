@@ -6,7 +6,8 @@ import tempfile
 
 import django.conf
 
-from cactus import Site
+from cactus.site import Site
+from cactus.config import Config
 from cactus.utils import fileList, bootstrap
 
 
@@ -27,27 +28,38 @@ def mockFile(name):
     return readFile(os.path.join('tests', 'data', name))
 
 
-class SimpleTest(unittest.TestCase):
+class BaseTest(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.path = os.path.join(self.test_dir, 'test')
-
         self.clear_django_settings()
-
         bootstrap(self.path)
-        self.site = Site(self.path, os.path.join(self.path, 'config.json'), variables = ['a=b', 'c'])
 
     def clear_django_settings(self):
         django.conf.settings._wrapped = django.conf.empty
 
-    def tearDown(self):
-        shutil.rmtree(self.test_dir)
 
+class TestBootstrap(BaseTest):
     def testBootstrap(self):
         self.assertEqual(
             fileList(self.path, relative = True),
             fileList("skeleton", relative = True),
         )
+
+
+class TestSite(BaseTest):
+    def setUp(self):
+        super(TestSite, self).setUp()
+
+        config_path = os.path.join(self.path, 'config.json')
+        conf = Config(config_path)
+        conf.set('site-url', 'http://example.com/')
+        conf.write()
+
+        self.site = Site(self.path, config_path, variables = ['a=b', 'c'])
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
 
     def testBuild(self):
         self.site.build()
