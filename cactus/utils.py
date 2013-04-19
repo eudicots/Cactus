@@ -98,6 +98,24 @@ def compressString(s):
     zfile.close()
     return zbuf.getvalue()
 
+class CaseInsensitiveDict(dict):
+    def __init__(self, obj = None, **kwargs):
+        if obj is not None:
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    self[k] = v
+            else:
+                for k, v in obj:
+                    self[k] = v
+
+        for k, v in kwargs.items():
+            self[k] = v
+
+    def __setitem__(self, key, value):
+        super(CaseInsensitiveDict, self).__setitem__(key.lower(), value)
+
+    def __getitem__(self, key):
+        return super(CaseInsensitiveDict, self).__getitem__(key.lower())
 
 def getURLHeaders(url):
     url = urlparse.urlparse(url)
@@ -107,7 +125,7 @@ def getURLHeaders(url):
 
     response = conn.getresponse()
 
-    return dict(response.getheaders())
+    return CaseInsensitiveDict(response.getheaders())
 
 
 def fileSize(num):

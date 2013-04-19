@@ -7,7 +7,7 @@ from distutils.sysconfig import get_python_lib
 from setuptools import setup
 
 
-VERSION = "2.4.0"
+VERSION = "2.5.0"
 
 if "uninstall" in sys.argv:
 

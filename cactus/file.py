@@ -2,9 +2,9 @@ import os
 import logging
 import hashlib
 import socket
-
 import mime
-from .utils import compressString, getURLHeaders, fileSize, retry
+
+from cactus.utils import compressString, getURLHeaders, fileSize, retry, CaseInsensitiveDict
 
 
 class File(object):
@@ -67,16 +67,30 @@ class File(object):
 
         return True
 
+
+    def changed(self):
+        remote_headers = {k: v.strip('"') for k, v in getURLHeaders(self.remoteURL()).items()}
+        local_headers = CaseInsensitiveDict(self.headers)  # Will do a copy.
+        local_headers['etag'] = self.checksum()
+        for k,v in local_headers.items():  # Don't check AWS' own headers.
+            if remote_headers.get(k) != v:
+                return True
+        return False
+
     @retry(socket.error, tries = 5, delay = 3, backoff = 2)
     def upload(self, bucket):
-
         self.lastUpload = 0
-        headers = {'Cache-Control': 'max-age=%s' % self.CACHE_EXPIRATION}
+
+        self.headers = {'Cache-Control': 'max-age=%s' % self.CACHE_EXPIRATION}
 
         if self.shouldCompress():
-            headers['Content-Encoding'] = 'gzip'
+            self.headers['Content-Encoding'] = 'gzip'
 
-        changed = self.checksum() != self.remoteChecksum()
+        for plugin in self.site._plugins:
+            if hasattr(plugin, 'preDeployFile'):
+                plugin.preDeployFile(self)
+
+        changed = self.changed()
 
         if changed:
 
@@ -99,7 +113,7 @@ class File(object):
                 key.content_type = mimeType
 
             # Upload the data
-            key.set_contents_from_string(self.payload(), headers,
+            key.set_contents_from_string(self.payload(), self.headers,
                                          policy = 'public-read',
                                          cb = progressCallback,
                                          num_cb = progressCallbackCount)
@@ -110,3 +124,6 @@ class File(object):
         logging.info('%s %s - %s%s' % (op1, self.path, fileSize(len(self.data())), op2))
 
         return {'changed': changed, 'size': len(self.payload())}
+
+    def __repr__(self):
+        return '<File: {0}>'.format(self.path)
