@@ -35,6 +35,9 @@ class BaseTest(unittest.TestCase):
         self.clear_django_settings()
         bootstrap(self.path)
 
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+
     def clear_django_settings(self):
         django.conf.settings._wrapped = django.conf.empty
 
@@ -57,9 +60,6 @@ class TestSite(BaseTest):
         conf.write()
 
         self.site = Site(self.path, config_path, variables = ['a=b', 'c'])
-
-    def tearDown(self):
-        shutil.rmtree(self.test_dir)
 
     def testBuild(self):
         self.site.build()

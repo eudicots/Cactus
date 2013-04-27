@@ -3,6 +3,7 @@ import logging
 import hashlib
 import socket
 import mime
+import copy
 
 from cactus.utils import compressString, getURLHeaders, fileSize, retry, CaseInsensitiveDict
 
@@ -70,7 +71,7 @@ class File(object):
 
     def changed(self):
         remote_headers = {k: v.strip('"') for k, v in getURLHeaders(self.remoteURL()).items()}
-        local_headers = CaseInsensitiveDict(self.headers)  # Will do a copy.
+        local_headers = copy.copy(self.headers)  # Will do a copy.
         local_headers['etag'] = self.checksum()
         for k,v in local_headers.items():  # Don't check AWS' own headers.
             if remote_headers.get(k) != v:
@@ -81,7 +82,7 @@ class File(object):
     def upload(self, bucket):
         self.lastUpload = 0
 
-        self.headers = {'Cache-Control': 'max-age=%s' % self.CACHE_EXPIRATION}
+        self.headers = CaseInsensitiveDict((('Cache-Control', 'max-age=%s' % self.CACHE_EXPIRATION),))
 
         if self.shouldCompress():
             self.headers['Content-Encoding'] = 'gzip'
