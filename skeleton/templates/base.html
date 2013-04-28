@@ -12,6 +12,10 @@
 	<title>Welcome</title>
 	{% endblock %}
 
+    {% if universalAnalytics %}{% autoescape off %}
+    {{ universalAnalytics }}
+    {% endautoescape %}{% endif %}
+
 </head>
 <body>
 	{% block content %}
