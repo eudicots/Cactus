@@ -36,24 +36,47 @@ window.location.reload()
 s4 = """
 (function() {
 	function updateQueryStringParameter(uri, key, value) {
-		var re = new RegExp("([?|&])" + key + "=.*?(&|$)", "i");
-		separator = uri.indexOf('?') !== -1 ? "&" : "?";
+	
+	
+		// console.log('updateQueryStringParameter')
+		// console.log(uri)
+		// console.log(key)
+		// console.log(value)
+		
+		var re = new RegExp('([?|&])' + key + '=.*?(&|$)', 'i');
+		separator = uri.indexOf('?') !== -1 ? '&' : '?';
 		
 		if (uri.match(re)) {
-			return uri.replace(re, '$1' + key + "=" + value + '$2');
+			return uri.replace(re, '$1' + separator + key + '=' + value + '$2');
 		} else {
-			return uri + separator + key + "=" + value;
+			return uri + separator + key + '=' + value;
 		}
 	}
-	
+
 	var links = document.getElementsByTagName('link'); 
 	
 	for (var i = 0; i < links.length;i++) { 
 	
-		var link = links[i]; 
-	
+		var link = links[i];
+		
+		console.log('inspect', link);
+		
 		if (link.rel === 'stylesheet') {
-			link.href = updateQueryStringParameter(link.href, 'cactus.reload', new Date().getTime())
+			
+			// Don't reload external urls, they likely did not change
+			if (link.href.indexOf('127.0.0.1') == -1 && link.href.indexOf('localhost') == -1) {
+				continue;
+			}
+			
+			var updatedLink = updateQueryStringParameter(link.href, 'cactus.reload', new Date().getTime());
+			
+			// This is really hacky, but needed because the regex gets magically broken by piping it
+			// through applescript. This replaces the first occurence of ? with & if there was no &.
+			if (updatedLink.indexOf('?') == -1) {
+				updatedLink = updatedLink.replace('&', '?');
+			}
+			
+			link.href = updatedLink;
 		}
 	}
 })()
