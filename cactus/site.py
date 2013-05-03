@@ -155,17 +155,27 @@ class Site(object):
 	
 	def buildStatic(self):
 		"""
-		Copy static files and folders to build folder.
+		Copy static files to build folder. If platform supports symlinking
+		(Windows doesn't, except for admins) we do that for speed instead.
 		"""
 		staticBuildPath = os.path.join(self.paths['build'], 'static')
 
-		# Remove any destination folder so copytree does not fail
-		if os.path.exists(staticBuildPath):
-			shutil.rmtree(staticBuildPath)
-		try:
-			shutil.copytree(self.paths['static'], staticBuildPath)
-		except:
-			logging.info('*** Error copying %s to %s' % (self.paths['static'], staticBuildPath))
+    		os_symlink = getattr(os, "symlink", None)
+    		if callable(os_symlink):
+			# If there is a folder, replace it with a symlink
+			if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
+				os.remove(staticBuildPath)
+		
+			if not os.path.lexists(staticBuildPath):
+				os.symlink(self.paths['static'], staticBuildPath)
+		else:
+			try:
+				if os.path.exists(staticBuildPath):
+					shutil.rmtree(staticBuildPath) # copytree fails if destination exists
+
+				shutil.copytree(self.paths['static'], staticBuildPath)
+			except Exception:
+				logging.info('*** Error copying %s to %s' % (self.paths['static'], staticBuildPath))
 	
 	def ignorePatterns(self):
 		
