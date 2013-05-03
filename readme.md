@@ -81,7 +81,7 @@ Your rendered website can now be found in the (hidden) [path]/.build folder. Cac
 
 ### Linking and contexts
 
-Cactus makes it easy to relatively link to pages and static assets inside your project by using the standard context variables STATIC\_URL and ROOT\_URL. For example if you are at page `/blog/2011/Jan/my-article.html` and would like to link to `/contact.html` you would write the following: 
+Cactus makes it easy to relatively link to pages and static assets inside your project by using the standard context variables `STATIC_URL`,  `ROOT_URL` and `PAGE_URL`. For example if you are at page `/blog/2011/Jan/my-article.html` and would like to link to `/contact.html` you would write the following: 
 
 	<a href={{ ROOT_URL }}/contact.html>Contact</a>
 
