@@ -38,6 +38,7 @@ class Site(object):
 			'templates': os.path.join(path, 'templates'),
 			'plugins': os.path.join(path, 'plugins'),
 			'static': os.path.join(path, 'static'),
+            'locales': os.path.join(path, 'conf', 'locale'),
 			'script': os.path.join(os.getcwd(), __file__)
 		}
 		
@@ -52,7 +53,8 @@ class Site(object):
 			from django.conf import settings
 			settings.configure(
 				TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']],
-				INSTALLED_APPS=['django.contrib.markup']
+				INSTALLED_APPS=['django.contrib.markup'],
+                LOCALE_PATHS=[self.paths['locales'],],
 			)
 		except:
 			pass
