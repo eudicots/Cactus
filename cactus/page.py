@@ -22,7 +22,10 @@ class Page(object):
         if self.site.prettify_urls:
             # The path where this element should be linked in "built" pages
             if self.is_html():
-                self.final_path = '{0}/'.format(self.link_path.rsplit('.html', 1)[0])
+                if self.is_index():
+                    self.final_path = self.link_path.rsplit('index.html', 1)[0]
+                else:
+                    self.final_path = '{0}/'.format(self.link_path.rsplit('.html', 1)[0])
             else:
                 self.final_path = self.link_path
 
@@ -42,6 +45,9 @@ class Page(object):
 
     def is_html(self):
         return urlparse.urlparse(self.source_path).path.endswith('.html')
+
+    def is_index(self):
+        return urlparse.urlparse(self.source_path).path.endswith('index.html')
 
     def data(self):
         f = codecs.open(self.paths['full'], 'r', 'utf-8')

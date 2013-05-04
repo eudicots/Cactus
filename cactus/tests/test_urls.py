@@ -19,13 +19,23 @@ class TestPrettyURLS(BaseTest):
         self.build_path = self.site.paths['build']
 
         with open(os.path.join(self.path, 'pages', 'test.html'), 'w') as f:
-            f.write('Placeholder')
+            pass
+
+        subfolder = os.path.join(self.path, 'pages', 'folder')
+        os.makedirs(subfolder)
+        with open(os.path.join(subfolder, 'index.html'), 'w') as f:
+            pass
+        with open(os.path.join(subfolder, 'page.html'), 'w') as f:
+            pass
+
 
         self.site.build()
 
     def test_get_path(self):
+        self.assertEqual(self.site.get_path_for_page('/index.html'), '/')
         self.assertEqual(self.site.get_path_for_page('/test.html'), '/test/')
-        self.assertEqual(self.site.get_path_for_page('/index.html'), '/index/')
+        self.assertEqual(self.site.get_path_for_page('/folder/index.html'), '/folder/')
+        self.assertEqual(self.site.get_path_for_page('/folder/page.html'), '/folder/page/')
 
     def test_build_page(self):
         """
@@ -33,6 +43,8 @@ class TestPrettyURLS(BaseTest):
         """
         self.assertFileExists(os.path.join(self.build_path, 'index.html'))
         self.assertFileExists(os.path.join(self.build_path, 'test', 'index.html'))
+        self.assertFileExists(os.path.join(self.build_path, 'folder', 'index.html'))
+        self.assertFileExists(os.path.join(self.build_path, 'folder', 'page', 'index.html'))
         self.assertRaises(IOError, open, os.path.join(self.path, '.build', 'test.html'))
 
     def test_ignore_non_html(self):
