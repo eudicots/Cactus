@@ -32,10 +32,10 @@ class TestPrettyURLS(BaseTest):
         self.site.build()
 
     def test_get_path(self):
-        self.assertEqual(self.site.get_path_for_page('/index.html'), '/')
-        self.assertEqual(self.site.get_path_for_page('/test.html'), '/test/')
-        self.assertEqual(self.site.get_path_for_page('/folder/index.html'), '/folder/')
-        self.assertEqual(self.site.get_path_for_page('/folder/page.html'), '/folder/page/')
+        self.assertEqual(self.site.get_url_for_page('/index.html'), '/')
+        self.assertEqual(self.site.get_url_for_page('/test.html'), '/test/')
+        self.assertEqual(self.site.get_url_for_page('/folder/index.html'), '/folder/')
+        self.assertEqual(self.site.get_url_for_page('/folder/page.html'), '/folder/page/')
 
     def test_build_page(self):
         """

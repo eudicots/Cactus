@@ -4,21 +4,21 @@ from django.template.base import Library
 register = Library()
 
 
-def static(context, link_path):
+def static(context, link_url):
     """
     Get the path for a static file in the Cactus build.
-    We'll need this because paths are rewritten with fingerprinting.
+    We'll need this because paths can be rewritten with fingerprinting.
     """
-    return context['__CACTUS_SITE__'].get_path_for_static(link_path)
+    return context['__CACTUS_SITE__'].get_url_for_static(link_url)
 
 
-def url(context, link_path):
+def url(context, link_url):
     """
     Get the path for a page in the Cactus build.
-    We'll need this because paths are rewritten with fingerprinting.
+    We'll need this because paths can be rewritten with prettifying.
     """
     site = context['__CACTUS_SITE__']
-    url = site.get_path_for_page(link_path)
+    url = site.get_url_for_page(link_url)
 
     if site.prettify_urls:
         return url.rsplit('index.html', 1)[0]
@@ -26,14 +26,14 @@ def url(context, link_path):
     return url
 
 
-def if_current_page(context, link_path, positive=True, negative=False):
+def if_current_page(context, link_url, positive=True, negative=False):
     """
     Return one of the passed parameters if the URL passed is the current one.
-    For consistency reasons, we use the link_path of the page.
+    For consistency reasons, we use the link_url of the page.
     """
     current_page = context['__CACTUS_CURRENT_PAGE__']
 
-    return positive if current_page.link_path == link_path else negative
+    return positive if current_page.link_url == link_url else negative
 
 
 register.simple_tag(takes_context=True)(static)

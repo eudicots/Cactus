@@ -54,8 +54,8 @@ class TestSite(BaseTest):
             'index.html',
             'robots.txt',
             'sitemap.xml',
-            self.site.get_path_for_static('/static/css/style.css')[1:],  # Strip the initial /
-            self.site.get_path_for_static('/static/js/main.js')[1:],  # Strip the initial /
+            self.site.get_url_for_static('/static/css/style.css')[1:],  # Strip the initial /
+            self.site.get_url_for_static('/static/js/main.js')[1:],  # Strip the initial /
         ])
 
     def testRenderPage(self):
@@ -116,7 +116,7 @@ class TestSite(BaseTest):
 
         self.assertEqual(
             readFile(os.path.join(self.path, '.build', 'staticpage.html')),
-            self.site.get_path_for_static(static)
+            self.site.get_url_for_static(static)
         )
 
     def test_current_page(self):

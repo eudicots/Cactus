@@ -16,18 +16,18 @@ class Page(object):
         # The path where this element should be linked in "base" pages
         self.source_path = source_path
 
-        # The path where this element should be linked in "base" pages
-        self.link_path = '/{0}'.format(self.source_path)
+        # The URL where this element should be linked in "base" pages
+        self.link_url = '/{0}'.format(self.source_path)
 
         if self.site.prettify_urls:
-            # The path where this element should be linked in "built" pages
+            # The URL where this element should be linked in "built" pages
             if self.is_html():
                 if self.is_index():
-                    self.final_path = self.link_path.rsplit('index.html', 1)[0]
+                    self.final_url = self.link_url.rsplit('index.html', 1)[0]
                 else:
-                    self.final_path = '{0}/'.format(self.link_path.rsplit('.html', 1)[0])
+                    self.final_url = '{0}/'.format(self.link_url.rsplit('.html', 1)[0])
             else:
-                self.final_path = self.link_path
+                self.final_url = self.link_url
 
             # The path where this element should be built to
             if not self.is_html() or self.source_path.endswith('index.html'):
@@ -35,7 +35,7 @@ class Page(object):
             else:
                 self.build_path = '{0}/{1}'.format(self.source_path.rsplit('.html', 1)[0], 'index.html')
         else:
-            self.final_path = self.link_path
+            self.final_url = self.link_url
             self.build_path = self.source_path
 
         self.paths = {
@@ -48,6 +48,13 @@ class Page(object):
 
     def is_index(self):
         return urlparse.urlparse(self.source_path).path.endswith('index.html')
+
+    @property
+    def absolute_final_url(self):
+        """
+        Return the absolute URL for this page in the final build
+        """
+        return urlparse.urljoin(self.site.url, self.final_url)
 
     def data(self):
         f = codecs.open(self.paths['full'], 'r', 'utf-8')
@@ -100,7 +107,7 @@ class Page(object):
         """
         Save the rendered output to the output file.
         """
-        logging.info('Building {0} --> {1}'.format(self.source_path, self.final_path))
+        logging.info('Building {0} --> {1}'.format(self.source_path, self.final_url))
 
         data = self.render()
 

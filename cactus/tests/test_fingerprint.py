@@ -27,18 +27,18 @@ class TestFingerprinting(BaseTest):
     def test_fingerprinting_off(self):
         self.initialize()
         static = '/static/css/style.css'
-        self.assertEqual(self.site.get_path_for_static(static), static)
+        self.assertEqual(self.site.get_url_for_static(static), static)
 
     def test_fingerprinting_on(self):
         self.initialize(['css', 'js'])
         static = '/static/css/style.css'
-        self.assertNotEqual(self.site.get_path_for_static(static), static)
+        self.assertNotEqual(self.site.get_url_for_static(static), static)
         static = '/static/js/main.js'
-        self.assertNotEqual(self.site.get_path_for_static(static), static)
+        self.assertNotEqual(self.site.get_url_for_static(static), static)
 
     def test_fingerprinting_selective(self):
         self.initialize(['css'])
         static = '/static/css/style.css'
-        self.assertNotEqual(self.site.get_path_for_static(static), static)
+        self.assertNotEqual(self.site.get_url_for_static(static), static)
         static = '/static/js/main.js'
-        self.assertEqual(self.site.get_path_for_static(static), static)
+        self.assertEqual(self.site.get_url_for_static(static), static)

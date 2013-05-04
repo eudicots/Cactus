@@ -54,14 +54,14 @@ class Static(object):
             new_name = self.src_name
 
         # Path where this file should be referenced in source files
-        self.link_path = '/' + os.path.join(self.src_dir, '{0}.{1}'.format(self.src_name, self.final_extension))
+        self.link_url = '/' + os.path.join(self.src_dir, '{0}.{1}'.format(self.src_name, self.final_extension))
 
         self.final_name = "{0}.{1}".format(new_name, self.final_extension)
 
         # Path where the file should be built to.
         self.build_path = os.path.join(self.src_dir, self.final_name)
         # Path where the file should be referenced in built files
-        self.final_path = "/{0}".format(self.build_path)
+        self.final_url = "/{0}".format(self.build_path)
 
         self.paths = {
             'full': self._preprocessing_path,
@@ -131,7 +131,7 @@ class Static(object):
         return pre_path
 
     def build(self):
-        logging.info('Building {0} --> {1}'.format(self.src_name, self.final_path))
+        logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
         try:
             os.makedirs(os.path.dirname(self.paths['full-build']))

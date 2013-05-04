@@ -160,22 +160,22 @@ class Site(object):
         paths = fileList(self.paths['static'], relative = True)
         return [Static(self, path) for path in paths]
 
-    def _get_path(self, src_path, resources):
-        if is_external(src_path):
-            return src_path
+    def _get_url(self, src_url, resources):
+        if is_external(src_url):
+            return src_url
 
-        resources_dict = {resource.link_path: resource for resource in resources}
+        resources_dict = {resource.link_url: resource for resource in resources}
 
         try:
-            return resources_dict[src_path].final_path
+            return resources_dict[src_url].final_url
         except KeyError:
-            raise Exception('Resource does not exist: {0}'.format(src_path))
+            raise Exception('Resource does not exist: {0}'.format(src_url))
 
-    def get_path_for_static(self, src_path):
-        return self._get_path(src_path, self.static())
+    def get_url_for_static(self, src_path):
+        return self._get_url(src_path, self.static())
 
-    def get_path_for_page(self, src_path):
-        return self._get_path(src_path, self.pages())
+    def get_url_for_page(self, src_path):
+        return self._get_url(src_path, self.pages())
 
     def buildStatic(self):
         """
