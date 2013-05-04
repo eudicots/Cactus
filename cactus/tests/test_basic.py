@@ -118,3 +118,23 @@ class TestSite(BaseTest):
             readFile(os.path.join(self.path, '.build', 'staticpage.html')),
             self.site.get_path_for_static(static)
         )
+
+    def test_current_page(self):
+        page = 'page1.html'
+        content = "{%% if_current_page '/%s' %%}" % page
+
+        other = 'page2.html'
+
+        with open(os.path.join(self.path, 'pages', page), 'w') as f:
+            f.write(content)
+
+        with open(os.path.join(self.path, 'pages', other), 'w') as f:
+            f.write(content)
+
+        self.site.build()
+
+        with open(os.path.join(self.path, '.build', page)) as f:
+            self.assertEqual('True', f.read())
+
+        with open(os.path.join(self.path, '.build', other)) as f:
+            self.assertEqual('False', f.read())

@@ -72,6 +72,7 @@ class Page(object):
         context.update({
             'STATIC_URL': os.path.join(prefix, 'static'),
             'ROOT_URL': prefix,
+            '__CACTUS_CURRENT_PAGE__': self,
         })
 
         # Page context (parse header)
