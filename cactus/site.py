@@ -33,6 +33,7 @@ class Site(object):
 
         # Some specific config files
         self.prettify_urls = self.config.get('prettify', False)
+        self.fingerprint_extensions = self.config.get('fingerprint', [])
 
         self.path = path
         self.verify_path()

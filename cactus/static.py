@@ -8,8 +8,6 @@ import hashlib
 from contextlib import contextmanager
 
 
-FINGERPRINT_EXTENSIONS = ("js", "css")
-
 CONVERSIONS = {"sass": "css", "scss": "css"}
 
 
@@ -45,25 +43,29 @@ class Static(object):
 
         # Do some pre-processing (e.g. optimizations):
         # must be done before fingerprinting
-        self.build_path = self.pre_process()
+        self._preprocessing_path = self.pre_process()
 
         # Where the file will have to be referenced in output files
 
-        if self.final_extension in FINGERPRINT_EXTENSIONS:
-            checksum = calculate_file_checksum(self.build_path)
+        if self.final_extension in self.site.fingerprint_extensions:
+            checksum = calculate_file_checksum(self._preprocessing_path)
             new_name = "{0}.{1}".format(self.src_name, checksum)
         else:
             new_name = self.src_name
 
-        self.final_name = "{0}.{1}".format(new_name, self.final_extension)
-        self.final_path = os.path.join(self.src_dir, self.final_name)
-
         # Path where this file should be referenced in source files
-        self.rel_path = os.path.join(self.src_dir, '{0}.{1}'.format(self.src_name, self.final_extension))
+        self.link_path = '/' + os.path.join(self.src_dir, '{0}.{1}'.format(self.src_name, self.final_extension))
+
+        self.final_name = "{0}.{1}".format(new_name, self.final_extension)
+
+        # Path where the file should be built to.
+        self.build_path = os.path.join(self.src_dir, self.final_name)
+        # Path where the file should be referenced in built files
+        self.final_path = "/{0}".format(self.build_path)
 
         self.paths = {
-            'full': self.build_path,
-            'full-build': os.path.join(site.paths['build'], self.final_path),
+            'full': self._preprocessing_path,
+            'full-build': os.path.join(site.paths['build'], self.build_path),
         }
 
     def pre_process(self):
