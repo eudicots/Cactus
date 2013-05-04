@@ -6,8 +6,8 @@ class Config(object):
         self.path = path
         self.load()
 
-    def get(self, key):
-        return self._data.get(key, None)
+    def get(self, key, default=None):
+        return self._data.get(key, default)
 
     def set(self, key, value):
         self._data[key] = value

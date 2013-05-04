@@ -27,9 +27,12 @@ from cactus.browser import browserReload, browserReloadCSS
 class Site(object):
     _path = None
 
-    def __init__(self, path, config_path, variables = None, optimize = False):
+    def __init__(self, path, config_path, variables=None, optimize=False):
         self.config = Config(config_path)
         self.verify_config()
+
+        # Some specific config files
+        self.prettify_urls = self.config.get('prettify', False)
 
         self.path = path
         self.verify_path()
@@ -103,7 +106,7 @@ class Site(object):
         Base context for the site: all the html pages.
         """
         ctx = {
-            'CACTUS': {'pages': [p for p in self.pages() if p.path.endswith('.html')]},
+            'CACTUS': {'pages': [p for p in self.pages() if p.is_html()]},
             '__CACTUS_SITE__': self,
         }
         ctx.update(self.variables)
@@ -156,19 +159,22 @@ class Site(object):
         paths = fileList(self.paths['static'], relative = True)
         return [Static(self, path) for path in paths]
 
-    def get_path_for_static(self, src_path):
+    def _get_path(self, src_path, resources):
         if is_external(src_path):
             return src_path
 
-        static_dict = {static.rel_path: static for static in self.static()}
+        resources_dict = {resource.link_path: resource for resource in resources}
 
         try:
-            if src_path[0] == '/':  # Handle len < 2..
-                return '/' + static_dict[src_path[1:]].final_path
-            else:
-                return static_dict[src_path].final_path
+            return resources_dict[src_path].final_path
         except KeyError:
-            raise Exception('Static does not exist: {0}'.format(src_path))
+            raise Exception('Resource does not exist: {0}'.format(src_path))
+
+    def get_path_for_static(self, src_path):
+        return self._get_path(src_path, self.static())
+
+    def get_path_for_page(self, src_path):
+        return self._get_path(src_path, self.pages())
 
     def buildStatic(self):
         """

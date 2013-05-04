@@ -1,14 +1,10 @@
 import os
-import shutil
 import codecs
-import unittest
-import tempfile
-
-import django.conf
 
 from cactus.site import Site
 from cactus.config import Config
-from cactus.utils import fileList, bootstrap
+from cactus.utils import fileList
+from cactus.tests import BaseTest
 
 
 def readFile(path):
@@ -25,21 +21,7 @@ def writeFile(path, data):
 
 
 def mockFile(name):
-    return readFile(os.path.join('tests', 'data', name))
-
-
-class BaseTest(unittest.TestCase):
-    def setUp(self):
-        self.test_dir = tempfile.mkdtemp()
-        self.path = os.path.join(self.test_dir, 'test')
-        self.clear_django_settings()
-        bootstrap(self.path)
-
-    def tearDown(self):
-        shutil.rmtree(self.test_dir)
-
-    def clear_django_settings(self):
-        django.conf.settings._wrapped = django.conf.empty
+    return readFile(os.path.join('cactus', 'tests', 'data', name))
 
 
 class TestBootstrap(BaseTest):
@@ -67,13 +49,13 @@ class TestSite(BaseTest):
         # Make sure we build to .build and not build
         self.assertEqual(os.path.exists(os.path.join(self.path, 'build')), False)
 
-        self.assertEqual(fileList(os.path.join(self.path, '.build'), relative = True), [
+        self.assertEqual(fileList(os.path.join(self.path, '.build'), relative=True), [
             'error.html',
             'index.html',
             'robots.txt',
             'sitemap.xml',
-            self.site.get_path_for_static('static/css/style.css'),
-            self.site.get_path_for_static('static/js/main.js'),
+            self.site.get_path_for_static('/static/css/style.css')[1:],  # Strip the initial /
+            self.site.get_path_for_static('/static/js/main.js')[1:],  # Strip the initial /
         ])
 
     def testRenderPage(self):
@@ -94,7 +76,7 @@ class TestSite(BaseTest):
 
     def testSiteContext(self):
         self.assertEqual(
-            [page.path for page in self.site.context()['CACTUS']['pages']],
+            [page.source_path for page in self.site.context()['CACTUS']['pages']],
             ['error.html', 'index.html']
         )
 
@@ -109,7 +91,7 @@ class TestSite(BaseTest):
         )
 
         for page in self.site.context()['CACTUS']['pages']:
-            if page.path == 'koenpage.html':
+            if page.source_path == 'koenpage.html':
                 context = page.context()
                 self.assertEqual(context['name'], 'Koen Bok')
                 self.assertEqual(context['age'], '29')
