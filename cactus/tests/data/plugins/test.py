@@ -15,3 +15,5 @@ postBuild = TestPluginMethod()  # site
 preDeploy = TestPluginMethod()  # site
 postDeploy = TestPluginMethod()  # site
 preDeployFile = TestPluginMethod()  # file
+
+ORDER = 2

@@ -14,18 +14,27 @@ class TestPluginLoader(SiteTest):
         shutil.rmtree(self.site.plugin_path)
         os.makedirs(self.site.plugin_path)
 
-    def _load_test_plugin(self, to_filename):
-        src_path = os.path.join('cactus', 'tests', 'data', 'plugin.py')
+    def _load_test_plugin(self, plugin, to_filename):
+        src_path = os.path.join('cactus', 'tests', 'data', 'plugins', plugin)
         dst_path = os.path.join(self.site.plugin_path, to_filename)
         shutil.copy(src_path, dst_path)
 
     def test_ignore_disabled(self):
-        self._load_test_plugin('test.disabled.py')
-        self.site.loadPlugins()
-        self.assertEqual([], self.site._plugins)
+        self._load_test_plugin('test.py', 'test.disabled.py')
+        self.assertEqual([], self.site.plugins)
 
     def test_load_plugin(self):
-        self._load_test_plugin('test.py')
-        self.site.loadPlugins()
-        self.assertEqual(1, len(self.site._plugins))
-        self.assertEqual('plugin_test', self.site._plugins[0].__name__)
+        self._load_test_plugin('test.py', 'test.py')
+        self.assertEqual(1, len(self.site.plugins))
+        self.assertEqual('plugin_test', self.site.plugins[0].__name__)
+        self.assertEqual(2, self.site.plugins[0].ORDER)
+
+    def test_defaults(self):
+        """
+        Check that defaults get initialized
+        """
+        self._load_test_plugin('empty.py', 'test.py')
+        plugin = self.site.plugins[0]
+        self.assertEqual(-1, plugin.ORDER)
+        self.assert_(hasattr(plugin, 'preBuild'))
+        self.assert_(hasattr(plugin, 'postBuild'))

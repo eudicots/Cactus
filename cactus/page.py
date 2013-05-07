@@ -92,9 +92,8 @@ class Page(PageCompatibilityLayer):
 
         # Run the prebuild plugins, we can't use the standard method here because
         # plugins can chain-modify the context and data.
-        for plugin in self.site._plugins:
-            if hasattr(plugin, 'preBuildPage'):
-                context, data = plugin.preBuildPage(self, context, data)
+        for plugin in self.site.plugins:
+            context, data = plugin.preBuildPage(self, context, data)
 
         return Template(data).render(context)
 

@@ -13,6 +13,7 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config import Config
+from cactus.plugin.loader import PluginLoader
 from cactus.utils.compat import SiteCompatibilityLayer
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
@@ -131,11 +132,7 @@ class Site(SiteCompatibilityLayer):
         # Set up django settings
         self.setup()
 
-        # Load the plugin code, because we want fresh plugin code on build
-        # refreshes if we're running the web server with listen.
-        self.loadPlugins()
-
-        logging.info('Plugins: %s', ', '.join([p.id for p in self._plugins]))
+        logging.info('Plugins: %s', ', '.join([p.__name__ for p in self.plugins]))
 
         self.pluginMethod('preBuild', self)
 
@@ -363,52 +360,14 @@ class Site(SiteCompatibilityLayer):
         """
         return [File(self, p) for p in fileList(self.build_path, relative=True)]
 
-    def loadPlugins(self, force=False):
-        """
-        Load plugins from the plugins directory and import the code.
-        """
-
-        plugins = []
-
-        # Figure out the files that can possibly be plugins
-        for pluginPath in fileList(self.plugin_path):
-
-            if not pluginPath.endswith('.py'):
-                continue
-
-            if 'disabled' in pluginPath:
-                continue
-
-            pluginHandle = os.path.splitext(os.path.basename(pluginPath))[0]
-
-            # Try to load the code from a plugin
-            try:
-                plugin = imp.load_source('plugin_%s' % pluginHandle, pluginPath)
-            except Exception, e:
-                logging.info('Error: Could not load plugin at path %s\n%s' % (pluginPath, e))
-                sys.exit()
-
-            # Set an id based on the file name
-            plugin.id = pluginHandle
-
-            plugins.append(plugin)
-
-        # Sort the plugins by their defined order (optional)
-        def getOrder(plugin):
-            if hasattr(plugin, 'ORDER'):
-                return plugin.ORDER
-            return -1
-
-        self._plugins = sorted(plugins, key=getOrder)
+    @property
+    def plugins(self):
+        loader = PluginLoader(self.plugin_path)
+        return loader.load()
 
     def pluginMethod(self, method, *args, **kwargs):
         """
         Run this method on all plugins
         """
-
-        if not hasattr(self, '_plugins'):
-            self.loadPlugins()
-
-        for plugin in self._plugins:
-            if hasattr(plugin, method):
-                getattr(plugin, method)(*args, **kwargs)
+        for plugin in self.plugins:
+            getattr(plugin, method)(*args, **kwargs)
