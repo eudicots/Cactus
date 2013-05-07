@@ -1,21 +1,17 @@
 #coding:utf-8
 import os
 from cactus import Site
-from cactus.config import Config
-from cactus.tests import BaseTest
+from cactus.tests import SiteTest
 
 
-class TestPrettyURLS(BaseTest):
+class TestPrettyURLS(SiteTest):
     def setUp(self):
         super(TestPrettyURLS, self).setUp()
 
-        config_path = os.path.join(self.path, 'config.json')
-        conf = Config(config_path)
-        conf.set('site-url', 'http://example.com/')
-        conf.set('prettify', True)
-        conf.write()
+        self.conf.set('prettify', True)
+        self.conf.write()
 
-        self.site = Site(self.path, config_path)
+        self.site = Site(self.path, self.config_path)
 
         with open(os.path.join(self.path, 'pages', 'test.html'), 'w') as f:
             pass

@@ -6,6 +6,7 @@ import tempfile
 import shutil
 import hashlib
 from contextlib import contextmanager
+from cactus.utils.compat import StaticCompatibilityLayer
 
 
 CONVERSIONS = {"sass": "css", "scss": "css"}
@@ -19,7 +20,7 @@ def calculate_file_checksum(path):
         return hashlib.md5(f.read()).hexdigest()
 
 
-class Static(object):
+class Static(StaticCompatibilityLayer):
     """
     A static resource in the repo
     """
@@ -63,6 +64,15 @@ class Static(object):
         # Path where the file should be referenced in built files
         self.final_url = "/{0}".format(self.build_path)
 
+
+    @property
+    def full_source_path(self):
+        return os.path.join(self.site.path, self.src_dir, self.src_filename)
+
+    @property
+    def full_build_path(self):
+        return os.path.join(self.site.build_path, self.build_path)
+
     def pre_process(self):
         """
         Does file pre-processing if required
@@ -70,7 +80,7 @@ class Static(object):
         self.pre_dir = tempfile.mkdtemp()
         pre_path = os.path.join(self.pre_dir, 'file')
 
-        shutil.copy(os.path.join(self.site.path, self.src_dir, self.src_filename), pre_path)
+        shutil.copy(self.full_source_path, pre_path)
 
         # Pre-process
         logging.info('Pre-processing: %s' % self.src_name)
@@ -128,14 +138,14 @@ class Static(object):
     def build(self):
         logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
-        output_path = os.path.join(self.site.build_path, self.build_path)
+
 
         try:
-            os.makedirs(os.path.dirname(output_path))
+            os.makedirs(os.path.dirname(self.full_build_path))
         except OSError:
             pass
 
-        copy = lambda: shutil.copy(self._preprocessing_path, output_path)
+        copy = lambda: shutil.copy(self._preprocessing_path, self.full_build_path)
 
         copy()
 

@@ -13,6 +13,7 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config import Config
+from cactus.utils.compat import SiteCompatibilityLayer
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
 from cactus.utils.helpers import multiMap, memoize
@@ -28,7 +29,7 @@ from cactus.server import Server, RequestHandler
 from cactus.browser import browserReload, browserReloadCSS
 
 
-class Site(object):
+class Site(SiteCompatibilityLayer):
     _path = None
 
     def __init__(self, path, config_path, variables=None, optimize=False):
@@ -71,7 +72,7 @@ class Site(object):
 
         self.build_path = os.path.join(path, '.build')
         self.template_path = os.path.join(path, 'templates')
-        self.pages_path = os.path.join(path, 'pages')
+        self.page_path = os.path.join(path, 'pages')
         self.plugin_path = os.path.join(path, 'plugins')
         self.static_path = os.path.join(path, 'static')
         self.script_path = os.path.join(os.getcwd(), __file__)
@@ -82,7 +83,7 @@ class Site(object):
         to look for included templates.
         """
         django.conf.settings.configure(
-            TEMPLATE_DIRS=[self.template_path, self.pages_path],
+            TEMPLATE_DIRS=[self.template_path, self.page_path],
             INSTALLED_APPS=['django.contrib.markup']
         )
 
@@ -193,7 +194,7 @@ class Site(object):
         """
         List of pages.
         """
-        paths = fileList(self.pages_path, relative=True)
+        paths = fileList(self.page_path, relative=True)
         paths = filter(lambda x: not x.endswith("~"), paths)
         return [Page(self, p) for p in paths]
 

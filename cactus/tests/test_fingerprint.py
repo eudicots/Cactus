@@ -1,11 +1,10 @@
 #coding:utf-8
 import os
 from cactus import Site
-from cactus.config import Config
-from cactus.tests import BaseTest
+from cactus.tests import SiteTest
 
 
-class TestFingerprinting(BaseTest):
+class TestFingerprinting(SiteTest):
     def initialize(self, fingerprint_extensions=None):
         """
         Called outside, because we want to modify the config first
@@ -13,13 +12,10 @@ class TestFingerprinting(BaseTest):
         if fingerprint_extensions is None:
             fingerprint_extensions = []
 
-        config_path = os.path.join(self.path, 'config.json')
-        conf = Config(config_path)
-        conf.set('site-url', 'http://example.com/')
-        conf.set('fingerprint', fingerprint_extensions)
-        conf.write()
+        self.conf.set('fingerprint', fingerprint_extensions)
+        self.conf.write()
 
-        self.site = Site(self.path, config_path)
+        self.site = Site(self.path, self.config_path)
 
         self.site.build()
 

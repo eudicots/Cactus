@@ -2,8 +2,7 @@ import os
 import codecs
 
 from cactus.site import Site
-from cactus.config import Config
-from cactus.tests import BaseTest
+from cactus.tests import SiteTest
 from cactus.utils.filesystem import fileList
 
 
@@ -24,24 +23,11 @@ def mockFile(name):
     return readFile(os.path.join('cactus', 'tests', 'data', name))
 
 
-class TestBootstrap(BaseTest):
-    def testBootstrap(self):
-        self.assertEqual(
-            fileList(self.path, relative=True),
-            fileList("cactus/skeleton", relative=True),
-        )
-
-
-class TestSite(BaseTest):
+class TestSite(SiteTest):
     def setUp(self):
         super(TestSite, self).setUp()
 
-        config_path = os.path.join(self.path, 'config.json')
-        conf = Config(config_path)
-        conf.set('site-url', 'http://example.com/')
-        conf.write()
-
-        self.site = Site(self.path, config_path, variables = ['a=b', 'c'])
+        self.site = Site(self.path, self.config_path, variables=['a=b', 'c'])
 
     def testBuild(self):
         """
