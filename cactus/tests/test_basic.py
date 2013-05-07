@@ -28,7 +28,7 @@ class TestBootstrap(BaseTest):
     def testBootstrap(self):
         self.assertEqual(
             fileList(self.path, relative=True),
-            fileList("skeleton", relative=True),
+            fileList("cactus/skeleton", relative=True),
         )
 
 

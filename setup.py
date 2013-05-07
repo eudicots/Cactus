@@ -8,6 +8,8 @@ from setuptools import setup
 
 
 VERSION = "2.5.0"
+SKELETON_FOLDERS = ['pages', 'plugins', 'static/css', 'static/images', 'static/js', 'templates']
+SKELETON_GLOB = ['skeleton/{0}/*'.format(folder) for folder in SKELETON_FOLDERS]
 
 if "uninstall" in sys.argv:
 
@@ -49,29 +51,32 @@ if "install" in sys.argv or "bdist_egg" in sys.argv:
         sys.exit()
 
 setup(
-    name = 'Cactus',
-    version = VERSION,
-    description = "Static site generation and deployment.",
-    long_description = open('readme.md').read(),
-    url = 'http://github.com/koenbok/Cactus',
-    download_url = 'https://github.com/koenbok/Cactus/tarball/v%s#egg=Cactus-%s' % (VERSION, VERSION),
-    author = 'Koen Bok',
-    author_email = 'koen@madebysofa.com',
-    license = 'BSD',
-    packages = ['cactus'],
-    entry_points = {
+    name='Cactus',
+    version=VERSION,
+    description="Static site generation and deployment.",
+    long_description=open('readme.md').read(),
+    url='http://github.com/koenbok/Cactus',
+    download_url='https://github.com/koenbok/Cactus/tarball/v%s#egg=Cactus-%s' % (VERSION, VERSION),
+    author='Koen Bok',
+    author_email='koen@madebysofa.com',
+    license='BSD',
+    packages=['cactus'],
+    package_data={'cactus': SKELETON_GLOB, },
+    exclude_package_data={'cactus': SKELETON_FOLDERS},
+
+    entry_points={
         'console_scripts': [
             'cactus = cactus.cli:main',
         ],
     },
-    install_requires = [
+    install_requires=[
         'Django',
         'boto>=2.4.1',
         'markdown',
         'argparse'
     ],
-    zip_safe = False,
-    tests_require = ['nose'],
-    test_suite = 'nose.collector',
-    classifiers = [],
+    zip_safe=False,
+    tests_require=['nose'],
+    test_suite='nose.collector',
+    classifiers=[],
 )
