@@ -4,7 +4,6 @@ import shutil
 import logging
 import webbrowser
 import getpass
-import imp
 import traceback
 import socket
 
@@ -13,6 +12,7 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config import Config
+from cactus.plugin.manager import PluginManager
 from cactus.utils.compat import SiteCompatibilityLayer
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
@@ -89,6 +89,8 @@ class Site(SiteCompatibilityLayer):
 
         add_to_builtins('cactus.template_tags')
 
+        self.plugin_manager = PluginManager(self.plugin_path)
+
     def verify_path(self):
         """
         Check if this path looks like a Cactus website
@@ -131,13 +133,11 @@ class Site(SiteCompatibilityLayer):
         # Set up django settings
         self.setup()
 
-        # Load the plugin code, because we want fresh plugin code on build
-        # refreshes if we're running the web server with listen.
-        self.loadPlugins()
+        self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
 
-        logging.info('Plugins: %s', ', '.join([p.id for p in self._plugins]))
+        logging.info('Plugins: %s', ', '.join([p.__name__ for p in self.plugin_manager.plugins]))
 
-        self.pluginMethod('preBuild', self)
+        self.plugin_manager.preBuild(self)
 
         # Make sure the build path exists
         if not os.path.exists(self.build_path):
@@ -153,7 +153,7 @@ class Site(SiteCompatibilityLayer):
 
         multiMap(lambda p: p.build(), self.pages())
 
-        self.pluginMethod('postBuild', self)
+        self.plugin_manager.postBuild(self)
 
         for static in self.static():
             shutil.rmtree(static.pre_dir)
@@ -270,7 +270,7 @@ class Site(SiteCompatibilityLayer):
         self.build()
 
         logging.debug('Start preDeploy')
-        self.pluginMethod('preDeploy', self)
+        self.plugin_manager.preDeploy(self)
         logging.debug('End preDeploy')
 
         # Get access information from the config or the user
@@ -345,7 +345,7 @@ class Site(SiteCompatibilityLayer):
         totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
         changedFiles = [r for r in totalFiles if r['changed']]
 
-        self.pluginMethod('postDeploy', self)
+        self.plugin_manager.postDeploy(self)
 
         # Display done message and some statistics
         logging.info('\nDone\n')
@@ -362,53 +362,3 @@ class Site(SiteCompatibilityLayer):
         List of build files.
         """
         return [File(self, p) for p in fileList(self.build_path, relative=True)]
-
-    def loadPlugins(self, force=False):
-        """
-        Load plugins from the plugins directory and import the code.
-        """
-
-        plugins = []
-
-        # Figure out the files that can possibly be plugins
-        for pluginPath in fileList(self.plugin_path):
-
-            if not pluginPath.endswith('.py'):
-                continue
-
-            if 'disabled' in pluginPath:
-                continue
-
-            pluginHandle = os.path.splitext(os.path.basename(pluginPath))[0]
-
-            # Try to load the code from a plugin
-            try:
-                plugin = imp.load_source('plugin_%s' % pluginHandle, pluginPath)
-            except Exception, e:
-                logging.info('Error: Could not load plugin at path %s\n%s' % (pluginPath, e))
-                sys.exit()
-
-            # Set an id based on the file name
-            plugin.id = pluginHandle
-
-            plugins.append(plugin)
-
-        # Sort the plugins by their defined order (optional)
-        def getOrder(plugin):
-            if hasattr(plugin, 'ORDER'):
-                return plugin.ORDER
-            return -1
-
-        self._plugins = sorted(plugins, key=getOrder)
-
-    def pluginMethod(self, method, *args, **kwargs):
-        """
-        Run this method on all plugins
-        """
-
-        if not hasattr(self, '_plugins'):
-            self.loadPlugins()
-
-        for plugin in self._plugins:
-            if hasattr(plugin, method):
-                getattr(plugin, method)(*args, **kwargs)
