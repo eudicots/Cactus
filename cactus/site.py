@@ -160,8 +160,7 @@ class Site(object):
 		"""
 		staticBuildPath = os.path.join(self.paths['build'], 'static')
 
-    		os_symlink = getattr(os, "symlink", None)
-    		if callable(os_symlink):
+    		if callable(getattr(os, "symlink", None)):
 			# If there is a folder, replace it with a symlink
 			if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
 				os.remove(staticBuildPath)
