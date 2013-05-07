@@ -60,10 +60,9 @@ setup(
     author='Koen Bok',
     author_email='koen@madebysofa.com',
     license='BSD',
-    packages=['cactus'],
+    packages=['cactus', 'cactus.utils'],
     package_data={'cactus': SKELETON_GLOB, },
     exclude_package_data={'cactus': SKELETON_FOLDERS},
-
     entry_points={
         'console_scripts': [
             'cactus = cactus.cli:main',
