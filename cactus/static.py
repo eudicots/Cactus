@@ -63,11 +63,6 @@ class Static(object):
         # Path where the file should be referenced in built files
         self.final_url = "/{0}".format(self.build_path)
 
-        self.paths = {
-            'full': self._preprocessing_path,
-            'full-build': os.path.join(site.paths['build'], self.build_path),
-        }
-
     def pre_process(self):
         """
         Does file pre-processing if required
@@ -133,12 +128,14 @@ class Static(object):
     def build(self):
         logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
+        output_path = os.path.join(self.site.build_path, self.build_path)
+
         try:
-            os.makedirs(os.path.dirname(self.paths['full-build']))
+            os.makedirs(os.path.dirname(output_path))
         except OSError:
             pass
 
-        copy = lambda: shutil.copy(self.paths['full'], self.paths['full-build'])
+        copy = lambda: shutil.copy(self._preprocessing_path, output_path)
 
         copy()
 

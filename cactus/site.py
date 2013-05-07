@@ -69,14 +69,12 @@ class Site(object):
     def path(self, path):
         self._path = path
 
-        self.paths = {
-            'build': os.path.join(path, '.build'),
-            'pages': os.path.join(path, 'pages'),
-            'templates': os.path.join(path, 'templates'),
-            'plugins': os.path.join(path, 'plugins'),
-            'static': os.path.join(path, 'static'),
-            'script': os.path.join(os.getcwd(), __file__)
-        }
+        self.build_path = os.path.join(path, '.build')
+        self.template_path = os.path.join(path, 'templates')
+        self.pages_path = os.path.join(path, 'pages')
+        self.plugin_path = os.path.join(path, 'plugins')
+        self.static_path = os.path.join(path, 'static')
+        self.script_path = os.path.join(os.getcwd(), __file__)
 
     def setup(self):
         """
@@ -84,8 +82,8 @@ class Site(object):
         to look for included templates.
         """
         django.conf.settings.configure(
-            TEMPLATE_DIRS = [self.paths['templates'], self.paths['pages']],
-            INSTALLED_APPS = ['django.contrib.markup']
+            TEMPLATE_DIRS=[self.template_path, self.pages_path],
+            INSTALLED_APPS=['django.contrib.markup']
         )
 
         add_to_builtins('cactus.template_tags')
@@ -121,8 +119,8 @@ class Site(object):
         """
         Remove all build files.
         """
-        if os.path.isdir(self.paths['build']):
-            shutil.rmtree(self.paths['build'])
+        if os.path.isdir(self.build_path):
+            shutil.rmtree(self.build_path)
 
     def build(self):
         """
@@ -141,8 +139,8 @@ class Site(object):
         self.pluginMethod('preBuild', self)
 
         # Make sure the build path exists
-        if not os.path.exists(self.paths['build']):
-            os.mkdir(self.paths['build'])
+        if not os.path.exists(self.build_path):
+            os.mkdir(self.build_path)
 
         # Copy the static files
         self.buildStatic()
@@ -161,7 +159,7 @@ class Site(object):
 
     @memoize
     def static(self):
-        paths = fileList(self.paths['static'], relative=True)
+        paths = fileList(self.static_path, relative=True)
         return [Static(self, path) for path in paths]
 
     def _get_url(self, src_url, resources):
@@ -195,21 +193,21 @@ class Site(object):
         """
         List of pages.
         """
-        paths = fileList(self.paths['pages'], relative = True)
+        paths = fileList(self.pages_path, relative=True)
         paths = filter(lambda x: not x.endswith("~"), paths)
         return [Page(self, p) for p in paths]
 
-    def serve(self, browser = True, port = 8000):
+    def serve(self, browser=True, port=8000):
         """
         Start a http server and rebuild on changes.
         """
         self.clean()
         self.build()
 
-        logging.info('Running webserver at 0.0.0.0:%s for %s' % (port, self.paths['build']))
+        logging.info('Running webserver at 0.0.0.0:%s for %s' % (port, self.build_path))
         logging.info('Type control-c to exit')
 
-        os.chdir(self.paths['build'])
+        os.chdir(self.build_path)
 
         def rebuild(changes):
             logging.info('*** Rebuilding (%s changed)' % self.path)
@@ -221,21 +219,21 @@ class Site(object):
                 self.build()
             except Exception, e:
                 logging.info('*** Error while building\n%s', e)
-                traceback.print_exc(file = sys.stdout)
+                traceback.print_exc(file=sys.stdout)
 
             # When we have changes, we want to refresh the browser tabs with the updates.
             # Mostly we just refresh the browser except when there are just css changes,
             # then we reload the css in place.
             if len(changes["added"]) == 0 and \
-                            len(changes["deleted"]) == 0 and \
-                            set(map(lambda x: os.path.splitext(x)[1], changes["changed"])) == set([".css"]):
+                    len(changes["deleted"]) == 0 and \
+                    set(map(lambda x: os.path.splitext(x)[1], changes["changed"])) == set([".css"]):
                 browserReloadCSS('http://127.0.0.1:%s' % port)
             else:
                 browserReload('http://127.0.0.1:%s' % port)
 
             self.listener.resume()
 
-        self.listener = Listener(self.path, rebuild, ignore = lambda x: '/.build/' in x)
+        self.listener = Listener(self.path, rebuild, ignore=lambda x: '/.build/' in x)
         self.listener.run()
 
         try:
@@ -276,9 +274,9 @@ class Site(object):
 
         # Get access information from the config or the user
         awsAccessKey = self.config.get('aws-access-key') or \
-                       raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
+            raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
         awsSecretKey = getpassword('aws', awsAccessKey) or \
-                       getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
+            getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
 
         # Try to fetch the buckets with the given credentials
         connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
@@ -299,14 +297,14 @@ class Site(object):
         setpassword('aws', awsAccessKey, awsSecretKey)
 
         awsBucketName = self.config.get('aws-bucket-name') or \
-                        raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
+            raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
 
         if awsBucketName not in [b.name for b in buckets]:
             if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
 
                 logging.debug('Start create_bucket')
                 try:
-                    awsBucket = connection.create_bucket(awsBucketName, policy = 'public-read')
+                    awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
                 except boto.exception.S3CreateError:
                     logging.info(
                         'Bucket with name %s already is used by someone else, '
@@ -362,9 +360,9 @@ class Site(object):
         """
         List of build files.
         """
-        return [File(self, p) for p in fileList(self.paths['build'], relative = True)]
+        return [File(self, p) for p in fileList(self.build_path, relative=True)]
 
-    def loadPlugins(self, force = False):
+    def loadPlugins(self, force=False):
         """
         Load plugins from the plugins directory and import the code.
         """
@@ -372,7 +370,7 @@ class Site(object):
         plugins = []
 
         # Figure out the files that can possibly be plugins
-        for pluginPath in fileList(self.paths['plugins']):
+        for pluginPath in fileList(self.plugin_path):
 
             if not pluginPath.endswith('.py'):
                 continue
@@ -400,7 +398,7 @@ class Site(object):
                 return plugin.ORDER
             return -1
 
-        self._plugins = sorted(plugins, key = getOrder)
+        self._plugins = sorted(plugins, key=getOrder)
 
     def pluginMethod(self, method, *args, **kwargs):
         """

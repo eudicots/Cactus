@@ -36,11 +36,6 @@ class Page(object):
             self.final_url = self.link_url
             self.build_path = self.source_path
 
-        self.paths = {
-            'full': os.path.join(self.site.path, 'pages', self.source_path),
-            'full-build': os.path.join(site.paths['build'], self.build_path),
-        }
-
     def is_html(self):
         return urlparse.urlparse(self.source_path).path.endswith('.html')
 
@@ -55,10 +50,8 @@ class Page(object):
         return urlparse.urljoin(self.site.url, self.final_url)
 
     def data(self):
-        f = codecs.open(self.paths['full'], 'r', 'utf-8')
-        data = f.read()
-        f.close()
-        return data
+        with open(os.path.join(self.site.path, 'pages', self.source_path)) as f:
+            return f.read().decode('utf-8')
 
     def context(self, extra=None):
         """
@@ -105,16 +98,16 @@ class Page(object):
 
         data = self.render()
 
+        output_path = os.path.join(self.site.build_path, self.build_path)
+
         # Make sure a folder for the output path exists
         try:
-            os.makedirs(os.path.dirname(self.paths['full-build']))
+            os.makedirs(os.path.dirname(output_path))
         except OSError:
             pass
 
-        # Write the data to the output file
-        f = codecs.open(self.paths['full-build'], 'w', 'utf-8')
-        f.write(data)
-        f.close()
+        with open(output_path, 'w') as f:
+            f.write(data.encode('utf-8'))
 
         # Run all plugins
         self.site.pluginMethod('postBuildPage', self)

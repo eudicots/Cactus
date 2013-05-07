@@ -3,7 +3,7 @@ import logging
 import hashlib
 import socket
 from cactus.utils.file import compressString, fileSize
-from cactus.utils.helpers import CaseInsensitiveDict
+from cactus.utils.helpers import CaseInsensitiveDict, memoize
 from cactus.utils.network import retry
 from cactus.utils.url import getURLHeaders
 import mime
@@ -20,18 +20,11 @@ class File(object):
         self.site = site
         self.path = path
 
-        self.paths = {
-            'full': os.path.join(site.path, '.build', self.path)
-        }
-
+    @memoize
     def data(self):
-        if not hasattr(self, '_data'):
-            f = open(self.paths['full'], 'r')
-            self._data = f.read()
-            f.close()
-        return self._data
+        with open(os.path.join(self.site.path, '.build', self.path)) as f:
+            return f.read()
 
-    # @memoize
     def payload(self):
         """
         The representation of the data that should be uploaded to the

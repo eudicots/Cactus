@@ -20,7 +20,6 @@ class TestFingerprinting(BaseTest):
         conf.write()
 
         self.site = Site(self.path, config_path)
-        self.build_path = self.site.paths['build']
 
         self.site.build()
 
@@ -31,7 +30,7 @@ class TestFingerprinting(BaseTest):
         self.initialize()
         static = '/static/css/style.css'
         self.assertEqual(self.site.get_url_for_static(static), static)
-        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
+        self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
 
     def test_fingerprinting_on(self):
         """
@@ -41,11 +40,11 @@ class TestFingerprinting(BaseTest):
 
         static = '/static/css/style.css'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
-        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
+        self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
 
         static = '/static/js/main.js'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
-        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
+        self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
 
     def test_fingerprinting_selective(self):
         """
@@ -55,8 +54,8 @@ class TestFingerprinting(BaseTest):
 
         static = '/static/css/style.css'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
-        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
+        self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
 
         static = '/static/js/main.js'
         self.assertEqual(self.site.get_url_for_static(static), static)
-        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
+        self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))

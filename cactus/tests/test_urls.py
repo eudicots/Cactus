@@ -16,7 +16,6 @@ class TestPrettyURLS(BaseTest):
         conf.write()
 
         self.site = Site(self.path, config_path)
-        self.build_path = self.site.paths['build']
 
         with open(os.path.join(self.path, 'pages', 'test.html'), 'w') as f:
             pass
@@ -44,15 +43,15 @@ class TestPrettyURLS(BaseTest):
         """
         Check that we rewrite paths for .html files.
         """
-        self.assertFileExists(os.path.join(self.build_path, 'index.html'))
-        self.assertFileExists(os.path.join(self.build_path, 'test', 'index.html'))
-        self.assertFileExists(os.path.join(self.build_path, 'folder', 'index.html'))
-        self.assertFileExists(os.path.join(self.build_path, 'folder', 'page', 'index.html'))
+        self.assertFileExists(os.path.join(self.site.build_path, 'index.html'))
+        self.assertFileExists(os.path.join(self.site.build_path, 'test', 'index.html'))
+        self.assertFileExists(os.path.join(self.site.build_path, 'folder', 'index.html'))
+        self.assertFileExists(os.path.join(self.site.build_path, 'folder', 'page', 'index.html'))
         self.assertRaises(IOError, open, os.path.join(self.path, '.build', 'test.html'))
 
     def test_ignore_non_html(self):
         """
         Check that we don't rewrite paths for .txt files.
         """
-        self.assertFileExists(os.path.join(self.build_path, 'sitemap.xml'))
-        self.assertFileExists(os.path.join(self.build_path, 'robots.txt'))
+        self.assertFileExists(os.path.join(self.site.build_path, 'sitemap.xml'))
+        self.assertFileExists(os.path.join(self.site.build_path, 'robots.txt'))
