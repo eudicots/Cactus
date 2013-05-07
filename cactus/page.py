@@ -90,10 +90,7 @@ class Page(PageCompatibilityLayer):
         page_context, data = self.parse_context(self.data())
         context = self.context(page_context)
 
-        # Run the prebuild plugins, we can't use the standard method here because
-        # plugins can chain-modify the context and data.
-        for plugin in self.site.plugins:
-            context, data = plugin.preBuildPage(self, context, data)
+        context, data = self.site.plugin_manager.preBuildPage(self.site, self, context, data)
 
         return Template(data).render(context)
 
@@ -114,8 +111,7 @@ class Page(PageCompatibilityLayer):
         with open(self.full_build_path, 'w') as f:
             f.write(data.encode('utf-8'))
 
-        # Run all plugins
-        self.site.pluginMethod('postBuildPage', self)
+        self.site.plugin_manager.postBuildPage(self)
 
     def parse_context(self, data, splitChar=':'):
         """

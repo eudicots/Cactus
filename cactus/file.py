@@ -82,9 +82,7 @@ class File(object):
         if self.shouldCompress():
             self.headers['Content-Encoding'] = 'gzip'
 
-        for plugin in self.site._plugins:
-            if hasattr(plugin, 'preDeployFile'):
-                plugin.preDeployFile(self)
+        self.site.plugin_manager.preDeployFile(self)
 
         changed = self.changed()
 

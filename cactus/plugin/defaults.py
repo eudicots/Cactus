@@ -32,7 +32,7 @@ def preDeployFile(file):
 ORDER = -1
 
 
-DEFAULTS = (
+DEFAULTS = [
     'preBuildPage',
     'postBuildPage',
     'preBuild',
@@ -40,5 +40,4 @@ DEFAULTS = (
     'preDeploy',
     'postDeploy',
     'preDeployFile',
-    'ORDER'
-)
+]

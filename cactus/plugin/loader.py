@@ -20,12 +20,12 @@ class PluginLoader(object):
         plugins = []
 
         for plugin_path in fileList(self.plugin_path):
-            if self.is_plugin(plugin_path):
-                plugins.append(self.load_plugin(plugin_path))
+            if self._is_plugin(plugin_path):
+                plugins.append(self._load_plugin(plugin_path))
 
         return sorted(plugins, key=lambda plugin: plugin.ORDER)
 
-    def is_plugin(self, plugin_path):
+    def _is_plugin(self, plugin_path):
         """
         Whether this path looks like a plugin.
         """
@@ -37,7 +37,7 @@ class PluginLoader(object):
 
         return True
 
-    def load_plugin(self, plugin_path):
+    def _load_plugin(self, plugin_path):
         """
         Load plugin_path as a plugin
         """
@@ -49,14 +49,14 @@ class PluginLoader(object):
             logging.info('Error: Could not load plugin at path %s\n%s' % (plugin_path, e))
             sys.exit()
 
-        self.load_defaults(plugin_module)
+        self._load_defaults(plugin_module)
 
         return plugin_module
 
-    def load_defaults(self, plugin_module):
+    def _load_defaults(self, plugin_module):
         """
         Load default methods and attributes on the plugin module
         """
-        for default_attr in defaults.DEFAULTS:
-            if not hasattr(plugin_module, default_attr):
-                setattr(plugin_module, default_attr, getattr(defaults, default_attr))
+        for attr in defaults.DEFAULTS + ['ORDER']:
+            if not hasattr(plugin_module, attr):
+                setattr(plugin_module, attr, getattr(defaults, attr))

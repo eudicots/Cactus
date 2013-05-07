@@ -4,7 +4,6 @@ import shutil
 import logging
 import webbrowser
 import getpass
-import imp
 import traceback
 import socket
 
@@ -13,7 +12,7 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config import Config
-from cactus.plugin.loader import PluginLoader
+from cactus.plugin.manager import PluginManager
 from cactus.utils.compat import SiteCompatibilityLayer
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
@@ -90,6 +89,8 @@ class Site(SiteCompatibilityLayer):
 
         add_to_builtins('cactus.template_tags')
 
+        self.plugin_manager = PluginManager(self.plugin_path)
+
     def verify_path(self):
         """
         Check if this path looks like a Cactus website
@@ -132,9 +133,11 @@ class Site(SiteCompatibilityLayer):
         # Set up django settings
         self.setup()
 
-        logging.info('Plugins: %s', ', '.join([p.__name__ for p in self.plugins]))
+        self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
 
-        self.pluginMethod('preBuild', self)
+        logging.info('Plugins: %s', ', '.join([p.__name__ for p in self.plugin_manager.plugins]))
+
+        self.plugin_manager.preBuild(self)
 
         # Make sure the build path exists
         if not os.path.exists(self.build_path):
@@ -150,7 +153,7 @@ class Site(SiteCompatibilityLayer):
 
         multiMap(lambda p: p.build(), self.pages())
 
-        self.pluginMethod('postBuild', self)
+        self.plugin_manager.postBuild(self)
 
         for static in self.static():
             shutil.rmtree(static.pre_dir)
@@ -267,7 +270,7 @@ class Site(SiteCompatibilityLayer):
         self.build()
 
         logging.debug('Start preDeploy')
-        self.pluginMethod('preDeploy', self)
+        self.plugin_manager.preDeploy(self)
         logging.debug('End preDeploy')
 
         # Get access information from the config or the user
@@ -342,7 +345,7 @@ class Site(SiteCompatibilityLayer):
         totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
         changedFiles = [r for r in totalFiles if r['changed']]
 
-        self.pluginMethod('postDeploy', self)
+        self.plugin_manager.postDeploy(self)
 
         # Display done message and some statistics
         logging.info('\nDone\n')
@@ -359,15 +362,3 @@ class Site(SiteCompatibilityLayer):
         List of build files.
         """
         return [File(self, p) for p in fileList(self.build_path, relative=True)]
-
-    @property
-    def plugins(self):
-        loader = PluginLoader(self.plugin_path)
-        return loader.load()
-
-    def pluginMethod(self, method, *args, **kwargs):
-        """
-        Run this method on all plugins
-        """
-        for plugin in self.plugins:
-            getattr(plugin, method)(*args, **kwargs)
