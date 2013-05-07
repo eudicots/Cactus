@@ -10,11 +10,12 @@ class TestPluginLoader(SiteTest):
     def setUp(self):
         super(TestPluginLoader, self).setUp()
         self.site = Site(self.path, self.config_path)
+
         self.site.setup()  # Load the plugin manager
+        self.clear_django_settings()  # We're going to be .building afterwards.
 
         shutil.rmtree(self.site.plugin_path)
         os.makedirs(self.site.plugin_path)
-
 
     def _load_test_plugin(self, plugin, to_filename):
         src_path = os.path.join('cactus', 'tests', 'data', 'plugins', plugin)
@@ -36,8 +37,35 @@ class TestPluginLoader(SiteTest):
         """
         Check that defaults get initialized
         """
-        self._load_test_plugin('empty.py', 'test.py')
+        self._load_test_plugin('empty.py', 'empty.py')
         plugin = self.site.plugin_manager.plugins[0]
-        self.assertEqual(-1, plugin.ORDER)
         self.assert_(hasattr(plugin, 'preBuild'))
         self.assert_(hasattr(plugin, 'postBuild'))
+        self.assertEqual(-1, plugin.ORDER)
+
+    def test_call(self):
+        """
+        Check that plugins get called
+        """
+        self._load_test_plugin('test.py', 'call.py')
+        plugin = self.site.plugin_manager.plugins[0]
+
+        self.assertEqual('plugin_call', plugin.__name__)  # Just to check we're looking at the right one.
+
+        self.site.build()
+
+        # preBuild
+        self.assertEqual(1, len(plugin.preBuild.calls))
+        self.assertEqual((self.site,), plugin.preBuild.calls[0]['args'])
+
+        # preBuildPage
+        self.assertEqual(len(self.site.pages()), len(plugin.preBuildPage.calls))
+        for call in plugin.preBuildPage.calls:
+            self.assertIn(len(call['args']), (3, 4))
+
+        # postBuildPage
+        self.assertEqual(len(self.site.pages()), len(plugin.postBuildPage.calls))
+
+        #postBuild
+        self.assertEqual(1, len(plugin.postBuild.calls))
+        self.assertEqual((self.site,), plugin.postBuild.calls[0]['args'])
