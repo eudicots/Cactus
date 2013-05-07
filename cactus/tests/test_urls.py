@@ -32,6 +32,9 @@ class TestPrettyURLS(BaseTest):
         self.site.build()
 
     def test_get_path(self):
+        """
+        Test that URL rewriting makes pretty links.
+        """
         self.assertEqual(self.site.get_url_for_page('/index.html'), '/')
         self.assertEqual(self.site.get_url_for_page('/test.html'), '/test/')
         self.assertEqual(self.site.get_url_for_page('/folder/index.html'), '/folder/')
@@ -39,7 +42,7 @@ class TestPrettyURLS(BaseTest):
 
     def test_build_page(self):
         """
-        Check that we rewrite paths for .html files
+        Check that we rewrite paths for .html files.
         """
         self.assertFileExists(os.path.join(self.build_path, 'index.html'))
         self.assertFileExists(os.path.join(self.build_path, 'test', 'index.html'))
@@ -49,7 +52,7 @@ class TestPrettyURLS(BaseTest):
 
     def test_ignore_non_html(self):
         """
-        Check that we don't rewrite paths for .txt files
+        Check that we don't rewrite paths for .txt files.
         """
         self.assertFileExists(os.path.join(self.build_path, 'sitemap.xml'))
         self.assertFileExists(os.path.join(self.build_path, 'robots.txt'))

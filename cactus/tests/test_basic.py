@@ -27,8 +27,8 @@ def mockFile(name):
 class TestBootstrap(BaseTest):
     def testBootstrap(self):
         self.assertEqual(
-            fileList(self.path, relative = True),
-            fileList("skeleton", relative = True),
+            fileList(self.path, relative=True),
+            fileList("skeleton", relative=True),
         )
 
 
@@ -44,6 +44,9 @@ class TestSite(BaseTest):
         self.site = Site(self.path, config_path, variables = ['a=b', 'c'])
 
     def testBuild(self):
+        """
+        Test that we build the proper files.
+        """
         self.site.build()
 
         # Make sure we build to .build and not build
@@ -55,12 +58,14 @@ class TestSite(BaseTest):
             'robots.txt',
             'sitemap.xml',
             self.site.get_url_for_static('/static/css/style.css')[1:],  # Strip the initial /
+            self.site.get_url_for_static('/static/images/favicon.ico')[1:],  # Strip the initial /
             self.site.get_url_for_static('/static/js/main.js')[1:],  # Strip the initial /
         ])
 
     def testRenderPage(self):
-
-        # Create a new page called test.html and see if it get rendered
+        """
+        Test that pages get rendered.
+        """
 
         writeFile(
             os.path.join(self.path, 'pages', 'test.html'),
@@ -75,6 +80,9 @@ class TestSite(BaseTest):
         )
 
     def testSiteContext(self):
+        """
+        Test that site context is provided to the pages.
+        """
         self.assertEqual(
             [page.source_path for page in self.site.context()['CACTUS']['pages']],
             ['error.html', 'index.html']
@@ -84,17 +92,14 @@ class TestSite(BaseTest):
         self.assertEqual(self.site.context()['c'], True)
 
     def testPageContext(self):
+        """
+        Test that page context is parsed and uses in the pages.
+        """
 
         writeFile(
             os.path.join(self.path, 'pages', 'koenpage.html'),
             mockFile('koenpage-in.html')
         )
-
-        for page in self.site.context()['CACTUS']['pages']:
-            if page.source_path == 'koenpage.html':
-                context = page.context()
-                self.assertEqual(context['name'], 'Koen Bok')
-                self.assertEqual(context['age'], '29')
 
         self.site.build()
 
@@ -103,7 +108,24 @@ class TestSite(BaseTest):
             mockFile('koenpage-out.html')
         )
 
+    def test_html_only_context(self):
+        """
+        Test that we only parse context on HTML pages.
+        """
+        robots_txt = 'Disallow:/page1\nDisallow:/page2'
+
+        with open(os.path.join(self.site.path, 'pages', 'robots.txt'), 'w') as f:
+            f.write(robots_txt)
+
+        self.site.build()
+
+        with open(os.path.join(self.site.paths['build'], 'robots.txt')) as f:
+            self.assertEquals(robots_txt, f.read())
+
     def testStaticLoader(self):
+        """
+        Test that the static URL builde and template tag work.
+        """
         static = '/static/css/style.css'
         page = "{%% static '%s' %%}" % static
 
@@ -120,6 +142,9 @@ class TestSite(BaseTest):
         )
 
     def test_current_page(self):
+        """
+        Test that the if_current_page tag works.
+        """
         page = 'page1.html'
         content = "{%% if_current_page '/%s' %%}" % page
 

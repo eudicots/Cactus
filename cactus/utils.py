@@ -144,39 +144,6 @@ def fileSize(num):
         num /= 1024.0
 
 
-def parseValues(data, splitChar = ':'):
-    """
-    Values like
-
-    name: koen
-    age: 29
-
-    will be converted in a dict: {'name': 'koen', 'age': '29'}
-    """
-
-    values = {}
-    lines = data.splitlines()
-
-    if not lines:
-        return {}, ''
-
-    for i in xrange(len(lines)):
-
-        line = lines[i]
-
-        if not line:
-            continue
-
-        elif splitChar in line:
-            line = line.split(splitChar)
-            values[line[0].strip()] = (splitChar.join(line[1:])).strip()
-
-        else:
-            break
-
-    return values, '\n'.join(lines[i:])
-
-
 def retry(ExceptionToCheck, tries = 4, delay = 3, backoff = 2):
     def deco_retry(f):
         def f_retry(*args, **kwargs):

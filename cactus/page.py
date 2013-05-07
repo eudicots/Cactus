@@ -6,8 +6,6 @@ import urlparse
 
 from django.template import Template, Context
 
-from cactus.utils import parseValues
-
 
 class Page(object):
     def __init__(self, site, source_path):
@@ -62,7 +60,7 @@ class Page(object):
         f.close()
         return data
 
-    def context(self):
+    def context(self, extra=None):
         """
         The page context.
         """
@@ -73,27 +71,23 @@ class Page(object):
         # enough, we'd need to look at copy.deepcopy
         context = copy.copy(self.site.context())
 
-        # Relative url context
-        prefix = '/'.join(['..' for i in xrange(len(self.source_path.split('/')) - 1)]) or '.'
-
         context.update({
-            'STATIC_URL': os.path.join(prefix, 'static'),
-            'ROOT_URL': prefix,
             '__CACTUS_CURRENT_PAGE__': self,
         })
 
-        # Page context (parse header)
-        context.update(parseValues(self.data())[0])
+        if extra is None:
+            extra = {}
+        context.update(extra)
 
         return Context(context)
 
     def render(self):
         """
-        Takes the template data with contect and renders it to the final output file.
+        Takes the template data with context and renders it to the final output file.
         """
 
-        data = parseValues(self.data())[1]
-        context = self.context()
+        page_context, data = self.parse_context(self.data())
+        context = self.context(page_context)
 
         # Run the prebuild plugins, we can't use the standard method here because
         # plugins can chain-modify the context and data.
@@ -124,3 +118,38 @@ class Page(object):
 
         # Run all plugins
         self.site.pluginMethod('postBuildPage', self)
+
+    def parse_context(self, data, splitChar=':'):
+        """
+        Values like
+
+        name: koen
+        age: 29
+
+        will be converted in a dict: {'name': 'koen', 'age': '29'}
+        """
+
+        if not self.is_html():
+            return {}, data
+
+        values = {}
+        lines = data.splitlines()
+        if not lines:
+            return {}, ''
+
+        for i, line in enumerate(lines):
+
+            if not line:
+                continue
+
+            elif splitChar in line:
+                line = line.split(splitChar)
+                values[line[0].strip()] = (splitChar.join(line[1:])).strip()
+
+            else:
+                break
+
+        return values, '\n'.join(lines[i:])
+
+    def __repr__(self):
+        return '<Page: {0}>'.format(self.source_path)

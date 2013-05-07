@@ -6,7 +6,7 @@ from cactus.variables import parse_site_variable
 
 class TestContext(unittest.TestCase):
     """
-    Test that the context passed is correct.
+    Test that context variable parsing works.
     """
     def test_variables(self):
         self.assertEqual(('a', 'b'), parse_site_variable('a=b'))
