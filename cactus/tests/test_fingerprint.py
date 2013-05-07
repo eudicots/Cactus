@@ -25,20 +25,38 @@ class TestFingerprinting(BaseTest):
         self.site.build()
 
     def test_fingerprinting_off(self):
+        """
+        Test that fingerprinting can be disabled.
+        """
         self.initialize()
         static = '/static/css/style.css'
         self.assertEqual(self.site.get_url_for_static(static), static)
+        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
 
     def test_fingerprinting_on(self):
+        """
+        Test that fingerprinting provides existing URLs.
+        """
         self.initialize(['css', 'js'])
+
         static = '/static/css/style.css'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
+        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
+
         static = '/static/js/main.js'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
+        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
 
     def test_fingerprinting_selective(self):
+        """
+        Test that fingerprinting can be restricted to certain filetypes.
+        """
         self.initialize(['css'])
+
         static = '/static/css/style.css'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
+        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))
+
         static = '/static/js/main.js'
         self.assertEqual(self.site.get_url_for_static(static), static)
+        self.assertFileExists(os.path.join(self.build_path, self.site.get_url_for_static(static)[1:]))

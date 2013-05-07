@@ -157,7 +157,7 @@ class Site(object):
 
     @memoize
     def static(self):
-        paths = fileList(self.paths['static'], relative = True)
+        paths = fileList(self.paths['static'], relative=True)
         return [Static(self, path) for path in paths]
 
     def _get_url(self, src_url, resources):
