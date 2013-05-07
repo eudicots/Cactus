@@ -6,7 +6,7 @@ import os
 
 import django.conf
 
-from cactus.utils import bootstrap
+from cactus.utils.packaging import bootstrap
 
 
 class BaseTest(unittest.TestCase):

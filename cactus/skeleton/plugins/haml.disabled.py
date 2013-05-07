@@ -7,8 +7,8 @@ import codecs
 #     * .haml files will compiled to .html files
 
 
-from cactus.utils import fileList
 from hamlpy.hamlpy import Compiler
+from cactus.utils.filesystem import fileList
 
 CLEANUP = []
 

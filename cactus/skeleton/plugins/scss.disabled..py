@@ -4,7 +4,7 @@ import pipes
 import shutil
 import subprocess
 
-from cactus.utils import fileList
+from cactus.utils.filesystem import fileList
 
 """
 This plugin uses pyScss to translate sass files to css

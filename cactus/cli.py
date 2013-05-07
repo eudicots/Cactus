@@ -7,7 +7,7 @@ import time
 import argparse
 
 import cactus
-from cactus.utils import bootstrap
+from cactus.utils.packaging import bootstrap
 
 
 def create(path):

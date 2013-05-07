@@ -1,9 +1,8 @@
 import os
 import time
 import thread
-
-from .utils import fileList
-from .utils import retry
+from cactus.utils.filesystem import fileList
+from cactus.utils.network import retry
 
 
 class Listener(object):

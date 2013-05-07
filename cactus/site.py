@@ -13,8 +13,12 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config import Config
-from cactus.utils import (memoize, fileList, is_external, internetWorking,
-                          getpassword, fileSize, multiMap, setpassword)
+from cactus.utils.file import fileSize
+from cactus.utils.filesystem import fileList
+from cactus.utils.helpers import multiMap, memoize
+from cactus.utils.network import internetWorking
+from cactus.utils.password import getpassword, setpassword
+from cactus.utils.url import is_external
 from cactus.variables import parse_site_variable
 from cactus.page import Page
 from cactus.static import Static

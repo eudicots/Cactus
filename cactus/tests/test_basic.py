@@ -3,8 +3,8 @@ import codecs
 
 from cactus.site import Site
 from cactus.config import Config
-from cactus.utils import fileList
 from cactus.tests import BaseTest
+from cactus.utils.filesystem import fileList
 
 
 def readFile(path):

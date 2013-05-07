@@ -2,10 +2,12 @@ import os
 import logging
 import hashlib
 import socket
+from cactus.utils.file import compressString, fileSize
+from cactus.utils.helpers import CaseInsensitiveDict
+from cactus.utils.network import retry
+from cactus.utils.url import getURLHeaders
 import mime
 import copy
-
-from cactus.utils import compressString, getURLHeaders, fileSize, retry, CaseInsensitiveDict
 
 
 class File(object):
