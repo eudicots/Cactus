@@ -32,17 +32,17 @@ from cactus.browser import browserReload, browserReloadCSS
 class Site(SiteCompatibilityLayer):
     _path = None
 
-    def __init__(self, path, config_path, variables=None, optimize=False):
+    def __init__(self, path, config_path, variables=None):
         self.config = Config(config_path)
         self.verify_config()
 
         # Some specific config files
         self.prettify_urls = self.config.get('prettify', False)
         self.fingerprint_extensions = self.config.get('fingerprint', [])
+        self.optimize_extensions = self.config.get('optimize', [])
 
         self.path = path
         self.verify_path()
-        self.optimize = optimize
 
         if variables is None:
             self.variables = {}

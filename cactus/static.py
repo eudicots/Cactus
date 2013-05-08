@@ -110,7 +110,7 @@ class Static(StaticCompatibilityLayer):
 
         with alt_file(pre_path) as tmp_file:
 
-            if self.site.optimize:
+            if self.final_extension in self.site.optimize_extensions:
                 try:
                     if self.final_extension == 'js':
                         logging.info('Compiling (closure) {0}'.format(self))
