@@ -1,4 +1,5 @@
 import json
+import logging
 
 
 class Config(object):
@@ -16,6 +17,7 @@ class Config(object):
         try:
             self._data = json.load(open(self.path, 'r'))
         except Exception:
+            logging.warning('Unable to load configuration at {0}'.format(self.path))
             self._data = {}
 
     def write(self):
