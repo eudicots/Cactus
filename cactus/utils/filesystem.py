@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 import os
+import shutil
 
 
 def fileList(paths, relative=False, folders=False):
@@ -30,3 +32,14 @@ def fileList(paths, relative=False, folders=False):
             files = map(lambda x: x[len(path) + 1:], files)
 
     return files
+
+
+@contextmanager
+def alt_file(current_file):
+    _alt_file = current_file + '-alt'
+    yield _alt_file
+    try:
+        shutil.move(_alt_file, current_file)
+    except IOError:
+        # We didn't use an alt file.
+        pass

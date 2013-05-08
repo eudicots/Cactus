@@ -1,15 +1,14 @@
 #coding:utf-8
 import os
 import logging
-import subprocess
 import tempfile
 import shutil
 import hashlib
-from contextlib import contextmanager
+
 from cactus.utils.compat import StaticCompatibilityLayer
-
-
-CONVERSIONS = {"sass": "css", "scss": "css"}
+from cactus.utils.filesystem import alt_file
+from cactus.static import optimizers
+from cactus.static import processors
 
 
 def calculate_file_checksum(path):
@@ -38,9 +37,6 @@ class Static(StaticCompatibilityLayer):
         # Useless we'll crash before.
         # TODO
         assert self.src_extension, "No extension for file?! {0}".format(self.src_name)
-
-        # Where the file should be referenced in source files
-        self.final_extension = CONVERSIONS.get(self.src_extension, self.src_extension)
 
         # Do some pre-processing (e.g. optimizations):
         # must be done before fingerprinting
@@ -85,60 +81,29 @@ class Static(StaticCompatibilityLayer):
         # Pre-process
         logging.info('Pre-processing: %s' % self.src_name)
 
-        @contextmanager
-        def alt_file(current_file):
-            _alt_file = current_file + '-alt'
-            yield _alt_file
-            try:
-                shutil.move(_alt_file, current_file)
-            except IOError:
-                # We didn't use an alt file.
-                pass
-
         with alt_file(pre_path) as tmp_file:
-            try:
-                if self.src_extension == 'sass':
-                    logging.info('Processing (sass) {0}'.format(self))
-                    subprocess.call(['sass', pre_path, tmp_file])
-                if self.src_extension == 'scss':
-                    logging.info('Processing (scss) {0}'.format(self))
-                    subprocess.call(['sass', '--scss', pre_path, tmp_file])
-            except OSError:
-                raise Exception('SASS file found, but sass not installed.')
+            for ProcessorClass in processors.processors:
+                processor = ProcessorClass(pre_path, tmp_file)
+                if self.src_extension in processor.supported_extensions:
+                    if processor.run():
+                        self.final_extension = processor.output_extension
+                        break  # Do not run several processors (Create a new processor for this!)
+            else:
+                self.final_extension = self.src_extension
 
         # Optimize
-
-        with alt_file(pre_path) as tmp_file:
-
-            if self.final_extension in self.site.optimize_extensions:
-                try:
-                    if self.final_extension == 'js':
-                        logging.info('Compiling (closure) {0}'.format(self))
-                        subprocess.call([
-                            'closure-compiler',
-                            '--js', pre_path,
-                            '--js_output_file', tmp_file,
-                            '--compilation_level', 'SIMPLE_OPTIMIZATIONS'
-                        ])
-
-                    elif self.final_extension == 'css':
-                        logging.info('Minifying (yui) {0}'.format(self))
-                        subprocess.call([
-                            'yuicompressor',
-                            '--type', 'css',
-                            '-o', tmp_file,
-                            pre_path,
-                        ])
-
-                except OSError:
-                    logging.warning('Aborted optimization: missing external.')
+        if self.final_extension in self.site.optimize_extensions:
+            with alt_file(pre_path) as tmp_file:
+                for OptimizerClass in optimizers.optimizers:
+                    optimizer = OptimizerClass(pre_path, tmp_file)
+                    if self.final_extension in optimizer.supported_extensions:
+                        if optimizer.run():
+                            break  # Do not run several optimizers (Create a new optimize for this!)
 
         return pre_path
 
     def build(self):
         logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
-
-
 
         try:
             os.makedirs(os.path.dirname(self.full_build_path))
