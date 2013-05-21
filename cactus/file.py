@@ -19,6 +19,7 @@ class File(object):
     def __init__(self, site, path):
         self.site = site
         self.path = path
+        self.force_refresh = False
 
     def cache_duration(self):
         if self.site.cache_duration is not None:
@@ -68,12 +69,18 @@ class File(object):
 
         return True
 
-
     def changed(self):
+        """
+        Check whether a plugin set the force refresh file, otherwise,
+        check headers.
+        """
+        if self.force_refresh:
+            return True
+
         remote_headers = {k: v.strip('"') for k, v in getURLHeaders(self.remoteURL()).items()}
         local_headers = copy.copy(self.headers)  # Will do a copy.
         local_headers['etag'] = self.checksum()
-        for k,v in local_headers.items():  # Don't check AWS' own headers.
+        for k, v in local_headers.items():  # Don't check AWS' own headers.
             if remote_headers.get(k) != v:
                 return True
         return False
