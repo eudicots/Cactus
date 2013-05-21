@@ -11,7 +11,7 @@ import copy
 
 
 class File(object):
-    CACHE_EXPIRATION = 60 * 60 * 24 * 7  # One week
+    DEFAULT_CACHE_EXPIRATION = 60 * 60 * 24 * 7  # One week
     COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml']
     COMPRESS_MIN_SIZE = 1024  # 1kb
     PROGRESS_MIN_SIZE = (1024 * 1024) / 2  # 521 kb
@@ -19,6 +19,11 @@ class File(object):
     def __init__(self, site, path):
         self.site = site
         self.path = path
+
+    def cache_duration(self):
+        if self.site.cache_duration is not None:
+            return self.site.cache_duration
+        return self.DEFAULT_CACHE_EXPIRATION
 
     @memoize
     def data(self):
@@ -73,11 +78,11 @@ class File(object):
                 return True
         return False
 
-    @retry(socket.error, tries = 5, delay = 3, backoff = 2)
+    @retry(socket.error, tries=5, delay=3, backoff=2)
     def upload(self, bucket):
         self.lastUpload = 0
 
-        self.headers = CaseInsensitiveDict((('Cache-Control', 'max-age=%s' % self.CACHE_EXPIRATION),))
+        self.headers = CaseInsensitiveDict((('Cache-Control', 'max-age=%s' % self.cache_duration()),))
 
         if self.shouldCompress():
             self.headers['Content-Encoding'] = 'gzip'
@@ -108,9 +113,9 @@ class File(object):
 
             # Upload the data
             key.set_contents_from_string(self.payload(), self.headers,
-                                         policy = 'public-read',
-                                         cb = progressCallback,
-                                         num_cb = progressCallbackCount)
+                                         policy='public-read',
+                                         cb=progressCallback,
+                                         num_cb=progressCallbackCount)
 
         op1 = '+' if changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.shouldCompress() else ''

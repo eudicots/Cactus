@@ -40,6 +40,7 @@ class Site(SiteCompatibilityLayer):
         self.prettify_urls = self.config.get('prettify', False)
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.optimize_extensions = self.config.get('optimize', [])
+        self.cache_duration = self.config.get('cache-duration', None)
 
         self.path = path
         self.verify_path()
