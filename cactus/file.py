@@ -1,17 +1,19 @@
+#coding:utf-8
 import os
 import logging
-import hashlib
 import socket
+import copy
+
+from cactus import mime
 from cactus.utils.file import compressString, fileSize
-from cactus.utils.helpers import CaseInsensitiveDict, memoize
+from cactus.utils.helpers import CaseInsensitiveDict, memoize, checksum
 from cactus.utils.network import retry
 from cactus.utils.url import getURLHeaders
-import mime
-import copy
 
 
 class File(object):
     DEFAULT_CACHE_EXPIRATION = 60 * 60 * 24 * 7  # One week
+    MAX_CACHE_EXPIRATION = 60 * 60 * 24 * 365 # 1 Year (for cached)
     COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml']
     PROGRESS_MIN_SIZE = (1024 * 1024) / 2  # 521 kb
 
@@ -26,7 +28,8 @@ class File(object):
         """
         Prepare the file for upload
         """
-        self.payload()  # Decide whether we'll compress or not.
+        payload = self.payload()  # Decide whether we'll compress or not.
+        self.payload_checksum = checksum(payload)
         self.lastUpload = 0
 
     def cache_duration(self):
@@ -34,6 +37,7 @@ class File(object):
             return self.site.cache_duration
         return self.DEFAULT_CACHE_EXPIRATION
 
+    @memoize
     def data(self):
         with open(os.path.join(self.site.path, '.build', self.path)) as f:
             return f.read()
@@ -69,14 +73,14 @@ class File(object):
     def is_compressed(self, boolean):
         self._is_compressed = boolean
 
-    def checksum(self):
+    @property
+    def is_fingerprinted(self):
         """
-        An amazon compatible md5 of the payload data.
+        Lazy implementation (needs to be fixed); we'll re-fingerprint the file
+        and check whether that happens to be in the filename.
         """
-        return hashlib.md5(self.payload()).hexdigest()
-
-    def remoteChecksum(self):
-        return getURLHeaders(self.remoteURL()).get('etag', '').strip('"')
+        #TODO: FixMe!
+        return checksum(self.data()) in self.path
 
     def remoteURL(self):
         return 'http://%s/%s' % (self.site.config.get('aws-bucket-website'), self.path)
@@ -109,7 +113,7 @@ class File(object):
 
         remote_headers = {k: v.strip('"') for k, v in getURLHeaders(self.remoteURL()).items()}
         local_headers = copy.copy(self.headers)
-        local_headers['etag'] = self.checksum()
+        local_headers['etag'] = self.payload_checksum
         for k, v in local_headers.items():  # Don't check AWS' own headers.
             if remote_headers.get(k) != v:
                 return True
@@ -119,7 +123,13 @@ class File(object):
     def upload(self, bucket):
         self.prepare()
 
-        self.headers = CaseInsensitiveDict((('Cache-Control', 'max-age=%s' % self.cache_duration()),))
+        self.headers = CaseInsensitiveDict()
+
+        if self.is_fingerprinted:
+            cache_control = self.MAX_CACHE_EXPIRATION
+        else:
+            cache_control = self.cache_duration()
+        self.headers['Cache-Control'] = 'max-age={0}'.format(cache_control)
 
         if self.is_compressed:
             self.headers['Content-Encoding'] = 'gzip'

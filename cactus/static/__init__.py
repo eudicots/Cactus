@@ -3,20 +3,12 @@ import os
 import logging
 import tempfile
 import shutil
-import hashlib
 
 from cactus.utils.compat import StaticCompatibilityLayer
+from cactus.utils.file import calculate_file_checksum
 from cactus.utils.filesystem import alt_file
 from cactus.static import optimizers
 from cactus.static import processors
-
-
-def calculate_file_checksum(path):
-    """
-    Calculate the MD5 sum for a file (needs to fit in memory)
-    """
-    with open(path) as f:
-        return hashlib.md5(f.read()).hexdigest()
 
 
 class Static(StaticCompatibilityLayer):

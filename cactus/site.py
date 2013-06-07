@@ -183,8 +183,7 @@ class Site(SiteCompatibilityLayer):
 
     def buildStatic(self):
         """
-        Move static files to build folder. To be fast we symlink it for now,
-        but we should actually copy these files in the future.
+        Build static files (pre-process, copy to static folder)
         """
         multiMap = map
 

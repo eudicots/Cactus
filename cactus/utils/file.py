@@ -2,6 +2,8 @@
 import cStringIO
 import gzip
 
+from cactus.utils.helpers import checksum
+
 
 class FakeTime:
     """
@@ -28,3 +30,11 @@ def fileSize(num):
         if num < 1024.0:
             return "%.0f%s" % (num, x)
         num /= 1024.0
+
+
+def calculate_file_checksum(path):
+    """
+    Calculate the MD5 sum for a file (needs to fit in memory)
+    """
+    with open(path) as f:
+        return checksum(f.read())

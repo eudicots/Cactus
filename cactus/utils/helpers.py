@@ -1,4 +1,5 @@
 from functools import partial
+import hashlib
 import multiprocessing.pool
 
 
@@ -60,3 +61,13 @@ class memoize(object):
         except KeyError:
             res = cache[key] = self.func(*args, **kw)
         return res
+
+
+def checksum(s):
+    """
+    Calculate the checksum of a string.
+    Should eventually support files too.
+
+    We use MD5 because S3 does.
+    """
+    return hashlib.md5(s).hexdigest()
