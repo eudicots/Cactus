@@ -84,15 +84,20 @@ class File(object):
     def extension(self):
         return os.path.splitext(self.path)[1].strip('.').lower()
 
-    def shouldCompress(self):
+    @property
+    def content_type(self):
+        """
+        Return the content type for this object
+        """
+        content_type = mime.guess(self.path)
 
-        if not self.extension() in self.COMPRESS_TYPES:
-            return False
+        if not content_type:
+            return None
 
-        if len(self.data()) < self.COMPRESS_MIN_SIZE:
-            return False
+        if content_type == "text/html":
+            content_type = "{0}; charset=utf-8".format(content_type)
 
-        return True
+        return content_type
 
     def changed(self):
         """
@@ -136,18 +141,13 @@ class File(object):
                         logging.info('+ %s upload progress %.1f%%' % (self.path, uploadPercentage))
                         self.lastUpload = current
 
-            # Create a new key from the file path and guess the mime type
+
             key = bucket.new_key(self.path)
-            mimeType = mime.guess(self.path)
-
-            if mimeType:
-                key.content_type = mimeType
-
-            # Upload the data
+            key.content_type = self.content_type  # We don't it need before (local headers only)
             key.set_contents_from_string(self.payload(), self.headers,
-                                         policy='public-read',
-                                         cb=progressCallback,
-                                         num_cb=progressCallbackCount)
+                policy='public-read',
+                cb=progressCallback,
+                num_cb=progressCallbackCount)
 
         op1 = '+' if changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.is_compressed else ''
