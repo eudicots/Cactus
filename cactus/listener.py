@@ -50,7 +50,7 @@ class Listener(object):
         while True and not self._pause:
             self._run()
 
-    @retry(Exception, tries = 5, delay = 0.5)
+    @retry((Exception,), tries = 5, delay = 0.5)
     def _run(self):
 
         oldChecksums = self._checksums

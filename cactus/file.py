@@ -4,6 +4,8 @@ import logging
 import socket
 import copy
 
+from boto.exception import S3ResponseError
+
 from cactus import mime
 from cactus.utils.file import compressString, fileSize
 from cactus.utils.helpers import CaseInsensitiveDict, memoize, checksum
@@ -119,7 +121,7 @@ class File(object):
                 return True
         return False
 
-    @retry(socket.error, tries=5, delay=3, backoff=2)
+    @retry((S3ResponseError, socket.error), tries=5, delay=3, backoff=2)
     def upload(self, bucket):
         self.prepare()
 

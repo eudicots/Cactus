@@ -4,7 +4,10 @@ import urllib2
 from cactus.utils.helpers import multiMap
 
 
-def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
+def retry(exceptions, tries=4, delay=3, backoff=2):
+    """
+    Retry execution in case we fail on one of the exceptions
+    """
     def deco_retry(f):
         def f_retry(*args, **kwargs):
             mtries, mdelay = tries, delay
@@ -12,9 +15,7 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
             while mtries > 1:
                 try:
                     return f(*args, **kwargs)
-                    try_one_last_time = False
-                    break
-                except ExceptionToCheck, e:
+                except exceptions as e:
                     logging.warning("%s, Retrying in %.1f seconds..." % (str(e), mdelay))
                     time.sleep(mdelay)
                     mtries -= 1
