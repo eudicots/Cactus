@@ -3,7 +3,6 @@ import os
 import logging
 import tempfile
 import shutil
-from cactus.static.external import optimizers, processors
 
 from cactus.utils.compat import StaticCompatibilityLayer
 from cactus.utils.file import calculate_file_checksum
