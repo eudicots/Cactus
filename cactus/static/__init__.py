@@ -16,6 +16,8 @@ class Static(StaticCompatibilityLayer):
     A static resource in the repo
     """
 
+    discarded = False
+
     def __init__(self, site, path):
         self.site = site
 
@@ -61,50 +63,65 @@ class Static(StaticCompatibilityLayer):
     def full_build_path(self):
         return os.path.join(self.site.build_path, self.build_path)
 
+    def run_externals(self, current_extension, pre_path, externals):
+        """
+        Run a set of externals against the file at pre_path
+        Only one external will run (the first one to accept the file)
+
+        Return the new extension for the file.
+        """
+        with alt_file(pre_path) as tmp_file:
+            for ExternalClass in externals:
+                external = ExternalClass(current_extension, pre_path, tmp_file)
+                external.run()
+
+                if external.accepted():
+                    return external.output_extension
+                elif external.refused():
+                    continue
+                elif external.discarded():
+                    self.discard()
+                    break
+
+                raise Exception("External {0} has an unknown status: {1}".format(external, external.status))
+
+            return current_extension
+
     def pre_process(self):
         """
         Does file pre-processing if required
         """
         self.pre_dir = tempfile.mkdtemp()
-        pre_path = os.path.join(self.pre_dir, 'file')
+        pre_path = os.path.join(self.pre_dir, self.src_filename)
 
         shutil.copy(self.full_source_path, pre_path)
 
         # Pre-process
         logging.info('Pre-processing: %s' % self.src_name)
 
-        with alt_file(pre_path) as tmp_file:
-            for ProcessorClass in processors.processors:
-                processor = ProcessorClass(pre_path, tmp_file)
-                if self.src_extension in processor.supported_extensions:
-                    if processor.run():
-                        self.final_extension = processor.output_extension
-                        break  # Do not run several processors (Create a new processor for this!)
-            else:
-                self.final_extension = self.src_extension
+        # Run processors (those might change the extension)
+        self.final_extension = self.run_externals(self.src_extension, pre_path, processors.processors)
 
         # Optimize
         if self.final_extension in self.site.optimize_extensions:
-            with alt_file(pre_path) as tmp_file:
-                for OptimizerClass in optimizers.optimizers:
-                    optimizer = OptimizerClass(pre_path, tmp_file)
-                    if self.final_extension in optimizer.supported_extensions:
-                        if optimizer.run():
-                            break  # Do not run several optimizers (Create a new optimize for this!)
+            # Run optimizes and make sure they don't alter the extension
+            _ = self.run_externals(self.final_extension, pre_path, optimizers.optimizers)
+            assert self.final_extension == _, "Illegal Optimizer: may not change the extension"
 
         return pre_path
 
+    def discard(self):
+        self.discarded = True  #TODO: Warn on usage of the static!
+
     def build(self):
-        logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
+        if not self.discarded:
+            logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
-        try:
-            os.makedirs(os.path.dirname(self.full_build_path))
-        except OSError:
-            pass
-
-        copy = lambda: shutil.copy(self._preprocessing_path, self.full_build_path)
-
-        copy()
+            try:
+                os.makedirs(os.path.dirname(self.full_build_path))
+            except OSError:
+                pass
+            shutil.copy(self._preprocessing_path, self.full_build_path)
 
     def __repr__(self):
         return '<Static: {0}>'.format(self.src_filename)

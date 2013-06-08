@@ -3,8 +3,9 @@ import os
 import shutil
 import copy
 from cactus import Site
+from cactus.static.exceptions import ExternalFailure
 
-from cactus.static.external import ExternalProcessor, ExternalFailure
+from cactus.static.external import ExternalProcessor
 from cactus.static import optimizers, processors
 from cactus.tests import SiteTest
 
@@ -13,8 +14,10 @@ class TestExternal(ExternalProcessor):
     runs = []
 
     def run(self):
-        TestExternal.runs.append(self)
-        return super(TestExternal, self).run()
+        out = super(TestExternal, self).run()
+        if self.accepted():
+            TestExternal.runs.append(self)
+        return out
 
 
 class DummyCriticalFailingProc(TestExternal):
@@ -62,6 +65,11 @@ class UnrelatedOptimizer(DummyExternal):
     output_extension = 'bbb'
 
 
+class DiscardingProcessor(DummyProc):
+    def _run(self):
+        self.discard()
+
+
 
 class TestStaticExternals(SiteTest):
     """
@@ -81,6 +89,7 @@ class TestStaticExternals(SiteTest):
 
         self.site = Site(self.path, self.config_path)
 
+        # Write an empty file
         self.dummy_static = 'test.src'
         open(os.path.join(self.site.static_path, self.dummy_static), 'w')
 
@@ -142,3 +151,19 @@ class TestStaticExternals(SiteTest):
                 break
         else:
             self.fail("Did not find {0}".format(self.dummy_static))
+
+    def test_discard(self):
+        """
+        Test that we discard files properly
+        """
+        processors.processors.append(DiscardingProcessor)
+        self.site.build()
+
+        self.assertEqual(0, len(TestExternal.runs))
+
+        self.assertFileDoesNotExist(os.path.join(self.site.build_path, "static", "test.dst"))
+        self.assertFileDoesNotExist(os.path.join(self.site.build_path, "static", "test.src"))
+
+        for static in self.site.static():
+            if static.src_filename == self.dummy_static:
+                self.assertTrue(static.discarded)

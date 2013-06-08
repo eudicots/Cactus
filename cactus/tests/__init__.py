@@ -33,6 +33,18 @@ class BaseTest(unittest.TestCase):
         except IOError:
             self.fail("File does not exist: {0}".format(path))
 
+    def assertFileDoesNotExist(self, path):
+        """
+        Check that the file at path does not exist.
+        """
+        try:
+            open(path)
+        except IOError:
+            pass
+        else:
+            self.fail("File exists: {0}".format(path))
+
+
 
 class SiteTest(BaseTest):
     def setUp(self):
