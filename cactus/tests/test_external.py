@@ -1,16 +1,14 @@
 #coding:utf-8
 import os
 import shutil
-import copy
 from cactus import Site
-from cactus.static.exceptions import ExternalFailure
+from cactus.static.external.exceptions import ExternalFailure
 
-from cactus.static.external import ExternalProcessor
-from cactus.static import optimizers, processors
+from cactus.static.external import External
 from cactus.tests import SiteTest
 
 
-class TestExternal(ExternalProcessor):
+class TestExternal(External):
     runs = []
 
     def run(self):
@@ -78,16 +76,11 @@ class TestStaticExternals(SiteTest):
     def setUp(self):
         super(TestStaticExternals, self).setUp()
 
-        self._processors = copy.copy(processors.processors)
-        self._optimizers = copy.copy(optimizers.optimizers)
-
-        self._clear(processors.processors)
-        self._clear(optimizers.optimizers)
-
         self.conf.set('optimize', ['src', 'dst'])
         self.conf.write()
 
         self.site = Site(self.path, self.config_path)
+        self.site.external_manager.clear()
 
         # Write an empty file
         self.dummy_static = 'test.src'
@@ -95,41 +88,27 @@ class TestStaticExternals(SiteTest):
 
         TestExternal.runs = []
 
-    def tearDown(self):
-        optimizers.optimizers = self._optimizers
-        processors.processors = self._processors
-
-    def _clear(self, l):
-        """
-        Clear a list in place, to easily mock it.
-        """
-        while 1:
-            try:
-                l.pop()
-            except IndexError:
-                break
-
     def test_critical(self):
         """
         Test that failures on critical processors are escalated
         """
-        processors.processors.append(DummyCriticalFailingProc)
+        self.site.external_manager.register_processor(DummyCriticalFailingProc)
         self.assertRaises(ExternalFailure, self.site.build)
 
     def test_non_critical(self):
         """
         Test that failures on non-critical processors are ignored
         """
-        processors.processors.append(DummyOptionalFailingProc)
+        self.site.external_manager.register_processor(DummyOptionalFailingProc)
         self.site.build()
 
     def test_run(self):
         """
         Test that processors and optimizers run
         """
-        processors.processors.append(DummyProc)
-        optimizers.optimizers.append(DummyOptimizer)
-        optimizers.optimizers.append(UnrelatedOptimizer)
+        self.site.external_manager.register_processor(DummyProc)
+        self.site.external_manager.register_optimizer(DummyOptimizer)
+        self.site.external_manager.register_optimizer(UnrelatedOptimizer)
         self.site.build()
 
         self.assertEqual(2, len(TestExternal.runs))
@@ -142,7 +121,7 @@ class TestStaticExternals(SiteTest):
         """
         Test that processors extensions are taken into account
         """
-        processors.processors.append(ExtensionDummyProc)
+        self.site.external_manager.register_processor(ExtensionDummyProc)
         self.site.build()
 
         for static in self.site.static():
@@ -156,7 +135,7 @@ class TestStaticExternals(SiteTest):
         """
         Test that we discard files properly
         """
-        processors.processors.append(DiscardingProcessor)
+        self.site.external_manager.register_processor(DiscardingProcessor)
         self.site.build()
 
         self.assertEqual(0, len(TestExternal.runs))

@@ -1,13 +1,18 @@
-#coding:utf-8
 import logging
-from cactus.static.exceptions import ExternalFailure
+from cactus.static.external.exceptions import ExternalFailure
 
 
-# Utility methods to build the status API
+# Helpers to build the Externals
 
 ACCEPTED = 1
 REFUSED = 0
 DISCARDED = -1
+
+
+def status_getter(status):
+    def has_status(external):
+        return external.status == status
+    return has_status
 
 
 def status_setter(status):
@@ -18,13 +23,7 @@ def status_setter(status):
     return set_status
 
 
-def status_getter(status):
-    def has_status(external):
-        return external.status == status
-    return has_status
-
-
-class ExternalProcessor(object):
+class External(object):
     supported_extensions = ()  # The extensions supported by this output
     output_extension = 'css'  # The extension of this processor's output
     critical = False  # Whether this External failure is critical

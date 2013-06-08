@@ -1,9 +1,9 @@
 #coding:utf-8
 import subprocess
-from cactus.static.external import ExternalProcessor
+from cactus.static.external import External
 
 
-class ClosureJSOptimizer(ExternalProcessor):
+class ClosureJSOptimizer(External):
     supported_extensions = ('js',)
     output_extension = 'js'
 
@@ -16,7 +16,7 @@ class ClosureJSOptimizer(ExternalProcessor):
         ])
 
 
-class YUIJSOptimizer(ExternalProcessor):
+class YUIJSOptimizer(External):
     supported_extensions = ('js',)
     output_extension = 'js'
 
@@ -29,7 +29,7 @@ class YUIJSOptimizer(ExternalProcessor):
         ])
 
 
-class YUICSSOptimizer(ExternalProcessor):
+class YUICSSOptimizer(External):
     supported_extensions = ('css',)
     output_extension = 'css'
 
@@ -40,6 +40,3 @@ class YUICSSOptimizer(ExternalProcessor):
             '-o', self.dst,
             self.src,
         ])
-
-
-optimizers = [ClosureJSOptimizer, YUIJSOptimizer, YUICSSOptimizer]

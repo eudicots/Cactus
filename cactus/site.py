@@ -13,6 +13,8 @@ from django.template.loader import add_to_builtins
 
 from cactus.config import Config
 from cactus.plugin.manager import PluginManager
+from cactus.static.external import processors, optimizers
+from cactus.static.external.manager import ExternalManager
 from cactus.utils.compat import SiteCompatibilityLayer
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
@@ -49,6 +51,15 @@ class Site(SiteCompatibilityLayer):
             self.variables = {}
         else:
             self.variables = dict(map(parse_site_variable, variables))
+
+        # Load Managers
+
+        self.plugin_manager = PluginManager(self.plugin_path)
+
+        self.external_manager = ExternalManager(
+            [processors.SASSProcessor, processors.SCSSProcessor],
+            [optimizers.ClosureJSOptimizer, optimizers.YUIJSOptimizer, optimizers.YUICSSOptimizer]
+        )
 
     def verify_config(self):
         """
@@ -89,8 +100,6 @@ class Site(SiteCompatibilityLayer):
         )
 
         add_to_builtins('cactus.template_tags')
-
-        self.plugin_manager = PluginManager(self.plugin_path)
 
     def verify_path(self):
         """

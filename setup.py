@@ -60,7 +60,7 @@ setup(
     author='Koen Bok',
     author_email='koen@madebysofa.com',
     license='BSD',
-    packages=['cactus', 'cactus.utils', 'cactus.plugin', 'cactus.static'],
+    packages=['cactus', 'cactus.utils', 'cactus.plugin', 'cactus.static', 'cactus.static.external'],
     package_data={'cactus': SKELETON_GLOB, },
     exclude_package_data={'cactus': SKELETON_FOLDERS},
     entry_points={

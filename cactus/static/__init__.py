@@ -3,12 +3,11 @@ import os
 import logging
 import tempfile
 import shutil
+from cactus.static.external import optimizers, processors
 
 from cactus.utils.compat import StaticCompatibilityLayer
 from cactus.utils.file import calculate_file_checksum
 from cactus.utils.filesystem import alt_file
-from cactus.static import optimizers
-from cactus.static import processors
 
 
 class Static(StaticCompatibilityLayer):
@@ -100,12 +99,12 @@ class Static(StaticCompatibilityLayer):
         logging.info('Pre-processing: %s' % self.src_name)
 
         # Run processors (those might change the extension)
-        self.final_extension = self.run_externals(self.src_extension, pre_path, processors.processors)
+        self.final_extension = self.run_externals(self.src_extension, pre_path, self.site.external_manager.processors)
 
         # Optimize
         if self.final_extension in self.site.optimize_extensions:
             # Run optimizes and make sure they don't alter the extension
-            _ = self.run_externals(self.final_extension, pre_path, optimizers.optimizers)
+            _ = self.run_externals(self.final_extension, pre_path, self.site.external_manager.optimizers)
             assert self.final_extension == _, "Illegal Optimizer: may not change the extension"
 
         return pre_path
