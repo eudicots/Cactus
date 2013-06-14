@@ -12,6 +12,7 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config import Config
+from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.manager import PluginManager
 from cactus.static.external import processors, optimizers
 from cactus.static.external.manager import ExternalManager
@@ -43,6 +44,7 @@ class Site(SiteCompatibilityLayer):
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.optimize_extensions = self.config.get('optimize', [])
         self.cache_duration = self.config.get('cache-duration', None)
+        self.locale = self.config.get("locale", None)  #TODO: Use locale.getdefaultlocale()?
 
         self.path = path
         self.verify_path()
@@ -61,10 +63,14 @@ class Site(SiteCompatibilityLayer):
             [optimizers.ClosureJSOptimizer, optimizers.YUIJSOptimizer, optimizers.YUICSSOptimizer]
         )
 
+        # Load Django settings
+        self.setup()
+
     def verify_config(self):
         """
         We need the site url to generate the sitemap.
         """
+        #TODO: Make a "required" option in the config.
         self.url = self.config.get('site-url')
         if self.url is None:
             self.url = raw_input('Enter your site URL (e.g. http://example.com): ').strip()
@@ -88,15 +94,22 @@ class Site(SiteCompatibilityLayer):
         self.plugin_path = os.path.join(path, 'plugins')
         self.static_path = os.path.join(path, 'static')
         self.script_path = os.path.join(os.getcwd(), __file__)
+        self.locale_path = os.path.join(path, "locale")
+
 
     def setup(self):
         """
         Configure django to use both our template and pages folder as locations
         to look for included templates.
         """
+
         django.conf.settings.configure(
             TEMPLATE_DIRS=[self.template_path, self.page_path],
-            INSTALLED_APPS=['django.contrib.markup']
+            INSTALLED_APPS=['django.contrib.markup'],
+            USE_I18N=True,
+            USE_L10N=False,
+            LANGUAGE_CODE = "en_US",
+            LOCALE_PATHS = [self.locale_path],
         )
 
         add_to_builtins('cactus.template_tags')
@@ -105,16 +118,14 @@ class Site(SiteCompatibilityLayer):
         """
         Check if this path looks like a Cactus website
         """
-        while 1:
-            for p in ['pages', 'static', 'templates', 'plugins']:
-                if not os.path.isdir(os.path.join(self.path, p)):
-                    new_path = os.path.normpath(os.path.join(self.path, os.path.pardir))
-                    if new_path == self.path:
-                        logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
-                        sys.exit(1)
-                    self.path = new_path
-                    continue
-            return
+        required_subfolders = ['pages', 'static', 'templates', 'plugins']
+        if self.locale is not None:
+            required_subfolders.append('locale')
+
+        for p in required_subfolders:
+            if not os.path.isdir(os.path.join(self.path, p)):
+                logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
+                sys.exit(1)
 
     @memoize
     def context(self):
@@ -128,6 +139,21 @@ class Site(SiteCompatibilityLayer):
         ctx.update(self.variables)
         return ctx
 
+    def make_messages(self):
+        """
+        Generate the .po files for the site.
+        """
+        if self.locale is None:
+            logging.error("You should set a locale in your configuration file before running this command.")
+            return
+
+        message_maker = MessageMaker(self)
+        message_maker.execute()
+
+    def compile_messages(self):
+        message_compiler = MessageCompiler(self)
+        message_compiler.execute()
+
     def clean(self):
         """
         Remove all build files.
@@ -139,10 +165,6 @@ class Site(SiteCompatibilityLayer):
         """
         Generate fresh site from templates.
         """
-
-        # Set up django settings
-        self.setup()
-
         self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
 
         logging.info('Plugins: %s', ', '.join([p.__name__ for p in self.plugin_manager.plugins]))
@@ -152,6 +174,10 @@ class Site(SiteCompatibilityLayer):
         # Make sure the build path exists
         if not os.path.exists(self.build_path):
             os.mkdir(self.build_path)
+
+        # Prepare translations
+        if self.locale is not None:
+            self.compile_messages()
 
         # Copy the static files
         self.buildStatic()

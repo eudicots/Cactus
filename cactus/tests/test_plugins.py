@@ -10,10 +10,6 @@ class TestPluginLoader(SiteTest):
     def setUp(self):
         super(TestPluginLoader, self).setUp()
         self.site = Site(self.path, self.config_path)
-
-        self.site.setup()  # Load the plugin manager
-        self.clear_django_settings()  # We're going to be .building afterwards.
-
         shutil.rmtree(self.site.plugin_path)
         os.makedirs(self.site.plugin_path)
 

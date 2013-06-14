@@ -8,7 +8,7 @@ from setuptools import setup
 
 
 VERSION = "2.5.0"
-SKELETON_FOLDERS = ['pages', 'plugins', 'static/css', 'static/images', 'static/js', 'templates']
+SKELETON_FOLDERS = ['pages', 'plugins', 'static/css', 'static/images', 'static/js', 'templates', 'locale']
 SKELETON_GLOB = ['skeleton/{0}/*'.format(folder) for folder in SKELETON_FOLDERS]
 
 if "uninstall" in sys.argv:
@@ -60,7 +60,7 @@ setup(
     author='Koen Bok',
     author_email='koen@madebysofa.com',
     license='BSD',
-    packages=['cactus', 'cactus.utils', 'cactus.plugin', 'cactus.static', 'cactus.static.external'],
+    packages=['cactus', 'cactus.utils', 'cactus.plugin', 'cactus.static', 'cactus.static.external', 'cactus.i18n'],
     package_data={'cactus': SKELETON_GLOB, },
     exclude_package_data={'cactus': SKELETON_FOLDERS},
     entry_points={
