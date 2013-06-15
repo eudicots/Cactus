@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?> 
 <urlset xmlns="http://www.google.com/schemas/sitemap/0.84">{% for page in CACTUS.pages %}{% if page.path != 'error.html' %}
     <url>
-        <loc>{{ page.path }}</loc>
-        <changefreq>daily</changefreq>
-        <priority>1.0</priority>
+        <loc>{{ URI }}{% if page.path != 'index.html' %}{{ page.path }}{% endif %}</loc>
+        <lastmod>{{ now }}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>{% if page.path == 'index.html' %}1.0{% else %}0.5{% endif %}</priority>
     </url>{% endif %}{% endfor %}
 </urlset>
