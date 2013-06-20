@@ -36,6 +36,9 @@ def fileList(paths, relative=False, folders=False):
 
 @contextmanager
 def alt_file(current_file):
+    """
+    Create an alternate file next to an existing file.
+    """
     _alt_file = current_file + '-alt'
     yield _alt_file
     try:
@@ -43,3 +46,14 @@ def alt_file(current_file):
     except IOError:
         # We didn't use an alt file.
         pass
+
+
+@contextmanager
+def chdir(new_dir):
+    """
+    Chdir to another directory for an operation
+    """
+    current_dir = os.getcwd()
+    os.chdir(new_dir)
+    yield
+    os.chdir(current_dir)

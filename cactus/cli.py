@@ -35,9 +35,14 @@ def deploy(path, config, var):
     site.upload()
 
 
+def make_messages(path, config, var):
+    """ Create the list of translation files for the site """
+    site = cactus.Site(path, config, variables=var)
+    site.make_messages()
+
+
 def serve(path, config, var, port, browser):
     """Serve the project and watch changes"""
-
     site = cactus.Site(path, config, variables=var)
     site.serve(port=port, browser=browser)
 
@@ -55,20 +60,25 @@ def main():
     parser_build = subparsers.add_parser('build', help = 'Build the current project.')
     parser_build.set_defaults(target = build)
 
+    parser_deploy = subparsers.add_parser('deploy', help = 'Deploy the current project to S3.')
+    parser_deploy.set_defaults(target = deploy)
+
     parser_serve = subparsers.add_parser('serve', help = 'Serve the current project.')
     parser_serve.set_defaults(target = serve)
     parser_serve.add_argument('-p', '--port', default = 8000, type = int, help = 'The port on which to serve the site.')
     parser_serve.add_argument('-b', '--browser', action = 'store_true',
                               help = 'Whether to open a browser for the site.')
 
-    parser_deploy = subparsers.add_parser('deploy', help = 'Deploy the current project to S3.')
-    parser_deploy.set_defaults(target = deploy)
+    parser_make_messages = subparsers.add_parser('makemessages', help='Create translation files for the current project')
+    parser_make_messages.set_defaults(target=make_messages)
 
-    for subparser in (parser_build, parser_serve, parser_deploy):
+
+    for subparser in (parser_build, parser_deploy, parser_serve, parser_make_messages):
         subparser.add_argument('-c', '--config', default = 'config.json',
                                help = 'Path to the config file you want to use.')
         subparser.add_argument('-v', '--var', action = 'append',
                                help = "Add one or more variables to pass to your templates")
+
         subparser.set_defaults(path = os.getcwd())
 
     args = parser.parse_args()
