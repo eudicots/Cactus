@@ -5,6 +5,12 @@ from cactus.plugin.loader import PluginLoader
 from cactus.plugin import defaults
 
 
+ACCEPTED_PREBUILD_ERROR_MESSAGES = [
+    "preBuildPage() takes exactly 3 arguments (4 given)",
+    "preBuildPage() takes exactly 4 arguments (3 given)",  # In practice, this can't show up.
+]
+
+
 class PluginManager(object):
     def __init__(self, plugin_path):
         self.loader = PluginLoader(plugin_path)
@@ -32,10 +38,12 @@ class PluginManager(object):
         for plugin in self.plugins:
             arg_lists = [[site, page, context, data], [page, context, data]]
             for arg_list in arg_lists:
-                try:
+                try:  # TODO: Use `import inspect`
                     context, data = plugin.preBuildPage(*arg_list)
-                except TypeError:
-                    continue  # Wrong calling convention: try again
+                except TypeError as e:
+                    if e.args[0] in ACCEPTED_PREBUILD_ERROR_MESSAGES:
+                        continue  # Wrong calling convention: try again
+                    raise
                 else:
                     break  # Correct calling convention: do not run again.
 
