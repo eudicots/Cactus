@@ -21,16 +21,38 @@ class ConfigRouter(object):
                 self.configs.append(ConfigFile(path))
                 loaded_paths.add(path)
 
-    def get(self, key, default=None):
-        """
-        Retrieve a config key from the first config that has it.
-        Return default if no config has it.
-        """
+        logging.debug("Loaded configs: %s", ', '.join([config.path for config in self.configs]))
+
+
+    def _get_nested(self, key, default=None):
+        assert isinstance(default, dict)  # Don't shoot yourself in the foot.
+
+        output = {}
+        for config in reversed(self.configs):
+            output.update(config.get(key, default))
+            logging.debug("Retrieving %s from %s", key, config.path)
+
+        return output
+
+    def _get_first(self, key, default=None):
         for config in self.configs:
             if config.has_key(key):
                 logging.debug("Retrieved %s from %s", key, config.path)
                 return config.get(key)
+
         return default
+
+    def get(self, key, default=None, nested=False):
+        """
+        Retrieve a config key from the first config that has it.
+        Return default if no config has it.
+        """
+        logging.debug("Searching for %s (nested:%s)", key, nested)
+        if nested:
+            return self._get_nested(key, default)
+        else:
+            return self._get_first(key, default)
+
 
     def set(self, key, value):
         """

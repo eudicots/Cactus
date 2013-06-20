@@ -26,7 +26,6 @@ class TestConfigRouter(unittest.TestCase):
         self.conf2.set("b", 2)
         self.conf2.write()
 
-
     def tearDown(self):
         shutil.rmtree(self.test_dir)
 
@@ -39,7 +38,6 @@ class TestConfigRouter(unittest.TestCase):
         self.assertEqual(router.get("a"), 1)
         self.assertEqual(router.get("b"), 2)
         self.assertEqual(router.get("c"), None)
-
 
     def test_write(self):
         """
@@ -58,7 +56,6 @@ class TestConfigRouter(unittest.TestCase):
         self.assertEqual(self.conf2.get("b"), 4)
         self.assertEqual(self.conf2.get("a"), None)
 
-
     def test_collision(self):
         """
         Check that we get the right key when there is a collision
@@ -73,7 +70,6 @@ class TestConfigRouter(unittest.TestCase):
         self.assertEqual(router.get("a"), 1)
         self.assertEqual(router.get("b"), 3)
 
-
     def test_duplicate(self):
         """
         Check that the config router handles duplicate files properly.
@@ -84,3 +80,18 @@ class TestConfigRouter(unittest.TestCase):
 
         self.conf1.load()
         self.assertEqual(self.conf1.get("a"), 3)
+
+    def test_nested(self):
+        """
+        Test that we support nested config for variables
+        """
+        self.conf1.set("variables", {"k1":"v1"})
+        self.conf2.set("variables", {"k2":"v2"})
+        self.conf1.write()
+        self.conf2.write()
+
+        router = ConfigRouter([self.path1, self.path2])
+        variables = router.get("variables", default={}, nested=True)
+
+        self.assertEqual(variables.get("k1"), "v1")
+        self.assertEqual(variables.get("k2"), "v2")

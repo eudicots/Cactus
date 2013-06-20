@@ -48,7 +48,7 @@ class Site(SiteCompatibilityLayer):
         self.optimize_extensions = self.config.get('optimize', [])
         self.cache_duration = self.config.get('cache-duration', None)
         self.locale = self.config.get("locale", None)  #TODO: Use locale.getdefaultlocale()?
-        self.variables = self.config.get("variables", {})
+        self.variables = self.config.get("variables", {}, nested=True)  #TODO: Document!
 
         self.verify_config()
 
