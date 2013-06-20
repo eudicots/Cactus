@@ -74,14 +74,20 @@ def main():
 
 
     for subparser in (parser_build, parser_deploy, parser_serve, parser_make_messages):
-        subparser.add_argument('-c', '--config', default = 'config.json',
-                               help = 'Path to the config file you want to use.')
+        subparser.add_argument('-c', '--config', action="append",
+                               help='Add a config file you want to use')
         subparser.add_argument('-v', '--var', action = 'append',
                                help = "Add one or more variables to pass to your templates")
 
         subparser.set_defaults(path = os.getcwd())
 
     args = parser.parse_args()
+
+    # Small hack to provide a default value while not replacing what's
+    # given by the user, if there is
+    if args.config is None:
+        args.config = ["config.json"]
+
     args.target(**{k: v for k, v in vars(args).items() if k != 'target'})
 
 
