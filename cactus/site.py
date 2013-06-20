@@ -11,7 +11,7 @@ import boto
 import django.conf
 from django.template.loader import add_to_builtins
 
-from cactus.config import Config
+from cactus.config.router import ConfigRouter
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.manager import PluginManager
 from cactus.static.external import processors, optimizers
@@ -35,17 +35,22 @@ from cactus.browser import browserReload, browserReloadCSS
 class Site(SiteCompatibilityLayer):
     _path = None
 
-    def __init__(self, path, config_path, variables=None):
-        self.config = Config(config_path)
-        self.verify_config()
+    def __init__(self, path, config_paths, variables=None):
+        if not config_paths:
+            raise TypeError("config_paths may not be an empty list!")
+
+        self.config = ConfigRouter(config_paths)
 
         # Some specific config files
+        self.url = self.config.get('site-url')
         self.prettify_urls = self.config.get('prettify', False)
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.optimize_extensions = self.config.get('optimize', [])
         self.cache_duration = self.config.get('cache-duration', None)
         self.locale = self.config.get("locale", None)  #TODO: Use locale.getdefaultlocale()?
-        self.variables = self.config.get("variables", {})
+        self.variables = self.config.get("variables", {}, nested=True)  #TODO: Document!
+
+        self.verify_config()
 
         self.path = path
         self.verify_path()
@@ -70,7 +75,7 @@ class Site(SiteCompatibilityLayer):
         We need the site url to generate the sitemap.
         """
         #TODO: Make a "required" option in the config.
-        self.url = self.config.get('site-url')
+
         if self.url is None:
             self.url = raw_input('Enter your site URL (e.g. http://example.com): ').strip()
             self.config.set('site-url', self.url)

@@ -1,39 +1,42 @@
 #coding:utf-8
 import os
-from cactus import Site
 from cactus.tests import SiteTest
 
 
-class TestFingerprinting(SiteTest):
-    def initialize(self, fingerprint_extensions=None):
-        """
-        Called outside, because we want to modify the config first
-        """
-        if fingerprint_extensions is None:
-            fingerprint_extensions = []
+class TestFingerPrintingMixin(object):
+    fingerprint_extensions = None
 
-        self.conf.set('fingerprint', fingerprint_extensions)
-        self.conf.write()
+    def get_config_for_test(self):
+        return {"fingerprint": self.fingerprint_extensions}
 
-        self.site = Site(self.path, self.config_path)
 
+class TestFingerprintingOff(TestFingerPrintingMixin, SiteTest):
+    fingerprint_extensions = []
+
+    def setUp(self):
+        super(TestFingerprintingOff, self).setUp()
         self.site.build()
 
     def test_fingerprinting_off(self):
         """
         Test that fingerprinting can be disabled.
         """
-        self.initialize()
         static = '/static/css/style.css'
         self.assertEqual(self.site.get_url_for_static(static), static)
         self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
+
+
+class TestFingerprintingOn(TestFingerPrintingMixin, SiteTest):
+    fingerprint_extensions = ["css", "js"]
+
+    def setUp(self):
+        super(TestFingerprintingOn, self).setUp()
+        self.site.build()
 
     def test_fingerprinting_on(self):
         """
         Test that fingerprinting provides existing URLs.
         """
-        self.initialize(['css', 'js'])
-
         static = '/static/css/style.css'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
         self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
@@ -42,12 +45,18 @@ class TestFingerprinting(SiteTest):
         self.assertNotEqual(self.site.get_url_for_static(static), static)
         self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
 
+
+class TestFingerprintingSelective(TestFingerPrintingMixin, SiteTest):
+    fingerprint_extensions = ["css"]
+
+    def setUp(self):
+        super(TestFingerprintingSelective, self).setUp()
+        self.site.build()
+
     def test_fingerprinting_selective(self):
         """
         Test that fingerprinting can be restricted to certain filetypes.
         """
-        self.initialize(['css'])
-
         static = '/static/css/style.css'
         self.assertNotEqual(self.site.get_url_for_static(static), static)
         self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))

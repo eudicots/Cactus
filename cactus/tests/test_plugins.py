@@ -9,7 +9,6 @@ from cactus.tests import SiteTest
 class TestPluginLoader(SiteTest):
     def setUp(self):
         super(TestPluginLoader, self).setUp()
-        self.site = Site(self.path, self.config_path)
         shutil.rmtree(self.site.plugin_path)
         os.makedirs(self.site.plugin_path)
 
