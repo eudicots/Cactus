@@ -27,7 +27,7 @@ class TestSite(SiteTest):
     def setUp(self):
         super(TestSite, self).setUp()
 
-        self.site = Site(self.path, self.config_path, variables=['a=b', 'c'])
+        self.site = Site(self.path, self.config_path)
 
     def testBuild(self):
         """
@@ -64,18 +64,6 @@ class TestSite(SiteTest):
             readFile(os.path.join(self.path, '.build', 'test.html')),
             mockFile('test-out.html')
         )
-
-    def testSiteContext(self):
-        """
-        Test that site context is provided to the pages.
-        """
-        self.assertEqual(
-            [page.source_path for page in self.site.context()['CACTUS']['pages']],
-            ['error.html', 'index.html']
-        )
-
-        self.assertEqual(self.site.context()['a'], 'b')
-        self.assertEqual(self.site.context()['c'], True)
 
     def testPageContext(self):
         """

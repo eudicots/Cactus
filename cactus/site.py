@@ -45,14 +45,13 @@ class Site(SiteCompatibilityLayer):
         self.optimize_extensions = self.config.get('optimize', [])
         self.cache_duration = self.config.get('cache-duration', None)
         self.locale = self.config.get("locale", None)  #TODO: Use locale.getdefaultlocale()?
+        self.variables = self.config.get("variables", {})
 
         self.path = path
         self.verify_path()
 
-        if variables is None:
-            self.variables = {}
-        else:
-            self.variables = dict(map(parse_site_variable, variables))
+        if variables is not None:
+            self.variables.update(dict(map(parse_site_variable, variables)))
 
         # Load Managers
 
