@@ -1,5 +1,4 @@
 #coding:utf-8
-from cactus import Site
 from cactus.tests import SiteTest
 
 
@@ -25,18 +24,13 @@ class TestSiteVariables(AbstractTestVariables, SiteTest):
     """
     Test that variables passed to the site constructor are used.
     """
-    def setUp(self):
-        super(TestSiteVariables, self).setUp()
-        self.site = Site(self.path, self.config_path, variables=['a=b', 'c'])
+    def get_variables_for_test(self):
+        return ['a=b', 'c']
 
 
 class TestConfigVariables(AbstractTestVariables, SiteTest):
     """
     Test that variables passed in the config file are used.
     """
-    def setUp(self):
-        super(TestConfigVariables, self).setUp()
-        self.conf.set("variables", {"a":"b", "c":True})
-        self.conf.write()
-
-        self.site = Site(self.path, self.config_path)
+    def get_config_for_test(self):
+        return {"variables": {"a":"b", "c":True}}

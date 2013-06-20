@@ -1,8 +1,13 @@
+#coding:utf-8
 import json
 import logging
 
 
-class Config(object):
+class ConfigFile(object):
+    """
+    A single config file, as present on the filesystem.
+    """
+
     def __init__(self, path):
         self.path = path
         self.load()
@@ -12,6 +17,9 @@ class Config(object):
 
     def set(self, key, value):
         self._data[key] = value
+
+    def has_key(self, key):
+        return key in self._data
 
     def load(self):
         try:
@@ -24,5 +32,5 @@ class Config(object):
             self._data = {}
 
     def write(self):
-        json.dump(self._data, open(self.path, 'w'), sort_keys = True, indent = 4)
+        json.dump(self._data, open(self.path, 'w'), sort_keys=True, indent=4)
         logging.debug('Saved configuration at {0}'.format(self.path))

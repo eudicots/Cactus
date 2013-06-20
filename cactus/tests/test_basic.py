@@ -1,7 +1,6 @@
 import os
 import codecs
 
-from cactus.site import Site
 from cactus.tests import SiteTest
 from cactus.utils.filesystem import fileList
 
@@ -24,11 +23,6 @@ def mockFile(name):
 
 
 class TestSite(SiteTest):
-    def setUp(self):
-        super(TestSite, self).setUp()
-
-        self.site = Site(self.path, self.config_path)
-
     def testBuild(self):
         """
         Test that we build the proper files.

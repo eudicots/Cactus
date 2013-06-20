@@ -1,17 +1,14 @@
 #coding:utf-8
 import os
-from cactus import Site
 from cactus.tests import SiteTest
 
 
 class TestPrettyURLS(SiteTest):
+    def get_config_for_test(self):
+        return {"prettify": True}
+
     def setUp(self):
         super(TestPrettyURLS, self).setUp()
-
-        self.conf.set('prettify', True)
-        self.conf.write()
-
-        self.site = Site(self.path, self.config_path)
 
         with open(os.path.join(self.path, 'pages', 'test.html'), 'w') as f:
             pass

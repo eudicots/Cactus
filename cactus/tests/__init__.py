@@ -3,11 +3,13 @@ import unittest
 import tempfile
 import shutil
 import os
-from cactus.config import Config
 
 import django.conf
 
 from cactus.utils.packaging import bootstrap
+from cactus import Site
+from cactus.config.router import ConfigRouter
+
 
 
 class BaseTest(unittest.TestCase):
@@ -53,6 +55,22 @@ class SiteTest(BaseTest):
         #TODO: Add the required hooks to load the site from here
 
         self.config_path = os.path.join(self.path, 'config.json')
-        self.conf = Config(self.config_path)
+        self.conf = ConfigRouter([self.config_path])
         self.conf.set('site-url', 'http://example.com/')
+        for k, v in self.get_config_for_test().items():
+            self.conf.set(k, v)
         self.conf.write()
+
+        self.site = Site(self.path, [self.config_path], self.get_variables_for_test())
+
+    def get_config_for_test(self):
+        """
+        Hook to set config keys in other tests.
+        """
+        return {}
+
+    def get_variables_for_test(self):
+        """
+        Hook to set site variables in other tests
+        """
+        return []

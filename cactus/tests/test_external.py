@@ -1,7 +1,6 @@
 #coding:utf-8
 import os
 import shutil
-from cactus import Site
 from cactus.static.external.exceptions import ExternalFailure
 
 from cactus.static.external import External
@@ -73,13 +72,11 @@ class TestStaticExternals(SiteTest):
     """
     Test that externals are called properly, and that exceptions are handled properly.
     """
+    def get_config_for_test(self):
+        return {"optimize": ["src", "dst"]}
+
     def setUp(self):
         super(TestStaticExternals, self).setUp()
-
-        self.conf.set('optimize', ['src', 'dst'])
-        self.conf.write()
-
-        self.site = Site(self.path, self.config_path)
         self.site.external_manager.clear()
 
         # Write an empty file
