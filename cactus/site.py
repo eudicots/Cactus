@@ -155,6 +155,17 @@ class Site(SiteCompatibilityLayer):
         message_maker.execute()
 
     def compile_messages(self):
+        """
+        Remove pre-existing compiled language files, and re-compile.
+        """
+        #TODO: Make this cleaner
+        mo_path = os.path.join(self.locale_path, self.locale, "LC_MESSAGES", "django.mo")
+        try:
+            os.remove(mo_path)
+        except OSError:
+            # No .mo file yet
+            pass
+
         message_compiler = MessageCompiler(self)
         message_compiler.execute()
 
