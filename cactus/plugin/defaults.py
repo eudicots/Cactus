@@ -9,6 +9,14 @@ def postBuildPage(page):
     pass
 
 
+def preBuildStatic(static):
+    pass
+
+
+def postBuildStatic(static):
+    pass
+
+
 def preBuild(site):
     pass
 
@@ -35,6 +43,8 @@ ORDER = -1
 DEFAULTS = [
     'preBuildPage',
     'postBuildPage',
+    'preBuildStatic',
+    'postBuildStatic',
     'preBuild',
     'postBuild',
     'preDeploy',

@@ -47,19 +47,32 @@ class Static(StaticCompatibilityLayer):
 
         self.final_name = "{0}.{1}".format(new_name, self.final_extension)
 
-        # Path where the file should be built to.
-        self.build_path = os.path.join(self.src_dir, self.final_name)
-        # Path where the file should be referenced in built files
-        self.final_url = "/{0}".format(self.build_path)
-
 
     @property
     def full_source_path(self):
         return os.path.join(self.site.path, self.src_dir, self.src_filename)
 
     @property
+    def build_path(self):
+        """
+        Path where the file should be built to.
+        """
+        return  os.path.join(self.src_dir, self.final_name)
+
+    @property
     def full_build_path(self):
+        """
+        Absolute where the file should be built to.
+        """
         return os.path.join(self.site.build_path, self.build_path)
+
+    @property
+    def final_url(self):
+        """
+        Path where the file should be referenced in built files
+        """
+        return "/{0}".format(self.build_path)
+
 
     def run_externals(self, current_extension, pre_path, externals):
         """
@@ -113,6 +126,8 @@ class Static(StaticCompatibilityLayer):
 
     def build(self):
         if not self.discarded:
+            self.site.plugin_manager.preBuildStatic(self)
+
             logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
             try:
@@ -120,6 +135,8 @@ class Static(StaticCompatibilityLayer):
             except OSError:
                 pass
             shutil.copy(self._preprocessing_path, self.full_build_path)
+
+            self.site.plugin_manager.postBuildStatic(self)
 
     def __repr__(self):
         return '<Static: {0}>'.format(self.src_filename)
