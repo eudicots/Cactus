@@ -47,7 +47,7 @@ class Site(SiteCompatibilityLayer):
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.optimize_extensions = self.config.get('optimize', [])
         self.cache_duration = self.config.get('cache-duration', None)
-        self.locale = self.config.get("locale", None)  #TODO: Use locale.getdefaultlocale()?
+        self.locale = self.config.get("locale", None)
         self.variables = self.config.get("variables", {}, nested=True)  #TODO: Document!
 
         self.verify_config()
@@ -107,14 +107,20 @@ class Site(SiteCompatibilityLayer):
         to look for included templates.
         """
 
-        django.conf.settings.configure(
-            TEMPLATE_DIRS=[self.template_path, self.page_path],
-            INSTALLED_APPS=['django.contrib.markup'],
-            USE_I18N=True,
-            USE_L10N=False,
-            LANGUAGE_CODE = "en_US",
-            LOCALE_PATHS = [self.locale_path],
-        )
+        settings = {
+            "TEMPLATE_DIRS": [self.template_path, self.page_path],
+            "INSTALLED_APPS": ['django.contrib.markup'],
+        }
+
+        if self.locale is not None:
+            settings.update({
+                "USE_I18N": True,
+                "USE_L10N": False,
+                "LANGUAGE_CODE":  self.locale,
+                "LOCALE_PATHS": [self.locale_path],
+            })
+
+        django.conf.settings.configure(**settings)
 
         add_to_builtins('cactus.template_tags')
 
