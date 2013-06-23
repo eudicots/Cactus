@@ -32,5 +32,5 @@ class ConfigFile(object):
             self._data = {}
 
     def write(self):
-        json.dump(self._data, open(self.path, 'w'), sort_keys=True, indent=4)
+        json.dump(self._data, open(self.path, 'w'), sort_keys=True, indent=4, separators=(',', ': '))
         logging.debug('Saved configuration at {0}'.format(self.path))
