@@ -5,9 +5,10 @@ import urlparse
 
 from django.template import Template, Context
 from cactus.utils.compat import PageCompatibilityLayer
+from cactus.utils.url import ResourceURLHelperMixin
 
 
-class Page(PageCompatibilityLayer):
+class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
     def __init__(self, site, source_path):
         self.site = site
 

@@ -7,9 +7,10 @@ import shutil
 from cactus.utils.compat import StaticCompatibilityLayer
 from cactus.utils.file import calculate_file_checksum
 from cactus.utils.filesystem import alt_file
+from cactus.utils.url import ResourceURLHelperMixin
 
 
-class Static(StaticCompatibilityLayer):
+class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
     """
     A static resource in the repo
     """
@@ -67,7 +68,7 @@ class Static(StaticCompatibilityLayer):
         return os.path.join(self.site.build_path, self.build_path)
 
     @property
-    def final_url(self):
+    def _final_url(self):
         """
         Path where the file should be referenced in built files
         """
