@@ -10,15 +10,11 @@ class TestPrettyURLS(SiteTest):
     def setUp(self):
         super(TestPrettyURLS, self).setUp()
 
-        with open(os.path.join(self.path, 'pages', 'test.html'), 'w') as f:
-            pass
-
+        open(os.path.join(self.path, 'pages', 'test.html'), 'w')
         subfolder = os.path.join(self.path, 'pages', 'folder')
         os.makedirs(subfolder)
-        with open(os.path.join(subfolder, 'index.html'), 'w') as f:
-            pass
-        with open(os.path.join(subfolder, 'page.html'), 'w') as f:
-            pass
+        open(os.path.join(subfolder, 'index.html'), 'w')
+        open(os.path.join(subfolder, 'page.html'), 'w')
 
 
         self.site.build()
@@ -40,7 +36,7 @@ class TestPrettyURLS(SiteTest):
         self.assertFileExists(os.path.join(self.site.build_path, 'test', 'index.html'))
         self.assertFileExists(os.path.join(self.site.build_path, 'folder', 'index.html'))
         self.assertFileExists(os.path.join(self.site.build_path, 'folder', 'page', 'index.html'))
-        self.assertRaises(IOError, open, os.path.join(self.path, '.build', 'test.html'))
+        self.assertRaises(IOError, open, os.path.join(self.path, '.build', 'test.html'), 'rU')
 
     def test_ignore_non_html(self):
         """

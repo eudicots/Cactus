@@ -59,7 +59,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         return os.path.join(self.site.build_path, self.build_path)
 
     def data(self):
-        with open(self.full_source_path) as f:
+        with open(self.full_source_path, 'rU') as f:
             return f.read().decode('utf-8')
 
     def context(self, extra=None):

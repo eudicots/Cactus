@@ -41,7 +41,7 @@ class File(object):
 
     @memoize
     def data(self):
-        with open(os.path.join(self.site.path, '.build', self.path)) as f:
+        with open(os.path.join(self.site.path, '.build', self.path), 'rb') as f:
             return f.read()
 
     def payload(self):
