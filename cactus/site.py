@@ -34,6 +34,7 @@ from cactus.browser import browserReload, browserReloadCSS
 
 class Site(SiteCompatibilityLayer):
     _path = None
+    _static = None
 
     def __init__(self, path, config_paths, variables=None):
         if not config_paths:
@@ -199,6 +200,7 @@ class Site(SiteCompatibilityLayer):
         # Prepare translations
         if self.locale is not None:
             self.compile_messages()
+            #TODO: Check the command actually completes (msgfmt might not be on the PATH!)
 
         # Copy the static files
         self.buildStatic()
@@ -215,10 +217,14 @@ class Site(SiteCompatibilityLayer):
         for static in self.static():
             shutil.rmtree(static.pre_dir)
 
-    @memoize
     def static(self):
-        paths = fileList(self.static_path, relative=True)
-        return [Static(self, path) for path in paths]
+        """
+        Retrieve a list of static files for the site
+        """
+        if self._static is None:
+            paths = fileList(self.static_path, relative=True)
+            self._static = [Static(self, path) for path in paths]
+        return self._static
 
     def _get_url(self, src_url, resources):
         if is_external(src_url):
