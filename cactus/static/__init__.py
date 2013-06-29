@@ -127,10 +127,12 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         self.final_extension = self.run_externals(self.src_extension, pre_path, self.site.external_manager.processors)
 
         # Optimize
-        if self.final_extension in self.site.optimize_extensions:
-            # Run optimizes and make sure they don't alter the extension
-            _ = self.run_externals(self.final_extension, pre_path, self.site.external_manager.optimizers)
-            assert self.final_extension == _, "Illegal Optimizer: may not change the extension"
+        if not self.discarded:
+            if self.final_extension in self.site.optimize_extensions:
+                # Run optimizes and make sure they don't alter the extension
+                _ = self.run_externals(self.final_extension, pre_path, self.site.external_manager.optimizers)
+                assert self.final_extension == _, "Illegal Optimizer: may not change the extension"
+                assert not self.discarded, "Illegal Optimizer: may not discard files"
 
         return pre_path
 

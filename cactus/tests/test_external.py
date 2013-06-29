@@ -57,6 +57,11 @@ class DummyOptimizer(DummyExternal):
     output_extension = 'dst'
 
 
+class SourceOptimizer(DummyExternal):
+    supported_extensions = ('src',)
+    output_extension =  'src'
+
+
 class UnrelatedOptimizer(DummyExternal):
     supported_extensions = ('aaa',)
     output_extension = 'bbb'
@@ -133,10 +138,11 @@ class TestStaticExternals(SiteTest):
         Test that we discard files properly
         """
         self.site.external_manager.register_processor(DiscardingProcessor)
+        self.site.external_manager.register_optimizer(SourceOptimizer)
+
         self.site.build()
 
-        self.assertEqual(0, len(TestExternal.runs))
-
+        self.assertEqual(0, len(TestExternal.runs))  # Check that our optimizer does not run
         self.assertFileDoesNotExist(os.path.join(self.site.build_path, "static", "test.dst"))
         self.assertFileDoesNotExist(os.path.join(self.site.build_path, "static", "test.src"))
 
