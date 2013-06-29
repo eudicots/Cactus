@@ -12,9 +12,6 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config.router import ConfigRouter
-from cactus.contrib.external.closure import ClosureJSOptimizer
-from cactus.contrib.external.sass import SASSProcessor, SCSSProcessor
-from cactus.contrib.external.yui import YUIJSOptimizer, YUICSSOptimizer
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
@@ -48,7 +45,6 @@ class Site(SiteCompatibilityLayer):
         self.url = self.config.get('site-url')
         self.prettify_urls = self.config.get('prettify', False)
         self.fingerprint_extensions = self.config.get('fingerprint', [])
-        self.optimize_extensions = self.config.get('optimize', [])
         self.cache_duration = self.config.get('cache-duration', None)
         self.locale = self.config.get("locale", None)
         self.variables = self.config.get("variables", {}, nested=True)  #TODO: Document!
@@ -65,10 +61,7 @@ class Site(SiteCompatibilityLayer):
 
         self.plugin_manager = PluginManager(self.plugin_path)
 
-        self.external_manager = ExternalManager(
-            [SASSProcessor, SCSSProcessor],
-            [ClosureJSOptimizer, YUIJSOptimizer, YUICSSOptimizer]
-        )
+        self.external_manager = ExternalManager()
 
         # Load Django settings
         self.setup()
@@ -191,11 +184,11 @@ class Site(SiteCompatibilityLayer):
         """
         self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
 
+        self.plugin_manager.preBuild(self)
+
         logging.info('Plugins:    %s', ', '.join([p.__name__ for p in self.plugin_manager.plugins]))
         logging.info('Processors: %s', ', '.join([p.__name__ for p in self.external_manager.processors]))
         logging.info('Optimizers: %s', ', '.join([p.__name__ for p in self.external_manager.optimizers]))
-
-        self.plugin_manager.preBuild(self)
 
         # Make sure the build path exists
         if not os.path.exists(self.build_path):
