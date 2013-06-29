@@ -104,6 +104,15 @@ class TestStaticExternals(SiteTest):
         self.site.external_manager.register_processor(DummyOptionalFailingProc)
         self.site.build()
 
+    def test_deregister(self):
+        """
+        Test that we can de-register a processor.
+        """
+        self.site.external_manager.register_processor(DummyCriticalFailingProc)
+        self.assertRaises(ExternalFailure, self.site.build)
+        self.site.external_manager.deregister_processor(DummyCriticalFailingProc)
+        self.site.build()
+
     def test_run(self):
         """
         Test that processors and optimizers run
