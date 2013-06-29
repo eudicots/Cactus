@@ -17,8 +17,15 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
 
     discarded = False
 
-    def __init__(self, site, path):
+    def __init__(self, site, path, relative_to=None):
+        """
+        :param site: The site that's building this static file
+        :param path: The location where this static file is to be found
+        :param relative_to: Location this path is relative to. Optional, and defaults to the site's path.
+        """
         self.site = site
+        self.path = path
+        self.relative_to = relative_to
 
         _static_path, filename = os.path.split(path)
 
@@ -51,7 +58,12 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
 
     @property
     def full_source_path(self):
-        return os.path.join(self.site.path, self.src_dir, self.src_filename)
+        if self.relative_to is not None:
+            relative_to = self.relative_to
+        else:
+            relative_to = self.site.path
+
+        return os.path.join(relative_to, self.src_dir, self.src_filename)
 
     @property
     def build_path(self):
