@@ -12,9 +12,11 @@ import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config.router import ConfigRouter
+from cactus.contrib.external.closure import ClosureJSOptimizer
+from cactus.contrib.external.sass import SASSProcessor, SCSSProcessor
+from cactus.contrib.external.yui import YUIJSOptimizer, YUICSSOptimizer
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.manager import PluginManager
-from cactus.static.external import processors, optimizers
 from cactus.static.external.manager import ExternalManager
 from cactus.utils.compat import SiteCompatibilityLayer
 from cactus.utils.file import fileSize
@@ -64,8 +66,8 @@ class Site(SiteCompatibilityLayer):
         self.plugin_manager = PluginManager(self.plugin_path)
 
         self.external_manager = ExternalManager(
-            [processors.SASSProcessor, processors.SCSSProcessor],
-            [optimizers.ClosureJSOptimizer, optimizers.YUIJSOptimizer, optimizers.YUICSSOptimizer]
+            [SASSProcessor, SCSSProcessor],
+            [ClosureJSOptimizer, YUIJSOptimizer, YUICSSOptimizer]
         )
 
         # Load Django settings
@@ -189,7 +191,9 @@ class Site(SiteCompatibilityLayer):
         """
         self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
 
-        logging.info('Plugins: %s', ', '.join([p.__name__ for p in self.plugin_manager.plugins]))
+        logging.info('Plugins:    %s', ', '.join([p.__name__ for p in self.plugin_manager.plugins]))
+        logging.info('Processors: %s', ', '.join([p.__name__ for p in self.external_manager.processors]))
+        logging.info('Optimizers: %s', ', '.join([p.__name__ for p in self.external_manager.optimizers]))
 
         self.plugin_manager.preBuild(self)
 
