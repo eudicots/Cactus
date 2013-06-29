@@ -85,7 +85,7 @@ def main():
 
     # Small hack to provide a default value while not replacing what's
     # given by the user, if there is
-    if args.config is None:
+    if hasattr(args, 'config') and args.config is None:  # We don't need config for create
         args.config = ["config.json"]
 
     args.target(**{k: v for k, v in vars(args).items() if k != 'target'})
