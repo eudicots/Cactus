@@ -20,7 +20,6 @@ def postBuildStatic(static):
 def preBuild(site):
     pass
 
-
 def postBuild(site):
     pass
 
