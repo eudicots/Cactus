@@ -7,6 +7,6 @@ from cactus.utils.filesystem import fileList
 class TestBootstrap(BaseTest):
     def testBootstrap(self):
         self.assertEqual(
-            fileList(self.path, relative=True),
-            fileList("cactus/skeleton", relative=True),
+            sorted(fileList(self.path, relative=True)),
+            sorted(fileList("cactus/skeleton", relative=True)),
         )

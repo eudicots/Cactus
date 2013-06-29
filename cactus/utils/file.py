@@ -36,5 +36,5 @@ def calculate_file_checksum(path):
     """
     Calculate the MD5 sum for a file (needs to fit in memory)
     """
-    with open(path) as f:
+    with open(path, 'rb') as f:
         return checksum(f.read())

@@ -81,7 +81,7 @@ class TestStaticExternals(SiteTest):
 
         # Write an empty file
         self.dummy_static = 'test.src'
-        open(os.path.join(self.site.static_path, self.dummy_static), 'w')
+        open(os.path.join(self.site.static_path, self.dummy_static), 'wb')
 
         TestExternal.runs = []
 

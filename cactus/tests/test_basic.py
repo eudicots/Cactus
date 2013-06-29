@@ -1,25 +1,10 @@
+#coding:utf-8
 import os
-import codecs
+import shutil
 
 from cactus.tests import SiteTest
 from cactus.utils.filesystem import fileList
-
-
-def readFile(path):
-    f = codecs.open(path, 'r', 'utf8')
-    d = f.read()
-    f.close()
-    return d
-
-
-def writeFile(path, data):
-    f = codecs.open(path, 'w', 'utf8')
-    f.write(data)
-    f.close()
-
-
-def mockFile(name):
-    return readFile(os.path.join('cactus', 'tests', 'data', name))
+from cactus.utils.url import path_to_url
 
 
 class TestSite(SiteTest):
@@ -32,14 +17,16 @@ class TestSite(SiteTest):
         # Make sure we build to .build and not build
         self.assertEqual(os.path.exists(os.path.join(self.path, 'build')), False)
 
-        self.assertEqual(fileList(os.path.join(self.path, '.build'), relative=True), [
-            'error.html',
-            'index.html',
-            'robots.txt',
-            'sitemap.xml',
-            self.site.get_url_for_static('/static/css/style.css')[1:],  # Strip the initial /
-            self.site.get_url_for_static('/static/images/favicon.ico')[1:],  # Strip the initial /
-            self.site.get_url_for_static('/static/js/main.js')[1:],  # Strip the initial /
+        self.assertEqual(
+            [path_to_url(path) for path in fileList(os.path.join(self.path, '.build'), relative=True)],
+            [
+                'error.html',
+                'index.html',
+                'robots.txt',
+                'sitemap.xml',
+                self.site.get_url_for_static('/static/css/style.css')[1:],  # Strip the initial /
+                self.site.get_url_for_static('/static/images/favicon.ico')[1:],  # Strip the initial /
+                self.site.get_url_for_static('/static/js/main.js')[1:],  # Strip the initial /
         ])
 
     def testRenderPage(self):
@@ -47,34 +34,33 @@ class TestSite(SiteTest):
         Test that pages get rendered.
         """
 
-        writeFile(
-            os.path.join(self.path, 'pages', 'test.html'),
-            mockFile('test-in.html')
+        shutil.copy(
+            os.path.join('cactus', 'tests', 'data', "test-in.html"),
+            os.path.join(self.path, 'pages', 'test.html')
         )
+
 
         self.site.build()
 
-        self.assertEqual(
-            readFile(os.path.join(self.path, '.build', 'test.html')),
-            mockFile('test-out.html')
-        )
+        with open(os.path.join('cactus', 'tests', 'data', 'test-out.html'), "rU") as expected, \
+            open(os.path.join(self.path, '.build', 'test.html'), "rU") as obtained:
+            self.assertEqual(expected.read(), obtained.read())
 
     def testPageContext(self):
         """
         Test that page context is parsed and uses in the pages.
         """
 
-        writeFile(
-            os.path.join(self.path, 'pages', 'koenpage.html'),
-            mockFile('koenpage-in.html')
+        shutil.copy(
+            os.path.join('cactus', 'tests', 'data', "koenpage-in.html"),
+            os.path.join(self.path, 'pages', 'koenpage.html')
         )
 
         self.site.build()
 
-        self.assertEqual(
-            readFile(os.path.join(self.path, '.build', 'koenpage.html')),
-            mockFile('koenpage-out.html')
-        )
+        with open(os.path.join('cactus', 'tests', 'data', 'koenpage-out.html'), "rU") as expected, \
+            open(os.path.join(self.path, '.build', 'koenpage.html'), "rU") as obtained:
+            self.assertEqual(expected.read(), obtained.read())
 
     def test_html_only_context(self):
         """
@@ -87,7 +73,7 @@ class TestSite(SiteTest):
 
         self.site.build()
 
-        with open(os.path.join(self.site.build_path, 'robots.txt')) as f:
+        with open(os.path.join(self.site.build_path, 'robots.txt'), 'rU') as f:
             self.assertEquals(robots_txt, f.read())
 
     def testStaticLoader(self):
@@ -97,17 +83,14 @@ class TestSite(SiteTest):
         static = '/static/css/style.css'
         page = "{%% static '%s' %%}" % static
 
-        writeFile(
-            os.path.join(self.path, 'pages', 'staticpage.html'),
-            page
-        )
+
+        with open(os.path.join(self.path, 'pages', 'staticpage.html'), "w") as dst:
+            dst.write(page)
 
         self.site.build()
 
-        self.assertEqual(
-            readFile(os.path.join(self.path, '.build', 'staticpage.html')),
-            self.site.get_url_for_static(static)
-        )
+        with open(os.path.join(self.path, '.build', 'staticpage.html'), "rU") as obtained:
+            self.assertEqual(self.site.get_url_for_static(static), obtained.read())
 
     def test_current_page(self):
         """
@@ -126,8 +109,8 @@ class TestSite(SiteTest):
 
         self.site.build()
 
-        with open(os.path.join(self.path, '.build', page)) as f:
+        with open(os.path.join(self.path, '.build', page), 'rU') as f:
             self.assertEqual('True', f.read())
 
-        with open(os.path.join(self.path, '.build', other)) as f:
+        with open(os.path.join(self.path, '.build', other), 'rU') as f:
             self.assertEqual('False', f.read())

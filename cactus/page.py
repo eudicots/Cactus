@@ -5,9 +5,10 @@ import urlparse
 
 from django.template import Template, Context
 from cactus.utils.compat import PageCompatibilityLayer
+from cactus.utils.url import ResourceURLHelperMixin
 
 
-class Page(PageCompatibilityLayer):
+class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
     def __init__(self, site, source_path):
         self.site = site
 
@@ -58,7 +59,7 @@ class Page(PageCompatibilityLayer):
         return os.path.join(self.site.build_path, self.build_path)
 
     def data(self):
-        with open(self.full_source_path) as f:
+        with open(self.full_source_path, 'rU') as f:
             return f.read().decode('utf-8')
 
     def context(self, extra=None):

@@ -46,7 +46,7 @@ def bootstrap(path):
             file_path = os.path.join(base_path, filename)
 
             logging.debug("Copying {0} to {1}".format(resource_path, file_path))
-            with open(file_path, 'w') as f:
+            with open(file_path, 'wb') as f:
                 f.write(pkg_resources.resource_stream("cactus", resource_path).read())
 
     logging.info('New project generated at %s', path)

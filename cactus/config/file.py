@@ -23,7 +23,7 @@ class ConfigFile(object):
 
     def load(self):
         try:
-            self._data = json.load(open(self.path, 'r'))
+            self._data = json.load(open(self.path, 'rU'))
         except IOError:
             logging.info('No configuration file found at {0}'.format(self.path))
             self._data = {}
