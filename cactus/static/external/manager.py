@@ -9,6 +9,9 @@ class ExternalManager(object):
     def _register(self, external, externals):
         externals.insert(0, external)
 
+    def _deregister(self, external, externals):
+        externals.remove(external)
+
     def clear(self):
         """
         Clear this manager
@@ -23,9 +26,23 @@ class ExternalManager(object):
         """
         self._register(processor, self.processors)
 
+    def deregister_processor(self, processor):
+        """
+        Remove an existing processor from the list
+        Will raise a ValueError if the processor is not present
+        """
+        self._deregister(processor, self.processors)
+
     def register_optimizer(self, optimizer):
         """
         Add a new optimizer to the list of optimizer
         This optimizer will be added with maximum priority
         """
         self._register(optimizer, self.optimizers)
+
+    def deregister_optimizer(self, processor):
+        """
+        Remove an existing optimizer from the list
+        Will raise a ValueError if the optimizer is not present
+        """
+        self._deregister(processor, self.optimizers)
