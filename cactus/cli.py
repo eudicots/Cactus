@@ -98,17 +98,35 @@ def main():
         deploy(os.getcwd())
 
     elif command == 'i18nlint':
-        parser = OptionParser(usage="usage: %prog [options] <filename>")
+        parser = OptionParser(usage="usage: %prog [options]")
         parser.add_option("-r", "--replace", action="store_true", dest="replace",
                 help="Ask to replace the strings in the file.", default=False)
+
+        parser.add_option("-f", "--filename", action="store", dest="filename",
+                help="Input one filename.", default=False)
         (options, args) = parser.parse_args()
-        if len(args) != 2:
-            parser.error("incorrect number of arguments")
         from i18nlint import replace_strings, print_strings
-        if options.replace:
-            replace_strings(args[1])
+
+        def run_i18nlint(filename):
+            if options.replace:
+                replace_strings(filename)
+            else:
+                print_strings(filename)
+
+        if options.filename:
+            run_i18nlint(options.filename)
         else:
-            print_strings(args[1])
+            for root, dirs, files in os.walk('pages'):
+                for name in files:
+                    if '.svn' not in root:
+                        if 'html' in name and '_translated' not in name:
+                            change = raw_input("Run i18nlint on file '%s/%s'? [Y/n] " % (root, name))
+                            if change == 'y' or change == "":
+                                run_i18nlint(os.path.join(root, name))
+
+        if len(args) > 2:
+            print "ERROR: Too many arguments"
+            help()
 
     else:
         print 'Unknown command: %s' % command

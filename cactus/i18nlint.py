@@ -4,6 +4,7 @@ Prints out all
 """
 
 import re
+import os
 import sys
 from optparse import OptionParser
 
@@ -109,7 +110,8 @@ def replace_strings(filename):
         full_text_lines.append(message)
 
     full_text = "".join(full_text_lines)
-    save_filename = filename.split(".")[0] + "_translated.html"
+    os.rename = (filename, filename.split(".")[0] + "_orig.html")
+    save_filename = filename.split(".")
     open(save_filename, 'w').write(full_text)
     print "Fully translated! Saved as: %s" % save_filename
 
