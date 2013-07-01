@@ -34,7 +34,7 @@ class Site(SiteCompatibilityLayer):
     _path = None
     _static = None
 
-    def __init__(self, path, config_paths, variables=None):
+    def __init__(self, path, config_paths):
         if not config_paths:
             raise TypeError("config_paths may not be an empty list!")
 

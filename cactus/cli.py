@@ -22,28 +22,28 @@ def create(path):
     bootstrap(path)
 
 
-def build(path, config, var):
+def build(path, config):
     """Build a cactus project"""
 
-    site = cactus.Site(path, config, variables=var)
+    site = cactus.Site(path, config)
     site.build()
 
 
-def deploy(path, config, var):
+def deploy(path, config):
     """Upload the project to S3"""
-    site = cactus.Site(path, config, variables=var)
+    site = cactus.Site(path, config)
     site.upload()
 
 
-def make_messages(path, config, var):
+def make_messages(path, config):
     """ Create the list of translation files for the site """
-    site = cactus.Site(path, config, variables=var)
+    site = cactus.Site(path, config)
     site.make_messages()
 
 
-def serve(path, config, var, port, browser):
+def serve(path, config, port, browser):
     """Serve the project and watch changes"""
-    site = cactus.Site(path, config, variables=var)
+    site = cactus.Site(path, config)
     site.serve(port=port, browser=browser)
 
 
@@ -76,8 +76,6 @@ def main():
     for subparser in (parser_build, parser_deploy, parser_serve, parser_make_messages):
         subparser.add_argument('-c', '--config', action="append",
                                help='Add a config file you want to use')
-        subparser.add_argument('-v', '--var', action = 'append',
-                               help = "Add one or more variables to pass to your templates")
 
         subparser.set_defaults(path = os.getcwd())
 
