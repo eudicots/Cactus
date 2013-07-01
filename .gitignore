@@ -5,3 +5,4 @@ build
 skeleton.tar.gz
 Cactus.egg-info
 examples/blog/config.json
+*.egg
