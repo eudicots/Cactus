@@ -1,18 +1,6 @@
 #coding:utf-8
 import os
-import unittest
 from cactus.tests import SiteTest
-
-from cactus.variables import parse_site_variable
-
-
-class TestContext(unittest.TestCase):
-    """
-    Test that context variable parsing works.
-    """
-    def test_variables(self):
-        self.assertEqual(('a', 'b'), parse_site_variable('a=b'))
-        self.assertEqual(('a', True), parse_site_variable('a'))
 
 
 class TestSiteContext(SiteTest):
@@ -31,7 +19,7 @@ class TestSiteContext(SiteTest):
         self.site.build()
 
     def get_config_for_test(self):
-        return {"variables": {"a":"1", "b":True}}
+        return {"context": {"a":"1", "b":True}}
 
     def test_site_context(self):
         """
@@ -44,7 +32,7 @@ class TestSiteContext(SiteTest):
 
     def test_custom_context(self):
         """
-        Test that custom variables are provided
+        Test that custom context is provided
         """
         with open(os.path.join(self.site.build_path, "test.html")) as f:
             a, b = f.read().split("\n")

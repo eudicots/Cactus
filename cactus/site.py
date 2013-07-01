@@ -22,7 +22,6 @@ from cactus.utils.helpers import multiMap, memoize
 from cactus.utils.network import internetWorking
 from cactus.utils.password import getpassword, setpassword
 from cactus.utils.url import is_external
-from cactus.variables import parse_site_variable
 from cactus.page import Page
 from cactus.static import Static
 from cactus.listener import Listener
@@ -47,15 +46,11 @@ class Site(SiteCompatibilityLayer):
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.cache_duration = self.config.get('cache-duration', None)
         self.locale = self.config.get("locale", None)
-        self.variables = self.config.get("variables", {}, nested=True)  #TODO: Document!
 
         self.verify_config()
 
         self.path = path
         self.verify_path()
-
-        if variables is not None:
-            self.variables.update(dict(map(parse_site_variable, variables)))
 
         # Load Managers
 
@@ -142,7 +137,6 @@ class Site(SiteCompatibilityLayer):
             'CACTUS': {'pages': [p for p in self.pages() if p.is_html()]},
             '__CACTUS_SITE__': self,
         }
-        ctx.update(self.variables)
         return ctx
 
     def make_messages(self):
@@ -186,7 +180,7 @@ class Site(SiteCompatibilityLayer):
 
         self.plugin_manager.preBuild(self)
 
-        logging.info('Plugins:    %s', ', '.join([p.__name__ for p in self.plugin_manager.plugins]))
+        logging.info('Plugins:    %s', ', '.join([p.plugin_name for p in self.plugin_manager.plugins]))
         logging.info('Processors: %s', ', '.join([p.__name__ for p in self.external_manager.processors]))
         logging.info('Optimizers: %s', ', '.join([p.__name__ for p in self.external_manager.optimizers]))
 

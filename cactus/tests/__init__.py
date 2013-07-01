@@ -58,16 +58,10 @@ class SiteTest(BaseTest):
             self.conf.set(k, v)
         self.conf.write()
 
-        self.site = Site(self.path, [self.config_path], self.get_variables_for_test())
+        self.site = Site(self.path, [self.config_path])
 
     def get_config_for_test(self):
         """
         Hook to set config keys in other tests.
         """
         return {}
-
-    def get_variables_for_test(self):
-        """
-        Hook to set site variables in other tests
-        """
-        return []

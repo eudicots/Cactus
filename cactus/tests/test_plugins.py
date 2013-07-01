@@ -18,22 +18,32 @@ class TestPluginLoader(SiteTest):
         shutil.copy(src_path, dst_path)
         self.site.plugin_manager.reload()
 
+    def _get_custom_plugins(self):
+        """
+        Return the list of custom plugins that are loaded.
+        """
+        return [p for p in self.site.plugin_manager.plugins if not p.builtin]
+
     def test_ignore_disabled(self):
         self._load_test_plugin('test.py', 'test.disabled.py')
-        self.assertEqual([], self.site.plugin_manager.plugins)
+        self.assertEqual([], [p for p in self.site.plugin_manager.plugins if not p.builtin])
 
     def test_load_plugin(self):
         self._load_test_plugin('test.py', 'test.py')
-        self.assertEqual(1, len(self.site.plugin_manager.plugins))
-        self.assertEqual('plugin_test', self.site.plugin_manager.plugins[0].__name__)
-        self.assertEqual(2, self.site.plugin_manager.plugins[0].ORDER)
+
+        plugins = self._get_custom_plugins()
+        self.assertEqual(1, len(plugins ))
+        self.assertEqual('plugin_test', plugins[0].plugin_name)
+        self.assertEqual(2, plugins[0].ORDER)
 
     def test_defaults(self):
         """
         Check that defaults get initialized
         """
         self._load_test_plugin('empty.py', 'empty.py')
-        plugin = self.site.plugin_manager.plugins[0]
+        plugins = self._get_custom_plugins()
+
+        plugin = plugins[0]
         self.assert_(hasattr(plugin, 'preBuild'))
         self.assert_(hasattr(plugin, 'postBuild'))
         self.assertEqual(-1, plugin.ORDER)
@@ -43,9 +53,11 @@ class TestPluginLoader(SiteTest):
         Check that plugins get called
         """
         self._load_test_plugin('test.py', 'call.py')
-        plugin = self.site.plugin_manager.plugins[0]
+        plugins = self._get_custom_plugins()
 
-        self.assertEqual('plugin_call', plugin.__name__)  # Just to check we're looking at the right one.
+        plugin = plugins[0]
+
+        self.assertEqual('plugin_call', plugin.plugin_name)  # Just to check we're looking at the right one.
 
         self.site.build()
 

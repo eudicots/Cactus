@@ -83,15 +83,15 @@ class TestConfigRouter(unittest.TestCase):
 
     def test_nested(self):
         """
-        Test that we support nested config for variables
+        Test that we support nested config for context
         """
-        self.conf1.set("variables", {"k1":"v1"})
-        self.conf2.set("variables", {"k2":"v2"})
+        self.conf1.set("context", {"k1":"v1"})
+        self.conf2.set("context", {"k2":"v2"})
         self.conf1.write()
         self.conf2.write()
 
         router = ConfigRouter([self.path1, self.path2])
-        variables = router.get("variables", default={}, nested=True)
+        context = router.get("context", default={}, nested=True)
 
-        self.assertEqual(variables.get("k1"), "v1")
-        self.assertEqual(variables.get("k2"), "v2")
+        self.assertEqual(context.get("k1"), "v1")
+        self.assertEqual(context.get("k2"), "v2")

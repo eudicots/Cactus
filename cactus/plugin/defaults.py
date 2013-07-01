@@ -45,7 +45,9 @@ def postBuildStatic(static):
 
 def preBuild(site):
     """
-    Called prior to building the site, after loading configuration, plugins and externals.
+    Called prior to building the site, after loading configuration and plugins.
+
+    A good time to register your externals.
 
     :param site: The site about to be built.
     :returns: None
@@ -65,6 +67,8 @@ def postBuild(site):
 def preDeploy(site):
     """
     Called prior to deploying the site (built files)
+
+    A good time to configure custom headers
 
     :param site: The site about to be deployed.
     :returns: None
