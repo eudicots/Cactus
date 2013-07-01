@@ -51,9 +51,6 @@ class BaseTest(unittest.TestCase):
 class SiteTest(BaseTest):
     def setUp(self):
         super(SiteTest, self).setUp()
-
-        #TODO: Add the required hooks to load the site from here
-
         self.config_path = os.path.join(self.path, 'config.json')
         self.conf = ConfigRouter([self.config_path])
         self.conf.set('site-url', 'http://example.com/')
