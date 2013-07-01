@@ -80,7 +80,7 @@ setup(
         'argparse'
     ],
     zip_safe=False,
-    tests_require=['nose'],
+    tests_require=['nose', 'mock'],
     test_suite='nose.collector',
     classifiers=[],
 )
