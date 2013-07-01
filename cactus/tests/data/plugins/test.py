@@ -11,7 +11,7 @@ class TestPluginMethod(object):
             return self.fn(*args, **kwargs)
 
 
-preBuildPage = TestPluginMethod(lambda site, page, context, data: (context, data,))  # site, page, context, data
+preBuildPage = TestPluginMethod(lambda page, context, data: (context, data,))  # site, page, context, data
 postBuildPage = TestPluginMethod()  # page / site, page, context, data
 preBuild = TestPluginMethod()  # site
 postBuild = TestPluginMethod()  # site

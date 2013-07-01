@@ -1,11 +1,9 @@
 #coding:utf-8
 import functools
 
+from cactus.utils.internal import getargspec
 from cactus.plugin.loader import PluginLoader
 from cactus.plugin import defaults
-
-
-ACCEPTED_PREBUILD_ERROR_MESSAGES = "preBuildPage() takes exactly"
 
 
 class PluginManager(object):
@@ -31,17 +29,29 @@ class PluginManager(object):
     def preBuildPage(self, site, page, context, data):
         """
         Special call as we have changed the API for this.
+
+        We have two calling conventions:
+        - The new one, which passes page, context, data
+        - The deprecated one, which also passes the site (Now accessible via the page)
         """
         for plugin in self.plugins:
-            arg_lists = [[site, page, context, data], [page, context, data]]
-            for arg_list in arg_lists:
-                try:  # TODO: Use `import inspect`
-                    context, data = plugin.preBuildPage(*arg_list)
-                except TypeError as e:
-                    if e.args[0].startswith(ACCEPTED_PREBUILD_ERROR_MESSAGES):
-                        continue  # Wrong calling convention: try again
-                    raise
-                else:
-                    break  # Correct calling convention: do not run again.
+            # Find the correct calling convention
+            new = [page, context, data]
+            deprecated = [site, page, context, data]
+            arg_lists = {len(l):l for l in [deprecated, new]}
+
+            try:
+                # Try to find the best calling convention
+                n_args = len(getargspec(plugin.preBuildPage).args)
+                # Just use the new calling convention if there's fancy usage of
+                # *args, **kwargs that we can't control.
+                arg_list = arg_lists.get(n_args, new)
+            except NotImplementedError:
+                # If we can't get the number of args, use the new one.
+                arg_list = new
+
+            # Call with the best calling convention we have.
+            # If that doesn't work, then we'll let the error escalate.
+            context, data = plugin.preBuildPage(*arg_list)
 
         return context, data
