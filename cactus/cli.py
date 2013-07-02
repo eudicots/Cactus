@@ -7,11 +7,17 @@ import time
 import argparse
 
 import cactus
-from cactus.utils.packaging import bootstrap
+from cactus.bootstrap import bootstrap
 
 
-def create(path):
-    """Creates a new project at the given path."""
+def create(path, skeleton=None):
+    """
+    Creates a new project at the given path.
+
+    :param path: The path where the new project should be created
+    :param skeleton: An (optional) skeleton to use to create the project.
+                     This could be a zip, tar archive (file path or URL)
+    """
 
     if os.path.exists(path):
         if raw_input('Path %s exists, move aside (y/n): ' % path) == 'y':
@@ -19,7 +25,7 @@ def create(path):
         else:
             sys.exit()
 
-    bootstrap(path)
+    bootstrap(path, skeleton)
 
 
 def build(path, config):
@@ -53,9 +59,10 @@ def main():
     subparsers = parser.add_subparsers(title = 'subcommands', description = 'Valid subcommands',
                                        help = 'Select a command to run.')
 
-    parser_create = subparsers.add_parser('create', help = 'Create a new project')
-    parser_create.add_argument('path', help = 'The path where the new project should be created')
-    parser_create.set_defaults(target = create)
+    parser_create = subparsers.add_parser('create', help='Create a new project')
+    parser_create.add_argument('path', help='The path where the new project should be created')
+    parser_create.add_argument('-s', '--skeleton', help='An archive to use as skeleton to create the new project')
+    parser_create.set_defaults(target=create)
 
     parser_build = subparsers.add_parser('build', help = 'Build the current project.')
     parser_build.set_defaults(target = build)

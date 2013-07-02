@@ -5,8 +5,8 @@ import shutil
 import os
 
 import django.conf
+from cactus.bootstrap import bootstrap
 
-from cactus.utils.packaging import bootstrap
 from cactus import Site
 from cactus.config.router import ConfigRouter
 
