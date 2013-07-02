@@ -9,6 +9,8 @@ from cactus.utils.url import ResourceURLHelperMixin
 
 
 class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
+    discarded = False
+
     def __init__(self, site, source_path):
         self.site = site
 
@@ -99,20 +101,21 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         """
         Save the rendered output to the output file.
         """
-        logging.info('Building {0} --> {1}'.format(self.source_path, self.final_url))
+        logging.info('Building {0} --> {1}'.format(self.source_path, self.final_url))  #TODO: Fix inconsistency w/ static
+        data = self.render()  #TODO: This calls preBuild indirectly. Not great.
 
-        data = self.render()
+        if not self.discarded:
 
-        # Make sure a folder for the output path exists
-        try:
-            os.makedirs(os.path.dirname(self.full_build_path))
-        except OSError:
-            pass
+            # Make sure a folder for the output path exists
+            try:
+                os.makedirs(os.path.dirname(self.full_build_path))
+            except OSError:
+                pass
 
-        with open(self.full_build_path, 'w') as f:
-            f.write(data.encode('utf-8'))
+            with open(self.full_build_path, 'w') as f:
+                f.write(data.encode('utf-8'))
 
-        self.site.plugin_manager.postBuildPage(self)
+            self.site.plugin_manager.postBuildPage(self)
 
     def parse_context(self, data, splitChar=':'):
         """

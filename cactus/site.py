@@ -15,6 +15,7 @@ from cactus.config.router import ConfigRouter
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.builtin.context import ContextPlugin
+from cactus.plugin.builtin.ignore import IgnorePatternsPlugin
 from cactus.plugin.loader import CustomPluginsLoader, ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
@@ -57,7 +58,7 @@ class Site(SiteCompatibilityLayer):
         # Load Managers
         self.plugin_manager = PluginManager([
             CustomPluginsLoader(self.plugin_path),   # User plugins
-            ObjectsPluginLoader([ContextPlugin(), CacheDurationPlugin()])  # Builtin plugins
+            ObjectsPluginLoader([ContextPlugin(), CacheDurationPlugin(), IgnorePatternsPlugin()])  # Builtin plugins
         ])
 
         self.external_manager = ExternalManager()

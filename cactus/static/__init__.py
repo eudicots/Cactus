@@ -139,8 +139,9 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         self.discarded = True  #TODO: Warn on usage of the static!
 
     def build(self):
+        self.site.plugin_manager.preBuildStatic(self)
+
         if not self.discarded:
-            self.site.plugin_manager.preBuildStatic(self)
 
             logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
