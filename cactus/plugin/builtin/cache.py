@@ -1,6 +1,10 @@
 #coding:utf-8
 
 class CacheDurationPlugin(object):
+    """
+    A plugin to make the default cache expiry configurable via a "cache-duration" configuration setting
+    """
+
     def preDeploy(self, site):
         """
         Load the cache duration from the config
