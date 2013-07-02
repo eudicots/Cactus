@@ -1,14 +1,16 @@
 #coding:utf-8
-import shutil
 import os
+import shutil
 
-from cactus import Site
+from cactus.plugin.loader import CustomPluginsLoader
+from cactus.plugin.manager import PluginManager
 from cactus.tests import SiteTest
 
 
 class TestPluginLoader(SiteTest):
     def setUp(self):
         super(TestPluginLoader, self).setUp()
+        self.site.plugin_manager = PluginManager([CustomPluginsLoader(self.site.path)])
         shutil.rmtree(self.site.plugin_path)
         os.makedirs(self.site.plugin_path)
 
@@ -18,12 +20,6 @@ class TestPluginLoader(SiteTest):
         shutil.copy(src_path, dst_path)
         self.site.plugin_manager.reload()
 
-    def _get_custom_plugins(self):
-        """
-        Return the list of custom plugins that are loaded.
-        """
-        return [p for p in self.site.plugin_manager.plugins if not p.builtin]
-
     def test_ignore_disabled(self):
         self._load_test_plugin('test.py', 'test.disabled.py')
         self.assertEqual([], [p for p in self.site.plugin_manager.plugins if not p.builtin])
@@ -31,7 +27,7 @@ class TestPluginLoader(SiteTest):
     def test_load_plugin(self):
         self._load_test_plugin('test.py', 'test.py')
 
-        plugins = self._get_custom_plugins()
+        plugins = self.site.plugin_manager.plugins
         self.assertEqual(1, len(plugins ))
         self.assertEqual('plugin_test', plugins[0].plugin_name)
         self.assertEqual(2, plugins[0].ORDER)
@@ -41,7 +37,7 @@ class TestPluginLoader(SiteTest):
         Check that defaults get initialized
         """
         self._load_test_plugin('empty.py', 'empty.py')
-        plugins = self._get_custom_plugins()
+        plugins = self.site.plugin_manager.plugins
 
         plugin = plugins[0]
         self.assert_(hasattr(plugin, 'preBuild'))
@@ -53,7 +49,7 @@ class TestPluginLoader(SiteTest):
         Check that plugins get called
         """
         self._load_test_plugin('test.py', 'call.py')
-        plugins = self._get_custom_plugins()
+        plugins = self.site.plugin_manager.plugins
 
         plugin = plugins[0]
 

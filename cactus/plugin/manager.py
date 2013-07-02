@@ -2,13 +2,12 @@
 import functools
 
 from cactus.utils.internal import getargspec
-from cactus.plugin.loader import PluginLoader
 from cactus.plugin import defaults
 
 
 class PluginManager(object):
-    def __init__(self, plugin_path):
-        self.loader = PluginLoader(plugin_path)
+    def __init__(self, loaders):
+        self.loaders = loaders
         self.reload()
 
         for plugin_method in defaults.DEFAULTS:
@@ -16,7 +15,11 @@ class PluginManager(object):
                 setattr(self, plugin_method, functools.partial(self.call, plugin_method))
 
     def reload(self):
-        self.plugins = self.loader.load()
+        plugins = []
+        for loader in self.loaders:
+            plugins.extend(loader.load())
+
+        self.plugins = sorted(plugins, key=lambda plugin: plugin.ORDER)
 
     def call(self, method, *args, **kwargs):
         """
