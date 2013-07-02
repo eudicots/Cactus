@@ -34,13 +34,6 @@ class File(object):
         self.payload_checksum = checksum(payload)
         self.lastUpload = 0
 
-    def cache_duration(self):
-        configured_duration = self.site.config.get("cache-duration")
-
-        if configured_duration is not None:
-            return configured_duration
-        return self.DEFAULT_CACHE_EXPIRATION
-
     @memoize
     def data(self):
         with open(os.path.join(self.site.path, '.build', self.path), 'rb') as f:
@@ -129,10 +122,11 @@ class File(object):
 
         self.headers = CaseInsensitiveDict()
 
+        # Plugins may actually update this value afterwards
         if self.is_fingerprinted:
             cache_control = self.MAX_CACHE_EXPIRATION
         else:
-            cache_control = self.cache_duration()
+            cache_control = self.DEFAULT_CACHE_EXPIRATION
         self.headers['Cache-Control'] = 'max-age={0}'.format(cache_control)
 
         if self.is_compressed:

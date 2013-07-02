@@ -8,6 +8,7 @@ import hashlib
 from cactus.config.router import ConfigRouter
 
 from cactus.file import File
+from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.loader import ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 
@@ -54,8 +55,9 @@ class TestDeployFile(unittest.TestCase):
             f.write(content)
 
         p = TestHeadersPlugin()
-        self.site.plugin_manager.loaders = [ObjectsPluginLoader([p])]
+        self.site.plugin_manager.loaders = [ObjectsPluginLoader([p, CacheDurationPlugin()])]
         self.site.plugin_manager.reload()
+        self.site.plugin_manager.preDeploy(self.site)
         f = File(self.site, filename)
         f.upload(self.bucket)
 
@@ -69,19 +71,26 @@ class TestDeployFile(unittest.TestCase):
         with open(os.path.join(self.build_path, "123.html"), "w") as f:
             f.write("abc")
 
+        # Prepare setup
         p = TestHeadersPlugin()
-        self.site.plugin_manager.loaders = [ObjectsPluginLoader([p])]
+        self.site.plugin_manager.loaders = [ObjectsPluginLoader([p, CacheDurationPlugin()])]
         self.site.plugin_manager.reload()
         f = File(self.site, "123.html")
 
+        # Test with no configured cache duration
         self.site.config.set("cache-duration", None)
+        self.site.plugin_manager.preDeploy(self.site)
+
         f.upload(self.bucket)
         self.assertIn("cache-control", p.headers)
         cache_control = p.headers["cache-control"]
         self.assertTrue(cache_control.startswith('max-age='))
         self.assertEqual(int(cache_control.split('=')[1]), f.DEFAULT_CACHE_EXPIRATION)
 
+        # Test with a configured cache duration
         self.site.config.set("cache-duration", 123)
+        self.site.plugin_manager.preDeploy(self.site)
+
         f.upload(self.bucket)
         self.assertIn("cache-control", p.headers)
         cache_control = p.headers["cache-control"]

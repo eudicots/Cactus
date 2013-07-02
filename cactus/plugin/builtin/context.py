@@ -9,7 +9,7 @@ class ContextPlugin(object):
 
     def preBuild(self, site):
         """
-        Load the context from the config file
+        Load the context from the config
         """
         self.context = site.config.get("context", {}, nested=True)
 
