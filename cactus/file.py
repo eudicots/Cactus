@@ -10,7 +10,7 @@ from cactus import mime
 from cactus.utils.file import compressString, fileSize
 from cactus.utils.helpers import CaseInsensitiveDict, memoize, checksum
 from cactus.utils.network import retry
-from cactus.utils.url import getURLHeaders
+from cactus.utils import url
 
 
 class File(object):
@@ -35,8 +35,10 @@ class File(object):
         self.lastUpload = 0
 
     def cache_duration(self):
-        if self.site.cache_duration is not None:
-            return self.site.cache_duration
+        configured_duration = self.site.config.get("cache-duration")
+
+        if configured_duration is not None:
+            return configured_duration
         return self.DEFAULT_CACHE_EXPIRATION
 
     @memoize
@@ -113,7 +115,7 @@ class File(object):
         if self.force_refresh:
             return True
 
-        remote_headers = {k: v.strip('"') for k, v in getURLHeaders(self.remoteURL()).items()}
+        remote_headers = {k: v.strip('"') for k, v in url.getURLHeaders(self.remoteURL()).items()}
         local_headers = copy.copy(self.headers)
         local_headers['etag'] = self.payload_checksum
         for k, v in local_headers.items():  # Don't check AWS' own headers.
