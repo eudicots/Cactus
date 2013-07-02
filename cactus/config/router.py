@@ -60,6 +60,10 @@ class ConfigRouter(object):
 
         If none do, write it to the first one.
         """
+        if not self.configs:
+            logging.warn("Discarding set %s=%s: no config files available", key, value)
+            return
+
         write_to = None
 
         for config in self.configs:
