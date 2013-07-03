@@ -4,7 +4,7 @@ import logging
 import tempfile
 import shutil
 
-from cactus.utils.compat import StaticCompatibilityLayer
+from cactus.compat.paths import StaticCompatibilityLayer
 from cactus.utils.file import calculate_file_checksum
 from cactus.utils.filesystem import alt_file
 from cactus.utils.url import ResourceURLHelperMixin

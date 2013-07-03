@@ -19,7 +19,7 @@ from cactus.plugin.builtin.ignore import IgnorePatternsPlugin
 from cactus.plugin.loader import CustomPluginsLoader, ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
-from cactus.utils.compat import SiteCompatibilityLayer
+from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
 from cactus.utils.helpers import multiMap, memoize

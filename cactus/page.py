@@ -1,10 +1,9 @@
 import os
 import logging
-import copy
 import urlparse
 
 from django.template import Template, Context
-from cactus.utils.compat import PageCompatibilityLayer
+from cactus.compat.paths import PageCompatibilityLayer
 from cactus.utils.url import ResourceURLHelperMixin
 
 

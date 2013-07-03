@@ -1,3 +1,5 @@
+#coding:utf-8
+
 class VirtualPaths(object):
     def __init__(self, obj, mapping):
         self.obj = obj
@@ -10,7 +12,7 @@ class VirtualPaths(object):
 
 class CompatibilityLayer(object):
     """
-    Ensure compatibility with older versions of Cactus.
+    Ensure backwards compatibility with older versions of Cactus.
     """
     mapping = {}
 
