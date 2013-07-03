@@ -20,6 +20,7 @@ from cactus.plugin.loader import CustomPluginsLoader, ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
 from cactus.compat.paths import SiteCompatibilityLayer
+from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
 from cactus.utils.helpers import multiMap, memoize
@@ -58,7 +59,10 @@ class Site(SiteCompatibilityLayer):
         # Load Managers
         self.plugin_manager = PluginManager([
             CustomPluginsLoader(self.plugin_path),   # User plugins
-            ObjectsPluginLoader([ContextPlugin(), CacheDurationPlugin(), IgnorePatternsPlugin()])  # Builtin plugins
+            ObjectsPluginLoader([  # Builtin plugins
+                ContextPlugin(), CacheDurationPlugin(),
+                IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
+            ])
         ])
 
         self.external_manager = ExternalManager()
@@ -181,6 +185,8 @@ class Site(SiteCompatibilityLayer):
         """
         Generate fresh site from templates.
         """
+        #TODO: Facility to reset the site, and reload config.
+        #TODO: Currently, we can't build a site instance multiple times
         self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
 
         self.plugin_manager.preBuild(self)
