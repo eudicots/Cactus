@@ -95,3 +95,19 @@ class TestConfigRouter(unittest.TestCase):
 
         self.assertEqual(context.get("k1"), "v1")
         self.assertEqual(context.get("k2"), "v2")
+
+    def test_dirty(self):
+        """
+        Test that we don't re-write files that we haven't changed
+        """
+
+        self.conf1.set("a", "b")
+        self.conf1.write()
+
+        with open(self.path1, "w") as f:
+            f.write("canary")
+
+        self.conf1.write()
+
+        with open(self.path1) as f:
+            self.assertEqual("canary", f.read())

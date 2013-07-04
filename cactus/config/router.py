@@ -42,7 +42,7 @@ class ConfigRouter(object):
 
         return default
 
-    def get(self, key, default=None, nested=False):
+    def get(self, key, default=None, nested=False):  #TODO: Mutable default.. copy?
         """
         Retrieve a config key from the first config that has it.
         Return default if no config has it.
