@@ -2,12 +2,12 @@
 import os
 import shutil
 
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 from cactus.utils.filesystem import fileList
 from cactus.utils.url import path_to_url
 
 
-class TestSite(SiteTest):
+class TestSite(SiteTestCase):
     def testBuild(self):
         """
         Test that we build the proper files.

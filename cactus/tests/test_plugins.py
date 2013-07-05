@@ -4,10 +4,10 @@ import shutil
 
 from cactus.plugin.loader import CustomPluginsLoader
 from cactus.plugin.manager import PluginManager
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
-class TestPluginLoader(SiteTest):
+class TestPluginLoader(SiteTestCase):
     def setUp(self):
         super(TestPluginLoader, self).setUp()
         self.site.plugin_manager = PluginManager([CustomPluginsLoader(self.site.path)])

@@ -1,8 +1,8 @@
 #coding:utf-8
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
-class TestCompatibility(SiteTest):
+class TestCompatibility(SiteTestCase):
     def _paths_key_exists(self, obj, old_key):
         try:
             obj.paths[old_key]

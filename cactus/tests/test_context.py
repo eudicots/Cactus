@@ -1,9 +1,9 @@
 #coding:utf-8
 import os
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
-class TestSiteContext(SiteTest):
+class TestSiteContext(SiteTestCase):
     """
     Test that the proper context is provided to the pages
 
