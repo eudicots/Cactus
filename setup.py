@@ -2,8 +2,8 @@ import os
 import sys
 import subprocess
 import shutil
-from distutils.sysconfig import get_python_lib
 
+from distutils.sysconfig import get_python_lib
 from setuptools import setup
 
 
@@ -27,11 +27,11 @@ if "uninstall" in sys.argv:
             cactusPackagePath = os.path.join(get_python_lib(), p)
 
     if cactusBinPath and os.path.exists(cactusBinPath):
-        print 'Removing cactus script at %s' % cactusBinPath
+        sys.stdout.write('Removing cactus script at %s' % cactusBinPath)
         os.unlink(cactusBinPath)
 
     if cactusPackagePath and os.path.isdir(cactusPackagePath):
-        print 'Removing cactus package at %s' % cactusPackagePath
+        sys.stdout.write('Removing cactus package at %s' % cactusPackagePath)
         shutil.rmtree(cactusPackagePath)
 
     sys.exit()
@@ -43,18 +43,18 @@ if "install" in sys.argv or "bdist_egg" in sys.argv:
     p2 = '/usr/local/bin/cactus.pyc'
 
     if os.path.exists(p1) or os.path.exists(p2):
-        print "Error: you have an old version of Cactus installed, we need to move it:"
+        sys.stdout.write("Error: you have an old version of Cactus installed, we need to move it:")
         if os.path.exists(p1):
-            print "  sudo rm %s" % p1
+            sys.stderr.write("  sudo rm %s" % p1)
         if os.path.exists(p2):
-            print "  sudo rm %s" % p2
+            sys.stderr.write("  sudo rm %s" % p2)
         sys.exit()
 
 setup(
     name='Cactus',
     version=VERSION,
     description="Static site generation and deployment.",
-    long_description=open('readme.md').read(),
+    long_description=open('README.md').read(),
     url='http://github.com/koenbok/Cactus',
     download_url='https://github.com/koenbok/Cactus/tarball/v%s#egg=Cactus-%s' % (VERSION, VERSION),
     author='Koen Bok',
@@ -81,7 +81,8 @@ setup(
         'argparse'
     ],
     zip_safe=False,
-    tests_require=['nose', 'mock'],
+    setup_requires=['nose'],
+    tests_require=['nose', 'mock', 'tox'],
     test_suite='nose.collector',
     classifiers=[],
 )

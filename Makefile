@@ -13,7 +13,7 @@ clean:
 	rm -Rf build Cactus.egg-info dist
 
 test:
-	python setup.py test
+	tox
 
 alltests:
 	make clean
@@ -24,4 +24,4 @@ alltests:
 submit:
 	python setup.py register
 
-.PHONY: test skeleton
+.PHONY: test
