@@ -33,7 +33,7 @@ There is also an example blog project included.
 
 Install Cactus with the following one liner
 
-    sudo easy_install https://github.com/koenbok/Cactus/zipball/master
+    sudo easy_install cactus
 
 If you saw no errors, you can now generate a new project
 
@@ -161,9 +161,7 @@ You can enable this by adding modifying your configuration and adding:
     "prettify": true
 
 Note that if you're going to use this, you should definitely set your "Meta canonical" to the URL you're using so as
-to not hurt your search rankings. Add this to your template's `<head>`:
-
-    <link rel="canonical" href="{{ CURRENT_PAGE.absolute_final_url }}" />
+to not hurt your search rankings.
 
 
 #### Extra files
