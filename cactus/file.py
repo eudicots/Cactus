@@ -108,7 +108,7 @@ class File(object):
         if self.force_refresh:
             return True
 
-        remote_headers = {k: v.strip('"') for k, v in url.getURLHeaders(self.remoteURL()).items()}
+        remote_headers = dict((k, v.strip('"')) for k, v in url.getURLHeaders(self.remoteURL()).items())
         local_headers = copy.copy(self.headers)
         local_headers['etag'] = self.payload_checksum
         for k, v in local_headers.items():  # Don't check AWS' own headers.

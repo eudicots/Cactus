@@ -38,6 +38,10 @@ from cactus.browser import browserReload, browserReloadCSS
 class Site(SiteCompatibilityLayer):
     _path = None
     _static = None
+    _s3_api_endpoint = 's3.amazonaws.com'
+    _s3_port = 443
+    _s3_is_secure = True
+    _s3_https_connection_factory = None
 
     def __init__(self, path, config_paths):
         if not config_paths:
@@ -58,7 +62,7 @@ class Site(SiteCompatibilityLayer):
 
         # Load Managers
         self.plugin_manager = PluginManager([
-            CustomPluginsLoader(self.plugin_path),   # User plugins
+            CustomPluginsLoader(self.plugin_path),  # User plugins
             ObjectsPluginLoader([  # Builtin plugins
                 ContextPlugin(), CacheDurationPlugin(),
                 IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
@@ -232,7 +236,7 @@ class Site(SiteCompatibilityLayer):
         if is_external(src_url):
             return src_url
 
-        resources_dict = {resource.link_url: resource for resource in resources}
+        resources_dict = dict((resource.link_url, resource) for resource in resources)
 
         try:
             return resources_dict[src_url].final_url
@@ -340,17 +344,21 @@ class Site(SiteCompatibilityLayer):
         # Get access information from the config or the user
         awsAccessKey = self.config.get('aws-access-key') or \
             raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
+
+        #TODO: Fixme!
         awsSecretKey = getpassword('aws', awsAccessKey) or \
             getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
 
         # Try to fetch the buckets with the given credentials
-        connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
+        connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip(),
+                        host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
+                        https_connection_factory=self._s3_https_connection_factory)
 
         logging.debug('Start get_all_buckets')
         # Exit if the information was not correct
         try:
             buckets = connection.get_all_buckets()
-        except Exception:
+        except Exception as e:
             logging.info('Invalid login credentials, please try again...')
             return
         logging.debug('end get_all_buckets')
@@ -358,6 +366,7 @@ class Site(SiteCompatibilityLayer):
         # If it was correct, save it for the future
         self.config.set('aws-access-key', awsAccessKey)
         self.config.write()
+
 
         setpassword('aws', awsAccessKey, awsSecretKey)
 
@@ -406,6 +415,7 @@ class Site(SiteCompatibilityLayer):
         logging.info('Uploading site to bucket %s' % awsBucketName)
 
         # Upload all files concurrently in a thread pool
+        #multiMap = map #TODO: Fixme!
         totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
         changedFiles = [r for r in totalFiles if r['changed']]
 

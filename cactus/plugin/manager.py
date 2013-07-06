@@ -41,7 +41,7 @@ class PluginManager(object):
             # Find the correct calling convention
             new = [page, context, data]
             deprecated = [site, page, context, data]
-            arg_lists = {len(l):l for l in [deprecated, new]}
+            arg_lists = dict((len(l), l) for l in [deprecated, new])
 
             try:
                 # Try to find the best calling convention

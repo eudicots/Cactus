@@ -1,10 +1,10 @@
 #coding:utf-8
 import os
 
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
-class TestLegacyContext(SiteTest):
+class TestLegacyContext(SiteTestCase):
     def setUp(self):
         super(TestLegacyContext, self).setUp()
         os.mkdir(os.path.join(self.site.page_path, "test"))

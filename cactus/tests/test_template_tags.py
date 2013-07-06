@@ -1,10 +1,10 @@
 #coding:utf-8
 import os
 
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
-class TestPageTags(SiteTest):
+class TestPageTags(SiteTestCase):
     """
     {% current_page %} should return the URL the user is currently seeing.
     {% url 'page.html' %} should return the link to a page
@@ -57,7 +57,7 @@ class TestPageTags(SiteTest):
             self.assertEqual(f.read(), "0")
 
 
-class TestStatic(SiteTest):
+class TestStatic(SiteTestCase):
     """
     {% static %} should convert from a link_url to a final_url
     """

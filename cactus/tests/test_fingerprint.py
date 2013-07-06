@@ -1,6 +1,6 @@
 #coding:utf-8
 import os
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
 class TestFingerPrintingMixin(object):
@@ -10,7 +10,7 @@ class TestFingerPrintingMixin(object):
         return {"fingerprint": self.fingerprint_extensions}
 
 
-class TestFingerprintingOff(TestFingerPrintingMixin, SiteTest):
+class TestFingerprintingOff(TestFingerPrintingMixin, SiteTestCase):
     fingerprint_extensions = []
 
     def setUp(self):
@@ -26,7 +26,7 @@ class TestFingerprintingOff(TestFingerPrintingMixin, SiteTest):
         self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
 
 
-class TestFingerprintingOn(TestFingerPrintingMixin, SiteTest):
+class TestFingerprintingOn(TestFingerPrintingMixin, SiteTestCase):
     fingerprint_extensions = ["css", "js"]
 
     def setUp(self):
@@ -46,7 +46,7 @@ class TestFingerprintingOn(TestFingerPrintingMixin, SiteTest):
         self.assertFileExists(os.path.join(self.site.build_path, self.site.get_url_for_static(static)[1:]))
 
 
-class TestFingerprintingSelective(TestFingerPrintingMixin, SiteTest):
+class TestFingerprintingSelective(TestFingerPrintingMixin, SiteTestCase):
     fingerprint_extensions = ["css"]
 
     def setUp(self):

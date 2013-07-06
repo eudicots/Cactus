@@ -1,9 +1,9 @@
 #coding:utf-8
 import os
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
-class TestIgnore(SiteTest):
+class TestIgnore(SiteTestCase):
     def test_ignore_static(self):
         with open(os.path.join(self.site.static_path, "koen.psd"), "w") as f:
             f.write("Not really a psd")

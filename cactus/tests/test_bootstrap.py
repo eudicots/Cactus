@@ -10,7 +10,7 @@ from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 from cactus.bootstrap import bootstrap
-from cactus.tests import BaseTest
+from cactus.tests import BaseTestCase
 from cactus.utils.filesystem import fileList
 
 
@@ -34,7 +34,7 @@ def ArchiveServerHandlerFactory(archive_path):
     return ArchiveHandler
 
 
-class TestBootstrap(BaseTest):
+class TestBootstrap(BaseTestCase):
     def testBootstrap(self):
         self.assertEqual(
             sorted(fileList(self.path, relative=True)),

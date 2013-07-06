@@ -4,7 +4,7 @@ import shutil
 from cactus.static.external.exceptions import ExternalFailure
 
 from cactus.static.external import External
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
 class TestExternal(External):
@@ -73,7 +73,7 @@ class DiscardingProcessor(DummyProc):
 
 
 
-class TestStaticExternals(SiteTest):
+class TestStaticExternals(SiteTestCase):
     """
     Test that externals are called properly, and that exceptions are handled properly.
     """

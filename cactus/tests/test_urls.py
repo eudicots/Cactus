@@ -1,9 +1,9 @@
 #coding:utf-8
 import os
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 
 
-class TestPrettyURLS(SiteTest):
+class TestPrettyURLS(SiteTestCase):
     def get_config_for_test(self):
         return {"prettify": True}
 

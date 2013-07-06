@@ -1,18 +1,21 @@
 #coding:utf-8
-import unittest
 import tempfile
 import shutil
 import os
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import django.conf
-from cactus.bootstrap import bootstrap
 
 from cactus import Site
+from cactus.bootstrap import bootstrap
 from cactus.config.router import ConfigRouter
 
 
 
-class BaseTest(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.path = os.path.join(self.test_dir, 'test')
@@ -48,9 +51,9 @@ class BaseTest(unittest.TestCase):
 
 
 
-class SiteTest(BaseTest):
+class SiteTestCase(BaseTestCase):
     def setUp(self):
-        super(SiteTest, self).setUp()
+        super(SiteTestCase, self).setUp()
         self.config_path = os.path.join(self.path, 'config.json')
         self.conf = ConfigRouter([self.config_path])
         self.conf.set('site-url', 'http://example.com/')

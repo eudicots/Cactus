@@ -2,12 +2,12 @@
 import os
 import shutil
 
-from cactus.tests import SiteTest
+from cactus.tests import SiteTestCase
 from cactus.utils.filesystem import fileList
 from cactus.utils.url import path_to_url
 
 
-class TestSite(SiteTest):
+class TestSite(SiteTestCase):
     def testBuild(self):
         """
         Test that we build the proper files.
@@ -42,9 +42,9 @@ class TestSite(SiteTest):
 
         self.site.build()
 
-        with open(os.path.join('cactus', 'tests', 'data', 'test-out.html'), "rU") as expected, \
-            open(os.path.join(self.path, '.build', 'test.html'), "rU") as obtained:
-            self.assertEqual(expected.read(), obtained.read())
+        with open(os.path.join('cactus', 'tests', 'data', 'test-out.html'), "rU") as expected:
+            with open(os.path.join(self.path, '.build', 'test.html'), "rU") as obtained:
+                self.assertEqual(expected.read(), obtained.read())
 
     def testPageContext(self):
         """
@@ -58,9 +58,9 @@ class TestSite(SiteTest):
 
         self.site.build()
 
-        with open(os.path.join('cactus', 'tests', 'data', 'koenpage-out.html'), "rU") as expected, \
-            open(os.path.join(self.path, '.build', 'koenpage.html'), "rU") as obtained:
-            self.assertEqual(expected.read(), obtained.read())
+        with open(os.path.join('cactus', 'tests', 'data', 'koenpage-out.html'), "rU") as expected:
+            with open(os.path.join(self.path, '.build', 'koenpage.html'), "rU") as obtained:
+                self.assertEqual(expected.read(), obtained.read())
 
     def test_html_only_context(self):
         """
