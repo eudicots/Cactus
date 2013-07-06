@@ -18,8 +18,8 @@ class TestSite(SiteTestCase):
         self.assertEqual(os.path.exists(os.path.join(self.path, 'build')), False)
 
         self.assertEqual(
-            [path_to_url(path) for path in fileList(os.path.join(self.path, '.build'), relative=True)],
-            [
+            sorted([path_to_url(path) for path in fileList(os.path.join(self.path, '.build'), relative=True)]),
+            sorted([
                 'error.html',
                 'index.html',
                 'robots.txt',
@@ -27,7 +27,7 @@ class TestSite(SiteTestCase):
                 self.site.get_url_for_static('/static/css/style.css')[1:],  # Strip the initial /
                 self.site.get_url_for_static('/static/images/favicon.ico')[1:],  # Strip the initial /
                 self.site.get_url_for_static('/static/js/main.js')[1:],  # Strip the initial /
-        ])
+        ]))
 
     def testRenderPage(self):
         """

@@ -26,8 +26,8 @@ class TestSiteContext(SiteTestCase):
         Test that the site context is provided.
         """
         self.assertEqual(
-            [page.source_path for page in self.site.context()['CACTUS']['pages']],
-            ['error.html', 'index.html', 'test.html']
+            sorted([page.source_path for page in self.site.context()['CACTUS']['pages']]),
+            sorted(['error.html', 'index.html', 'test.html'])
         )
 
     def test_custom_context(self):
