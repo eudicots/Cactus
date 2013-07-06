@@ -236,7 +236,7 @@ class Site(SiteCompatibilityLayer):
         if is_external(src_url):
             return src_url
 
-        resources_dict = {resource.link_url: resource for resource in resources}
+        resources_dict = dict((resource.link_url, resource) for resource in resources)
 
         try:
             return resources_dict[src_url].final_url

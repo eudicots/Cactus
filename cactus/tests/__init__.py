@@ -1,13 +1,16 @@
 #coding:utf-8
-import unittest
 import tempfile
 import shutil
 import os
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 import django.conf
-from cactus.bootstrap import bootstrap
 
 from cactus import Site
+from cactus.bootstrap import bootstrap
 from cactus.config.router import ConfigRouter
 
 

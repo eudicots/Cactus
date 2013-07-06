@@ -82,7 +82,7 @@ setup(
     ],
     zip_safe=False,
     setup_requires=['nose'],
-    tests_require=['nose', 'mock', 'tox'],
+    tests_require=['nose', 'mock', 'tox', 'unittest2'],
     test_suite='nose.collector',
     classifiers=[],
 )

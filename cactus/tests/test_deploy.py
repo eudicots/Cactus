@@ -2,11 +2,14 @@
 import os
 import shutil
 import tempfile
-import unittest
 import mock
 import hashlib
-from cactus.config.router import ConfigRouter
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
+from cactus.config.router import ConfigRouter
 from cactus.file import File
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.loader import ObjectsPluginLoader

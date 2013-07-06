@@ -42,9 +42,9 @@ class TestSite(SiteTestCase):
 
         self.site.build()
 
-        with open(os.path.join('cactus', 'tests', 'data', 'test-out.html'), "rU") as expected, \
-            open(os.path.join(self.path, '.build', 'test.html'), "rU") as obtained:
-            self.assertEqual(expected.read(), obtained.read())
+        with open(os.path.join('cactus', 'tests', 'data', 'test-out.html'), "rU") as expected:
+            with open(os.path.join(self.path, '.build', 'test.html'), "rU") as obtained:
+                self.assertEqual(expected.read(), obtained.read())
 
     def testPageContext(self):
         """
@@ -58,9 +58,9 @@ class TestSite(SiteTestCase):
 
         self.site.build()
 
-        with open(os.path.join('cactus', 'tests', 'data', 'koenpage-out.html'), "rU") as expected, \
-            open(os.path.join(self.path, '.build', 'koenpage.html'), "rU") as obtained:
-            self.assertEqual(expected.read(), obtained.read())
+        with open(os.path.join('cactus', 'tests', 'data', 'koenpage-out.html'), "rU") as expected:
+            with open(os.path.join(self.path, '.build', 'koenpage.html'), "rU") as obtained:
+                self.assertEqual(expected.read(), obtained.read())
 
     def test_html_only_context(self):
         """
