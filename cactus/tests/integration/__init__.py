@@ -4,6 +4,7 @@ import shutil
 from cactus.plugin.manager import PluginManager
 
 from cactus.tests import SiteTestCase
+from cactus.tests.integration.credentials import DummyAWSCredentialsManager
 from cactus.tests.integration.http import DebugHTTPSConnectionFactory
 
 
@@ -19,10 +20,11 @@ class IntegrationTestCase(SiteTestCase):
         self.site._s3_https_connection_factory = (self.connection_factory, ())
 
         #Fixme!
-        #TODO: The access key password will still be requested at first run.........
         self.site.config.set('aws-bucket-website', 'site123')
-        self.site.config.set('aws-access-key', '123')
         self.site.config.set('aws-bucket-name', 'website')
+
+        # Update the site's credential manager to a test one
+        self.site.credentials_manager = DummyAWSCredentialsManager(self.site)
 
         # Remove plugins
         self.site.plugin_manager = PluginManager([])

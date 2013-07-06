@@ -65,7 +65,7 @@ setup(
         'cactus.static', 'cactus.static.external',
         'cactus.i18n', 'cactus.config',
         'cactus.contrib', 'cactus.contrib.external',
-        'cactus.bootstrap', 'cactus.compat'
+        'cactus.bootstrap', 'cactus.compat', 'cactus.credentials'
         ],
     package_data={'cactus': SKELETON_GLOB, },
     exclude_package_data={'cactus': SKELETON_FOLDERS},
@@ -83,6 +83,5 @@ setup(
     zip_safe=False,
     setup_requires=['nose'],
     tests_require=['nose', 'mock', 'tox', 'unittest2'],
-    test_suite='nose.collector',
     classifiers=[],
 )

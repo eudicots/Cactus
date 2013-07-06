@@ -3,7 +3,6 @@ import sys
 import shutil
 import logging
 import webbrowser
-import getpass
 import traceback
 import socket
 
@@ -19,13 +18,13 @@ from cactus.plugin.builtin.ignore import IgnorePatternsPlugin
 from cactus.plugin.loader import CustomPluginsLoader, ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
+from cactus.credentials import CredentialsManager
 from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
 from cactus.utils.helpers import multiMap, memoize
 from cactus.utils.network import internetWorking
-from cactus.utils.password import getpassword, setpassword
 from cactus.utils.url import is_external
 from cactus.page import Page
 from cactus.static import Static
@@ -70,6 +69,8 @@ class Site(SiteCompatibilityLayer):
         ])
 
         self.external_manager = ExternalManager()
+
+        self.credentials_manager = CredentialsManager(self)
 
         # Load Django settings
         self.setup()
@@ -341,18 +342,15 @@ class Site(SiteCompatibilityLayer):
         self.plugin_manager.preDeploy(self)
         logging.debug('End preDeploy')
 
-        # Get access information from the config or the user
-        awsAccessKey = self.config.get('aws-access-key') or \
-            raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
 
-        #TODO: Fixme!
-        awsSecretKey = getpassword('aws', awsAccessKey) or \
-            getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
+        credentials = self.credentials_manager.get_credentials()
+        aws_access_key = credentials["access_key"]
+        aws_secret_key = credentials["secret_key"]
 
         # Try to fetch the buckets with the given credentials
-        connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip(),
-                        host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
-                        https_connection_factory=self._s3_https_connection_factory)
+        connection = boto.connect_s3(aws_access_key.strip(), aws_secret_key.strip(),
+            host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
+            https_connection_factory=self._s3_https_connection_factory)
 
         logging.debug('Start get_all_buckets')
         # Exit if the information was not correct
@@ -364,11 +362,8 @@ class Site(SiteCompatibilityLayer):
         logging.debug('end get_all_buckets')
 
         # If it was correct, save it for the future
-        self.config.set('aws-access-key', awsAccessKey)
-        self.config.write()
-
-
-        setpassword('aws', awsAccessKey, awsSecretKey)
+        #TODO: Test me!
+        self.credentials_manager.save_credentials()
 
         awsBucketName = self.config.get('aws-bucket-name') or \
             raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()

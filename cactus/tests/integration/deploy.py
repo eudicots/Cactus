@@ -88,6 +88,9 @@ class DeployTestCase(IntegrationTestCase):
                 self.assertEqual(put.headers["x-amz-acl"], "public-read")
                 self.assertEqual(put.headers["content-encoding"], "gzip")
 
+                # Did we use the correct access key?
+                self.assertEqual(put.headers["authorization"].split(':')[0], "AWS 123")
+
                 # Are the file contents correct?
                 compressed = gzip.GzipFile(fileobj=StringIO.StringIO(put.body), mode="r")
                 self.assertEqual(payload, compressed.read())
