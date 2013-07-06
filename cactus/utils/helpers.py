@@ -1,11 +1,5 @@
 from functools import partial
 import hashlib
-import multiprocessing.pool
-
-
-def multiMap(f, items, workers = 8):
-    pool = multiprocessing.pool.ThreadPool(workers)
-    return pool.map(f, items)
 
 
 class CaseInsensitiveDict(dict):

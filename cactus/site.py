@@ -23,8 +23,9 @@ from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
-from cactus.utils.helpers import multiMap, memoize
+from cactus.utils.helpers import memoize
 from cactus.utils.network import internetWorking
+from cactus.utils.parallel import multiMap, PARALLEL_DISABLED, PARALLEL_CONSERVATIVE, PARALLEL_AGGRESSIVE
 from cactus.utils.url import is_external
 from cactus.page import Page
 from cactus.static import Static
@@ -36,6 +37,7 @@ from cactus.browser import browserReload, browserReloadCSS
 
 class Site(SiteCompatibilityLayer):
     _path = None
+    _parallel = PARALLEL_CONSERVATIVE  #TODO: Test me
     _static = None
     _s3_api_endpoint = 's3.amazonaws.com'
     _s3_port = 443
@@ -214,10 +216,11 @@ class Site(SiteCompatibilityLayer):
 
         # Render the pages to their output files
 
-        # Uncomment for non threaded building, crashes randomly
-        multiMap = map
+        mapper = map
+        if self._parallel >= PARALLEL_AGGRESSIVE:
+            mapper = multiMap
 
-        multiMap(lambda p: p.build(), self.pages())
+        mapper(lambda p: p.build(), self.pages())
 
         self.plugin_manager.postBuild(self)
 
@@ -254,9 +257,11 @@ class Site(SiteCompatibilityLayer):
         """
         Build static files (pre-process, copy to static folder)
         """
-        multiMap = map
+        mapper = multiMap
+        if self._parallel <= PARALLEL_DISABLED:
+            mapper = map
 
-        multiMap(lambda s: s.build(), self.static())
+        mapper(lambda s: s.build(), self.static())
 
     @memoize
     def pages(self):
@@ -410,8 +415,11 @@ class Site(SiteCompatibilityLayer):
         logging.info('Uploading site to bucket %s' % awsBucketName)
 
         # Upload all files concurrently in a thread pool
-        #multiMap = map #TODO: Fixme!
-        totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
+        mapper = multiMap
+        if self._parallel <= PARALLEL_DISABLED:
+            mapper = map
+
+        totalFiles = mapper(lambda p: p.upload(awsBucket), self.files())
         changedFiles = [r for r in totalFiles if r['changed']]
 
         self.plugin_manager.postDeploy(self)

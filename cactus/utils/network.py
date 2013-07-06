@@ -1,7 +1,7 @@
 import logging
 import time
 import urllib2
-from cactus.utils.helpers import multiMap
+from cactus.utils.parallel import multiMap
 
 
 def retry(exceptions, tries=4, delay=3, backoff=2):

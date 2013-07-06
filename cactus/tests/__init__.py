@@ -2,6 +2,7 @@
 import tempfile
 import shutil
 import os
+
 try:
     import unittest2 as unittest
 except ImportError:
@@ -12,6 +13,7 @@ import django.conf
 from cactus import Site
 from cactus.bootstrap import bootstrap
 from cactus.config.router import ConfigRouter
+from cactus.utils.parallel import PARALLEL_DISABLED
 
 
 
@@ -62,6 +64,7 @@ class SiteTestCase(BaseTestCase):
         self.conf.write()
 
         self.site = Site(self.path, [self.config_path])
+        self.site._parallel = PARALLEL_DISABLED
 
     def get_config_for_test(self):
         """
