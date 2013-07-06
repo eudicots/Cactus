@@ -7,10 +7,13 @@ import traceback
 import socket
 
 import boto
+from boto.exception import S3ResponseError
+
 import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus.config.router import ConfigRouter
+from cactus.exceptions import InvalidCredentials
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.builtin.context import ContextPlugin
@@ -328,11 +331,66 @@ class Site(SiteCompatibilityLayer):
 
         logging.info('See you!')
 
+    def get_connection(self):
+        """
+        Create a new S3 Connection
+        """
+        credentials = self.credentials_manager.get_credentials()
+        aws_access_key = credentials["access_key"]
+        aws_secret_key = credentials["secret_key"]
+
+        return boto.connect_s3(aws_access_key.strip(), aws_secret_key.strip(),
+             host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
+             https_connection_factory=self._s3_https_connection_factory)
+
+    def create_bucket(self, connection, bucket_name):
+        """
+        :param connection: An S3Connection to use
+        :param bucket_name: The name of the bucket to create
+        :returns: The newly created bucket
+        """
+        try:
+            bucket = connection.create_bucket(bucket_name, policy='public-read')
+        except boto.exception.S3CreateError:
+            logging.info(
+                'Bucket with name %s already is used by someone else, '
+                'please try again with another name', bucket_name)
+            return
+
+        # Configure S3 to use the index.html and error.html files for indexes and 404/500s.
+        bucket.configure_website('index.html', 'error.html')
+
+
+        return bucket
+
+    def get_buckets(self, connection):
+        """
+        :param connection: An S3Connection to use
+        :returns: The list of buckets found for this account
+        """
+        try:
+            return connection.get_all_buckets()
+        except S3ResponseError as e:
+            if e.error_code == u'InvalidAccessKeyId':
+                logging.info("Received an Error from AWS:\n %s", e.body)
+                raise InvalidCredentials()
+            raise
+
+    def get_bucket(self, connection, bucket_name):
+        """
+        :param connection: An S3Connection to use
+        :param bucket_name: The bucket to look for
+        :returns: The Bucket if found, None otherwise.
+        :raises: InvalidCredentials if we can't connect to AWS
+        """
+        buckets = self.get_buckets(connection)
+        buckets = dict((bucket.name, bucket) for bucket in buckets)
+        return buckets.get(bucket_name)
+
     def upload(self):
         """
         Upload the site to the server.
         """
-
         # Make sure we have internet
         if not internetWorking():
             logging.info('There does not seem to be internet here, check your connection')
@@ -343,83 +401,56 @@ class Site(SiteCompatibilityLayer):
         self.clean()
         self.build()
 
-        logging.debug('Start preDeploy')
         self.plugin_manager.preDeploy(self)
-        logging.debug('End preDeploy')
 
+        bucket_name = self.config.get('aws-bucket-name')
+        if bucket_name is None:
+            bucket_name = raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
 
-        credentials = self.credentials_manager.get_credentials()
-        aws_access_key = credentials["access_key"]
-        aws_secret_key = credentials["secret_key"]
-
-        # Try to fetch the buckets with the given credentials
-        connection = boto.connect_s3(aws_access_key.strip(), aws_secret_key.strip(),
-            host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
-            https_connection_factory=self._s3_https_connection_factory)
-
-        logging.debug('Start get_all_buckets')
-        # Exit if the information was not correct
         try:
-            buckets = connection.get_all_buckets()
-        except Exception as e:
-            logging.info('Invalid login credentials, please try again...')
+            connection = self.get_connection()
+            bucket = self.get_bucket(connection, bucket_name)
+        except InvalidCredentials:
+            logging.fatal("Invalid AWS credentials")
             return
-        logging.debug('end get_all_buckets')
 
-        # If it was correct, save it for the future
+        created = False
+
+        if bucket is None:
+            while 1:
+                r = raw_input("Bucket does not exist. Create it? [y/n] >")
+                if r.lower() == "y": break
+                if r.lower() == "n": return
+
+            bucket = self.create_bucket(connection, bucket_name)
+            created = True
+
+        website_endpoint = bucket.get_website_endpoint()
+
+        if created:
+            logging.info('Bucket %s was selected with website endpoint %s' % (
+                self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
+            logging.info(
+                'You can learn more about s3 (like pointing to your own domain)'
+                ' here: https://github.com/koenbok/Cactus')
+
+        # If the credentials were correct, save them for the future
         #TODO: Test me!
+        self.config.set('aws-bucket-name', bucket_name)
+        self.config.set('aws-bucket-website', website_endpoint)
+        self.config.write()
         self.credentials_manager.save_credentials()
 
-        awsBucketName = self.config.get('aws-bucket-name') or \
-            raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
 
-        if awsBucketName not in [b.name for b in buckets]:
-            if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
-
-                logging.debug('Start create_bucket')
-                try:
-                    awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
-                except boto.exception.S3CreateError:
-                    logging.info(
-                        'Bucket with name %s already is used by someone else, '
-                        'please try again with another name' % awsBucketName)
-                    return
-                logging.debug('end create_bucket')
-
-                # Configure S3 to use the index.html and error.html files for indexes and 404/500s.
-                awsBucket.configure_website('index.html', 'error.html')
-
-                self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
-                self.config.set('aws-bucket-name', awsBucketName)
-                self.config.write()
-
-                logging.info('Bucket %s was selected with website endpoint %s' % (
-                    self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
-                logging.info(
-                    'You can learn more about s3 (like pointing to your own domain)'
-                    ' here: https://github.com/koenbok/Cactus')
-
-            else:
-                return
-        else:
-
-            # Grab a reference to the existing bucket
-            for b in buckets:
-                if b.name == awsBucketName:
-                    awsBucket = b
-
-        self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
-        self.config.set('aws-bucket-name', awsBucketName)
-        self.config.write()
-
-        logging.info('Uploading site to bucket %s' % awsBucketName)
+        logging.info("Bucket Name: %s", bucket_name)
+        logging.info("Bucket Web Endpoint: %s", website_endpoint)
 
         # Upload all files concurrently in a thread pool
         mapper = multiMap
         if self._parallel <= PARALLEL_DISABLED:
             mapper = map
 
-        totalFiles = mapper(lambda p: p.upload(awsBucket), self.files())
+        totalFiles = mapper(lambda p: p.upload(bucket), self.files())
         changedFiles = [r for r in totalFiles if r['changed']]
 
         self.plugin_manager.postDeploy(self)

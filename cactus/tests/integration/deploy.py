@@ -4,56 +4,15 @@ import StringIO
 import gzip
 
 from cactus.tests.integration import IntegrationTestCase
-from cactus.tests.integration.http import BaseTestHTTPConnection, TestHTTPResponse
-from cactus.utils.helpers import checksum
-
-
-class TestHTTPConnection(BaseTestHTTPConnection):
-
-    def __init__(self, *args, **kwargs):
-        super(TestHTTPConnection, self).__init__(*args, **kwargs)
-
-        self.calls = {
-            "bucket_list": 0,
-            "location": 0,
-            "put": [],
-        }
-
-    def getresponse(self):
-        req = self.last_request
-
-        if req.method == "GET":
-            if req.path == "/":
-                if req.params == {}:
-                    return self.list_buckets()
-                if "location" in req.params:
-                    return self.location()
-
-        if req.method == "PUT":
-            return self.put_object(req)
-
-        raise Exception("Unsupported request {0} {1}".format(req.method, req.url))
-
-    def _serve_data(self, name):
-        with open(os.path.join("cactus/tests/integration/data", name)) as f:
-            return TestHTTPResponse(200, body=f.read())
-
-    def list_buckets(self):
-        self.calls["bucket_list"] += 1
-        return self._serve_data("buckets.xml")
-
-    def location(self):
-        self.calls["location"] += 1
-        return self._serve_data("location.xml")
-
-    def put_object(self, req):
-        self.calls["put"].append(req)
-        return TestHTTPResponse(200, headers={"ETag":'"{0}"'.format(checksum(req.body))})
-
+from cactus.tests.integration.s3 import S3TestHTTPConnection
 
 
 class DeployTestCase(IntegrationTestCase):
-    connection_class = TestHTTPConnection
+    connection_class = S3TestHTTPConnection
+
+    def setUp(self):
+        super(DeployTestCase, self).setUp()
+        self.site.config.set('aws-bucket-name', 'website')
 
     def test_simple_deploy(self):
         """
@@ -72,28 +31,25 @@ class DeployTestCase(IntegrationTestCase):
 
         self.site.upload()
 
-        connections = self.connection_factory.connections
+        puts = [req for req in self.connection_factory.requests if req.method == "PUT"]
 
-        for connection in connections:
-            # Check that we put our file
-            if connection.calls["put"]:
-                # How many files did we upload?
-                self.assertEqual(1, len(connection.calls["put"]))
+        # How many files did we upload?
+        self.assertEqual(1, len(puts))
+        put = puts[0]
 
-                # What file did we upload?
-                put = connection.calls["put"][0]
-                self.assertEqual(put.url, "/static/static.css")
+        # What file did we upload?
+        self.assertEqual("/static/static.css", put.url)
 
-                # Where the AWS standard headers correct?
-                self.assertEqual(put.headers["x-amz-acl"], "public-read")
-                self.assertEqual(put.headers["content-encoding"], "gzip")
+        # Where the AWS standard headers correct?
+        self.assertEqual("public-read", put.headers["x-amz-acl"])
+        self.assertEqual("gzip", put.headers["content-encoding"])
 
-                # Did we use the correct access key?
-                self.assertEqual(put.headers["authorization"].split(':')[0], "AWS 123")
+        # Did we use the correct access key?
+        self.assertEqual("AWS 123", put.headers["authorization"].split(':')[0])
 
-                # Are the file contents correct?
-                compressed = gzip.GzipFile(fileobj=StringIO.StringIO(put.body), mode="r")
-                self.assertEqual(payload, compressed.read())
-                break
-        else:
-            self.fail("No PUT call was found")
+        # Did we talk to the right host?
+        self.assertEqual("website.s3.amazonaws.com", put.connection.host)
+
+        # Are the file contents correct?
+        compressed = gzip.GzipFile(fileobj=StringIO.StringIO(put.body), mode="r")
+        self.assertEqual(payload, compressed.read())
