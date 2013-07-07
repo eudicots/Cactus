@@ -12,6 +12,7 @@ from boto.exception import S3ResponseError
 import django.conf
 from django.template.loader import add_to_builtins
 
+from cactus import ui
 from cactus.config.router import ConfigRouter
 from cactus.exceptions import InvalidCredentials
 from cactus.i18n.commands import MessageMaker, MessageCompiler
@@ -77,6 +78,8 @@ class Site(SiteCompatibilityLayer):
 
         self.credentials_manager = CredentialsManager(self)
 
+        self.ui = ui
+
         # Load Django settings
         self.setup()
 
@@ -85,14 +88,12 @@ class Site(SiteCompatibilityLayer):
         We need the site url to generate the sitemap.
         """
         #TODO: Make a "required" option in the config.
+        #TODO: Use URL tags in the sitemap
 
         if self.url is None:
-            self.url = raw_input('Enter your site URL (e.g. http://example.com): ').strip()
+            self.url = self.ui.prompt_url("Enter your site URL (e.g. http://example.com/)")
             self.config.set('site-url', self.url)
             self.config.write()
-
-        if not self.url.endswith('/'):
-            self.url += '/'
 
     @property
     def path(self):
@@ -405,7 +406,7 @@ class Site(SiteCompatibilityLayer):
 
         bucket_name = self.config.get('aws-bucket-name')
         if bucket_name is None:
-            bucket_name = raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
+            bucket_name = self.ui.prompt_normalized("S3 bucket name (www.yoursite.com)")
 
         try:
             connection = self.get_connection()
@@ -417,13 +418,11 @@ class Site(SiteCompatibilityLayer):
         created = False
 
         if bucket is None:
-            while 1:
-                r = raw_input("Bucket does not exist. Create it? [y/n] >")
-                if r.lower() == "y": break
-                if r.lower() == "n": return
-
-            bucket = self.create_bucket(connection, bucket_name)
-            created = True
+            if self.ui.prompt_yes_no("Bucket does not exist. Create it?"):
+                bucket = self.create_bucket(connection, bucket_name)
+                created = True
+            else:
+                return
 
         website_endpoint = bucket.get_website_endpoint()
 
