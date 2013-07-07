@@ -56,6 +56,9 @@ class WorkflowTestCase(IntegrationTestCase):
             self.site.config.get('aws-bucket-website'))  # See the response we send (US standard).
 
     def test_credentials_manager(self):
+        """
+        Test that credentials are saved in the manager
+        """
         class DummyCredentialsManager(object):
             saved = False
 

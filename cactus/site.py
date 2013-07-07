@@ -22,7 +22,7 @@ from cactus.plugin.builtin.ignore import IgnorePatternsPlugin
 from cactus.plugin.loader import CustomPluginsLoader, ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
-from cactus.credentials import CredentialsManager
+from cactus.credentials import AWSCredentialsManager
 from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
@@ -76,7 +76,7 @@ class Site(SiteCompatibilityLayer):
 
         self.external_manager = ExternalManager()
 
-        self.credentials_manager = CredentialsManager(self)
+        self.credentials_manager = AWSCredentialsManager(self)
 
         self.ui = ui
 
@@ -438,7 +438,7 @@ class Site(SiteCompatibilityLayer):
         self.config.set('aws-bucket-website', website_endpoint)
         self.config.write()
 
-        self.credentials_manager.save_credentials()  #TODO: Test me!
+        self.credentials_manager.save_credentials()
 
 
         logging.info("Bucket Name: %s", bucket_name)

@@ -2,7 +2,7 @@ import os
 import re
 
 
-def getpassword(service, account):
+def get_password(service, account):
     def decode_hex(s):
         s = eval('"' + re.sub(r"(..)", r"\x\1", s) + '"')
         if "" in s:
@@ -27,7 +27,7 @@ def getpassword(service, account):
             return stringform
 
 
-def setpassword(service, account, password):
+def set_password(service, account, password):
     cmd = 'security add-generic-password -U -a %s -s %s -p %s' % (account, service, password)
     p = os.popen(cmd)
     s = p.read()
