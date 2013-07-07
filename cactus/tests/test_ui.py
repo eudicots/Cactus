@@ -31,8 +31,10 @@ class UITestCase(unittest.TestCase):
         self.assertEqual("http://www.example.com/", ui._url_coerce_fn("http://www.EXAMPLE.com/"))
         self.assertEqual("http://www.example.com/", ui._url_coerce_fn("http://www.example.com"))
 
+        self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "")
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "www.example.com")
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "www.example.com  ")
+        self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "http://")
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "/")
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "http://www.example.com/somewhere/")
-        self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "http://www.example.com/somewhere/#hash")
+        self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "http://www.example.com/#hash")
