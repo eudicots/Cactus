@@ -19,7 +19,10 @@ class BucketTestCase(IntegrationTestCase):
         new, configure = self.connection_factory.requests
 
         self.assertEqual("/", new.path)
+        self.assertEqual("PUT", new.method)
+
         self.assertEqual("/?website", configure.url)
+        self.assertEqual("PUT", configure.method)
 
         for req in (new, configure):
             self.assertEqual("new.s3.amazonaws.com", req.connection.host)

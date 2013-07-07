@@ -428,17 +428,17 @@ class Site(SiteCompatibilityLayer):
 
         if created:
             logging.info('Bucket %s was selected with website endpoint %s' % (
-                self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
+                bucket_name, website_endpoint))
             logging.info(
                 'You can learn more about s3 (like pointing to your own domain)'
                 ' here: https://github.com/koenbok/Cactus')
 
         # If the credentials were correct, save them for the future
-        #TODO: Test me!
         self.config.set('aws-bucket-name', bucket_name)
         self.config.set('aws-bucket-website', website_endpoint)
         self.config.write()
-        self.credentials_manager.save_credentials()
+
+        self.credentials_manager.save_credentials()  #TODO: Test me!
 
 
         logging.info("Bucket Name: %s", bucket_name)
