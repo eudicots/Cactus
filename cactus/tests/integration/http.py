@@ -1,6 +1,7 @@
 #coding:utf-8
 import httplib
 import urlparse
+
 from cactus.utils.helpers import CaseInsensitiveDict
 
 
@@ -8,7 +9,8 @@ class BaseTestHTTPConnection(object):
     last_request = None
 
     def __init__(self, host, *args, **kwargs):
-        pass
+        self.host = host
+        self.requests = []
 
     def connect(self):
         pass
@@ -22,13 +24,13 @@ class BaseTestHTTPConnection(object):
         """
         if headers is None:
             headers = {}
-        self.last_request = TestHTTPRequest(method, url, body, headers)
+        self.last_request = TestHTTPRequest(self, method, url, body, headers)
 
     def putrequest(self, method, url, *args, **kwargs):
         """
         Create a new request, but add more things to it later
         """
-        self.current_request = TestHTTPRequest(method, url, '', {})
+        self.current_request = TestHTTPRequest(self, method, url, '', {})
         self.current_request.state = "headers"
 
     def putheader(self, header, value):
@@ -54,7 +56,16 @@ class BaseTestHTTPConnection(object):
         self.current_request.body += data
 
     def getresponse(self):
-        raise NotImplementedError("You must subclass BaseTestHTTPConnection")
+        request = self.last_request
+        self.requests.append(request)
+        return self.handle_request(request)
+
+    def handle_request(self, request):
+        """
+        :param request: The request to handle
+        """
+        raise NotImplementedError("handle_request should be implemented by subclasses")
+
 
     def set_debuglevel(self, level):
         pass
@@ -64,6 +75,16 @@ class DebugHTTPSConnectionFactory(object):
     def __init__(self, conn_cls):
         self.conn_cls = conn_cls
         self.connections = []
+
+    @property
+    def requests(self):
+        """
+        :returns: A dictionary of the calls made through this connection factory (method -> list of calls)
+        """
+        out = []
+        for connection in self.connections:
+            out.extend(connection.requests)
+        return out
 
     def __call__(self, *args, **kwargs):
         """
@@ -77,7 +98,9 @@ class DebugHTTPSConnectionFactory(object):
 class TestHTTPRequest(object):
     state = None
 
-    def __init__(self, method, url, body, headers):
+    def __init__(self, connection, method, url, body, headers):
+        self.connection = connection
+
         self.method = method
         self.url = url
         self.body = body

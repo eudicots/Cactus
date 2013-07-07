@@ -19,10 +19,6 @@ class IntegrationTestCase(SiteTestCase):
         # Register it with the site
         self.site._s3_https_connection_factory = (self.connection_factory, ())
 
-        #Fixme!
-        self.site.config.set('aws-bucket-website', 'site123')
-        self.site.config.set('aws-bucket-name', 'website')
-
         # Update the site's credential manager to a test one
         self.site.credentials_manager = DummyAWSCredentialsManager(self.site)
 
