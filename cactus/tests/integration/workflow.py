@@ -54,3 +54,19 @@ class WorkflowTestCase(IntegrationTestCase):
         # Check that we updated our config
         self.assertEqual("{0}.s3-website-us-east-1.amazonaws.com".format(bucket_name),
             self.site.config.get('aws-bucket-website'))  # See the response we send (US standard).
+
+    def test_credentials_manager(self):
+        class DummyCredentialsManager(object):
+            saved = False
+
+            def get_credentials(self):
+                return {"access_key": '123', "secret_key": '456'}
+
+            def save_credentials(self):
+                self.saved = True
+
+        self.site.credentials_manager = DummyCredentialsManager()
+        self.site.config.set('aws-bucket-name', 'website')
+        self.site.upload()
+
+        self.assertTrue(self.site.credentials_manager.saved)
