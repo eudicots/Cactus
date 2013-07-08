@@ -30,6 +30,10 @@ class TestCompatibility(SiteTestCase):
         for old_key in ('full', 'full-build'):
             self._paths_key_exists(page, old_key)
 
+    def test_page_path_attr(self):
+        page = self.site.pages()[0]
+        self.assertEqual(page.source_path, page.path)
+
     def test_page_paths_keys_exist(self):
         static = self.site.static()[0]
 

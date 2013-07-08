@@ -38,6 +38,10 @@ class PageCompatibilityLayer(CompatibilityLayer):
         'full-build': 'full_build_path',
     }
 
+    @property
+    def path(self):
+        return self.source_path
+
 
 class StaticCompatibilityLayer(CompatibilityLayer):
     mapping = {
