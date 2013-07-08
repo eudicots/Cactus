@@ -12,7 +12,7 @@ from boto.exception import S3ResponseError
 import django.conf
 from django.template.loader import add_to_builtins
 
-from cactus import ui
+from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
 from cactus.exceptions import InvalidCredentials
 from cactus.i18n.commands import MessageMaker, MessageCompiler
@@ -48,42 +48,52 @@ class Site(SiteCompatibilityLayer):
     _s3_is_secure = True
     _s3_https_connection_factory = None
 
-    def __init__(self, path, config_paths):
-        if not config_paths:
-            raise TypeError("config_paths may not be an empty list!")
+    def __init__(self, path, config_paths=None,
+                 plugin_manager=None, external_manager=None,
+                 credentials_manager=None, ui=None):
 
+        # Load the config engine
+        if config_paths is None:
+            config_paths = []
         self.config = ConfigRouter(config_paths)
 
-        # Some specific config files
+        # Load site-specific config values
         self.url = self.config.get('site-url')
         self.prettify_urls = self.config.get('prettify', False)
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.locale = self.config.get("locale", None)
 
-        self.verify_config()
-
+        # Verify our location looks correct
         self.path = path
         self.verify_path()
 
         # Load Managers
-        self.plugin_manager = PluginManager([
-            CustomPluginsLoader(self.plugin_path),  # User plugins
-            ObjectsPluginLoader([  # Builtin plugins
-                ContextPlugin(), CacheDurationPlugin(),
-                IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
+        if plugin_manager is None:
+            plugin_manager =  PluginManager([
+                CustomPluginsLoader(self.plugin_path),  # User plugins
+                ObjectsPluginLoader([  # Builtin plugins
+                    ContextPlugin(), CacheDurationPlugin(),
+                    IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
+                ])
             ])
-        ])
+        self.plugin_manager = plugin_manager
 
-        self.external_manager = ExternalManager()
+        if external_manager is None:
+            external_manager = ExternalManager()
+        self.external_manager = external_manager
 
-        self.credentials_manager = AWSCredentialsManager(self)
+        if credentials_manager is None:
+            credentials_manager = AWSCredentialsManager(self)
+        self.credentials_manager = credentials_manager
 
+        if ui is None:
+            ui = ui_module
         self.ui = ui
 
         # Load Django settings
         self.setup()
 
-    def verify_config(self):
+    def verify_url(self):
         """
         We need the site url to generate the sitemap.
         """
@@ -196,6 +206,8 @@ class Site(SiteCompatibilityLayer):
         """
         Generate fresh site from templates.
         """
+        self.verify_url()
+
         #TODO: Facility to reset the site, and reload config.
         #TODO: Currently, we can't build a site instance multiple times
         self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!

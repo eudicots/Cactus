@@ -1,5 +1,6 @@
 #coding:utf-8
 import logging
+from cactus.config.fallback import ConfigFallback
 from cactus.config.file import ConfigFile
 
 
@@ -20,6 +21,8 @@ class ConfigRouter(object):
             if path not in loaded_paths:
                 self.configs.append(ConfigFile(path))
                 loaded_paths.add(path)
+
+        self.configs.append(ConfigFallback())
 
         logging.debug("Loaded configs: %s", ', '.join([config.path for config in self.configs]))
 
@@ -60,9 +63,7 @@ class ConfigRouter(object):
 
         If none do, write it to the first one.
         """
-        if not self.configs:
-            logging.warn("Discarding set %s=%s: no config files available", key, value)
-            return
+        assert self.configs  # There should always be at least a fallback config
 
         write_to = None
 

@@ -1,11 +1,12 @@
 #coding:utf-8
+from cactus.tests import BaseTestCase
 
 try:
     import unittest2 as unittest
 except ImportError:
     import unittest
 
-from cactus import ui
+from cactus import ui, Site
 
 
 class UITestCase(unittest.TestCase):
@@ -38,3 +39,15 @@ class UITestCase(unittest.TestCase):
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "/")
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "http://www.example.com/somewhere/")
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "http://www.example.com/#hash")
+
+
+class InteractiveUITestCase(BaseTestCase):
+    def test_site_url_not_set(self):
+        class DummyUI(object):
+            def prompt_url(self, q):
+                return "http://example.com"
+
+        site = Site(self.path, ui=DummyUI())
+        self.assertEqual(None, site.url)
+        site.build()
+        self.assertEqual("http://example.com", site.url)
