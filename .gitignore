@@ -1,7 +1,8 @@
-.DS_Store
 *.pyc
-dist
+.DS_Store
 build
-skeleton.tar.gz
 Cactus.egg-info
+dist
 examples/blog/config.json
+nose-*.egg/
+skeleton.tar.gz
