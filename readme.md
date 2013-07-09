@@ -91,7 +91,7 @@ Cactus uses the Django templates. They should be very similar to other templatin
 
 ### Enabling Plugins
 
-To enable a plugin for your site, change the file name from [PLUGIN].disabled.py to [PLUGIN].py. For an example of how to build a blog on top of Cactus, see [CactusBlog](https://github.com/koenbok/CactusBlog/)
+To enable a plugin for your site, change the file name from [PLUGIN].disabled.py to [PLUGIN].py. For an example of how to build a blog on top of Cactus, see CactusBlog in the [examples](https://github.com/koenbok/CactusExamples/)
 
 ### Deploying
 	
