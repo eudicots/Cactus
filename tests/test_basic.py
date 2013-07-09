@@ -37,8 +37,8 @@ class SimpleTest(unittest.TestCase):
 		self.site.bootstrap()
 		
 		self.assertEqual(
-			fileList(TEST_PATH, relative=True), 
-			fileList("skeleton", relative=True), 
+			set(fileList(TEST_PATH, relative=True)), 
+			set(fileList("skeleton", relative=True)), 
 		)
 
 
@@ -49,14 +49,17 @@ class SimpleTest(unittest.TestCase):
 		# Make sure we build to .build and not build
 		self.assertEqual(os.path.exists(os.path.join(TEST_PATH, 'build')), False)
 		
-		self.assertEqual(fileList(os.path.join(TEST_PATH, '.build'), relative=True), [
+		self.assertEqual(
+            set(fileList(os.path.join(TEST_PATH, '.build'), relative=True)), 
+            set([
 			'error.html',
 			'index.html',
 			'robots.txt',
 			'sitemap.xml',
 			'static/css/style.css',
-			'static/js/main.js'
-		])
+			'static/js/main.js' 
+            ])
+        )
 	
 	#def testRenderPage(self):
 		
