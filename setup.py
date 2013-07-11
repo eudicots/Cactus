@@ -65,7 +65,8 @@ setup(
         'cactus.static', 'cactus.static.external',
         'cactus.i18n', 'cactus.config',
         'cactus.contrib', 'cactus.contrib.external',
-        'cactus.bootstrap', 'cactus.compat', 'cactus.credentials'
+        'cactus.bootstrap', 'cactus.compat', 'cactus.credentials',
+        'cactus.deployment', 'cactus.deployment.s3'
         ],
     package_data={'cactus': SKELETON_GLOB, },
     exclude_package_data={'cactus': SKELETON_FOLDERS},
