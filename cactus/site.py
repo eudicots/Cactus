@@ -173,9 +173,13 @@ class Site(object):
                 dirs.remove('.svn')
             if '.DS_Store' in files:
                 files.remove('.DS_Store')
+            if '.gitignore' in files:
+                files.remove('.gitignore')
             dest_path = path.replace(self.paths['static'], staticBuildPath)
             for file in files:
-                shutil.copy(os.path.join(path, file), os.path.join(dest_path, file))
+                if not os.path.exists(os.path.join(dest_path)):
+                    os.makedirs(os.path.join(dest_path))
+                shutil.copyfile(os.path.join(path, file), os.path.join(dest_path, file))
 
 
         # If there is a folder, replace it with a copy

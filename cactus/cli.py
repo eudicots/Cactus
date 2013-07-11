@@ -54,6 +54,7 @@ def help():
     print '    build: Rebuild your site from source files'
     print '    serve <port>: Serve you website at local development server'
     print '    deploy: Upload and deploy your site to S3'
+    print '    i18nlint: Add trans tags where needed or print strings that need them'
     print
 
 
