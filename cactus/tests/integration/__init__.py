@@ -23,7 +23,7 @@ class IntegrationTestCase(SiteTestCase):
         self.site.credentials_manager = DummyAWSCredentialsManager(self.site)
 
         # Remove plugins
-        self.site.plugin_manager = PluginManager([])
+        self.site.plugin_manager = PluginManager(self.site, [])
 
         # Clean up the site paths
         for path in (self.site.page_path, self.site.static_path):

@@ -2,7 +2,8 @@ class ExternalManager(object):
     """
     Manager the active externals
     """
-    def __init__(self, processors=None, optimizers=None):
+    def __init__(self, site, processors=None, optimizers=None):
+        self.site = site
         self.processors = processors if processors is not None else []
         self.optimizers = optimizers if optimizers is not None else []
 

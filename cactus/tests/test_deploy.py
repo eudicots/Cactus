@@ -34,7 +34,7 @@ class TestDeployFile(unittest.TestCase):
         os.mkdir(self.build_path)
 
         self.site = mock.MagicMock()
-        self.site.plugin_manager = PluginManager([])
+        self.site.plugin_manager = PluginManager(self.site, [])
         self.site.path = self.test_dir
         self.site.config = ConfigRouter([os.path.join(self.test_dir, "config.json")])
         self.site.config.set("site-url", "http://example.com")

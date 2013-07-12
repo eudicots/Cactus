@@ -50,9 +50,9 @@ class Site(SiteCompatibilityLayer):
     _s3_https_connection_factory = None
 
     def __init__(self, path, config_paths=None,
-                 plugin_manager=None, external_manager=None,
-                 credentials_manager=None, ui=None,
-                 deployment_engine=None):
+                 PluginManagerClass=None, ExternalManagerClass=None,
+                 CredentialsManagerClass=None, ui=None,
+                 DeploymentEngineClass=None):
 
         # Load the config engine
         if config_paths is None:
@@ -70,31 +70,33 @@ class Site(SiteCompatibilityLayer):
         self.verify_path()
 
         # Load Managers
-        if plugin_manager is None:
-            plugin_manager =  PluginManager([
+        if PluginManagerClass is None:
+            PluginManagerClass =  PluginManager
+        self.plugin_manager = PluginManagerClass(self,
+            [
                 CustomPluginsLoader(self.plugin_path),  # User plugins
-                ObjectsPluginLoader([  # Builtin plugins
+                ObjectsPluginLoader([   # Builtin plugins
                     ContextPlugin(), CacheDurationPlugin(),
                     IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
                 ])
-            ])
-        self.plugin_manager = plugin_manager
+            ]
+        )
 
-        if external_manager is None:
-            external_manager = ExternalManager()
-        self.external_manager = external_manager
+        if ExternalManagerClass is None:
+            ExternalManagerClass = ExternalManager
+        self.external_manager = ExternalManagerClass(self)
 
-        if credentials_manager is None:
-            credentials_manager = AWSCredentialsManager(self)
-        self.credentials_manager = credentials_manager
+        if CredentialsManagerClass is None:
+            CredentialsManagerClass = AWSCredentialsManager
+        self.credentials_manager = CredentialsManagerClass(self)
+
+        if DeploymentEngineClass is None:
+            DeploymentEngineClass = S3DeploymentEngine
+        self.deployment_engine = DeploymentEngineClass(self)
 
         if ui is None:
             ui = ui_module
         self.ui = ui
-
-        if deployment_engine is None:
-            deployment_engine = S3DeploymentEngine(self)
-        self.deployment_engine = deployment_engine
 
         # Load Django settings
         self.setup()
