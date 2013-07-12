@@ -95,20 +95,6 @@ class BaseFile(object):
             content_type = "{0}; charset=utf-8".format(content_type)
 
         return content_type
-
-    def remote_changed(self):
-        """
-        Did the file change when compared to the remote?
-        :rtype: bool
-        """
-        raise NotImplementedError()
-
-    def do_upload(self):
-        """
-        Actually upload the file to the remote
-        """
-        raise NotImplementedError()
-
     def must_refresh(self):
         if self.force_refresh:
             return True
@@ -146,3 +132,17 @@ class BaseFile(object):
 
     def __repr__(self):
         return '<File: {0}>'.format(self.path)
+
+    def remote_changed(self):
+        """
+        Did the file change when compared to the remote?
+        :rtype: bool
+        """
+        raise NotImplementedError()
+
+    def do_upload(self):
+        """
+        Actually upload the file to the remote
+        """
+        raise NotImplementedError()
+

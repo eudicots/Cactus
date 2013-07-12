@@ -1,12 +1,12 @@
 #coding:utf-8
 import logging
-import boto
 
-from cactus.deployment import BaseDeploymentEngine
-from cactus.deployment.s3.file import S3File
+import boto
 from boto.exception import S3ResponseError
+
+from cactus.deployment.engine import BaseDeploymentEngine
+from cactus.deployment.s3.file import S3File
 from cactus.exceptions import InvalidCredentials
-from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 
 
 class S3DeploymentEngine(BaseDeploymentEngine):
@@ -72,7 +72,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         buckets = dict((bucket.name, bucket) for bucket in buckets)
         return buckets.get(bucket_name)
 
-    def deploy(self):
+    def configure(self):
         """
         Upload the site to the server.
         """
@@ -114,15 +114,5 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
         self.site.credentials_manager.save_credentials()
 
-
         logging.info("Bucket Name: %s", bucket_name)
         logging.info("Bucket Web Endpoint: %s", website_endpoint)
-
-        # Upload all files concurrently in a thread pool
-        mapper = multiMap
-        if self.site._parallel <= PARALLEL_DISABLED:
-            mapper = map
-
-        totalFiles = mapper(lambda p: p.upload(), self.files())
-
-        return totalFiles

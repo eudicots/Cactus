@@ -13,10 +13,6 @@ class S3File(BaseFile):
         return 'http://%s/%s' % (self.engine.site.config.get('aws-bucket-website'), self.path)
 
     def remote_changed(self):
-        """
-        Check whether a plugin set the force refresh file, otherwise,
-        check headers.
-        """
         remote_headers = dict((k, v.strip('"')) for k, v in getURLHeaders(self.remoteURL()).items())
         local_headers = copy.copy(self.headers)
         local_headers['etag'] = self.payload_checksum

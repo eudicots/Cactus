@@ -5,7 +5,7 @@ import tempfile
 import hashlib
 
 import mock
-from cactus.deployment import BaseDeploymentEngine
+from cactus.deployment.engine import BaseDeploymentEngine
 
 try:
     import unittest2 as unittest
