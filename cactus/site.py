@@ -11,7 +11,7 @@ from django.template.loader import add_to_builtins
 
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
-from cactus.deployment.s3 import S3DeploymentEngine
+from cactus.deployment.s3.engine import S3DeploymentEngine
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.builtin.context import ContextPlugin
@@ -31,7 +31,6 @@ from cactus.utils.url import is_external
 from cactus.page import Page
 from cactus.static import Static
 from cactus.listener import Listener
-from cactus.file import File
 from cactus.server import Server, RequestHandler
 from cactus.browser import browserReload, browserReloadCSS
 

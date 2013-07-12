@@ -4,7 +4,7 @@ import shutil
 from cactus.plugin.manager import PluginManager
 
 from cactus.site import Site
-from cactus.deployment.s3 import S3DeploymentEngine
+from cactus.deployment.s3.engine import S3DeploymentEngine
 
 from cactus.tests import BaseTestCase
 from cactus.tests.integration.credentials import DummyAWSCredentialsManager

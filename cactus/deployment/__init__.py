@@ -1,9 +1,11 @@
 #coding:utf-8
-from cactus.file import File
+from cactus.deployment.file import BaseFile
 from cactus.utils.filesystem import fileList
 
 
-class DeploymentEngine(object):
+class BaseDeploymentEngine(object):
+    FileClass = BaseFile
+
     def __init__(self, site):
         """
         :param site: An instance of cactus.site.Site
@@ -14,4 +16,4 @@ class DeploymentEngine(object):
         """
         List of build files.
         """
-        return [File(self.site, file_path) for file_path in fileList(self.site.build_path, relative=True)]
+        return [self.FileClass(self, file_path) for file_path in fileList(self.site.build_path, relative=True)]

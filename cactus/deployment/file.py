@@ -13,14 +13,15 @@ from cactus.utils.network import retry
 from cactus.utils import url
 
 
-class File(object):
+class BaseFile(object):
     DEFAULT_CACHE_EXPIRATION = 60 * 60 * 24 * 7  # One week
     MAX_CACHE_EXPIRATION = 60 * 60 * 24 * 365 # 1 Year (for cached)
     COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml']
     PROGRESS_MIN_SIZE = (1024 * 1024) / 2  # 521 kb
 
-    def __init__(self, site, path):
-        self.site = site
+    def __init__(self, engine, path):
+        self.engine = engine
+        self.site = engine.site
         self.path = path
 
         self.force_refresh = False
@@ -62,8 +63,7 @@ class File(object):
 
     @property
     def is_compressed(self):
-        if self._is_compressed is None:
-            raise Exception('Compression not defined yet!')
+        assert self._is_compressed is not None, "Compression is not defined yet!"
         return self._is_compressed
 
     @is_compressed.setter
@@ -78,9 +78,6 @@ class File(object):
         """
         #TODO: FixMe!
         return checksum(self.data()) in self.path
-
-    def remoteURL(self):
-        return 'http://%s/%s' % (self.site.config.get('aws-bucket-website'), self.path)
 
     def extension(self):
         return os.path.splitext(self.path)[1].strip('.').lower()
@@ -100,24 +97,26 @@ class File(object):
 
         return content_type
 
-    def changed(self):
+    def remote_changed(self):
         """
-        Check whether a plugin set the force refresh file, otherwise,
-        check headers.
+        Did the file change when compared to the remote?
+        :rtype: bool
         """
+        raise NotImplementedError()
+
+    def do_upload(self):
+        """
+        Actually upload the file to the remote
+        """
+        raise NotImplementedError()
+
+    def must_refresh(self):
         if self.force_refresh:
             return True
 
-        remote_headers = dict((k, v.strip('"')) for k, v in url.getURLHeaders(self.remoteURL()).items())
-        local_headers = copy.copy(self.headers)
-        local_headers['etag'] = self.payload_checksum
-        for k, v in local_headers.items():  # Don't check AWS' own headers.
-            if remote_headers.get(k) != v:
-                return True
-        return False
+        return self.remote_changed()
 
-    @retry((S3ResponseError, socket.error), tries=5, delay=3, backoff=2)
-    def upload(self, bucket):
+    def upload(self):
         self.prepare()
 
         self.headers = CaseInsensitiveDict()
@@ -134,35 +133,17 @@ class File(object):
 
         self.site.plugin_manager.preDeployFile(self)
 
-        changed = self.changed()
+        remote_changed = self.remote_changed()
 
-        if changed:
+        if remote_changed:
+            self.do_upload()
 
-            # Show progress if the file size is big
-            progressCallback = None
-            progressCallbackCount = int(len(self.payload()) / (1024 * 1024))
-
-            if len(self.payload()) > self.PROGRESS_MIN_SIZE:
-                def progressCallback(current, total):
-                    if current > self.lastUpload:
-                        uploadPercentage = (float(current) / float(total)) * 100
-                        logging.info('+ %s upload progress %.1f%%' % (self.path, uploadPercentage))
-                        self.lastUpload = current
-
-
-            key = bucket.new_key(self.path)
-            key.content_type = self.content_type  # We don't it need before (local headers only)
-            key.set_contents_from_string(self.payload(), self.headers,
-                policy='public-read',
-                cb=progressCallback,
-                num_cb=progressCallbackCount)
-
-        op1 = '+' if changed else '-'
+        op1 = '+' if remote_changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.is_compressed else ''
 
         logging.info('%s %s - %s%s' % (op1, self.path, fileSize(len(self.data())), op2))
 
-        return {'changed': changed, 'size': len(self.payload())}
+        return {'changed': remote_changed, 'size': len(self.payload())}
 
     def __repr__(self):
         return '<File: {0}>'.format(self.path)

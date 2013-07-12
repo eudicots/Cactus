@@ -1,19 +1,21 @@
 #coding:utf-8
 import logging
-
 import boto
-from boto.exception import S3ResponseError
 
-from cactus.deployment import DeploymentEngine
+from cactus.deployment import BaseDeploymentEngine
+from cactus.deployment.s3.file import S3File
+from boto.exception import S3ResponseError
 from cactus.exceptions import InvalidCredentials
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 
 
-class S3DeploymentEngine(DeploymentEngine):
+class S3DeploymentEngine(BaseDeploymentEngine):
     _s3_api_endpoint = 's3.amazonaws.com'
     _s3_port = 443
     _s3_is_secure = True
     _s3_https_connection_factory = None
+
+    FileClass = S3File
 
     def get_connection(self):
         """
@@ -94,6 +96,8 @@ class S3DeploymentEngine(DeploymentEngine):
             else:
                 return
 
+        self.bucket = bucket
+
         website_endpoint = bucket.get_website_endpoint()
 
         if created:
@@ -119,6 +123,6 @@ class S3DeploymentEngine(DeploymentEngine):
         if self.site._parallel <= PARALLEL_DISABLED:
             mapper = map
 
-        totalFiles = mapper(lambda p: p.upload(bucket), self.files())
+        totalFiles = mapper(lambda p: p.upload(), self.files())
 
         return totalFiles
