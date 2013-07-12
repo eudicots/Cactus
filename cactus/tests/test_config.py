@@ -42,6 +42,18 @@ class TestConfigRouter(unittest.TestCase):
         self.assertEqual(router.get("b"), 2)
         self.assertEqual(router.get("c"), None)
 
+    def test_read_write(self):
+        """
+        Check that our config is readable after writing it
+        """
+        router = ConfigRouter([self.path1, self.path2])
+
+        router.set("a", 3)
+        router.set("b", 4)
+
+        self.assertEqual(3, router.get("a"))
+        self.assertEqual(4, router.get("b"))
+
     def test_write(self):
         """
         Check that the config router writes correctly to the filesystem

@@ -6,16 +6,12 @@ import webbrowser
 import traceback
 import socket
 
-import boto
-from boto.exception import S3ResponseError
-
 import django.conf
 from django.template.loader import add_to_builtins
 
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
 from cactus.deployment.s3 import S3DeploymentEngine
-from cactus.exceptions import InvalidCredentials
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.builtin.context import ContextPlugin
@@ -44,10 +40,6 @@ class Site(SiteCompatibilityLayer):
     _path = None
     _parallel = PARALLEL_CONSERVATIVE  #TODO: Test me
     _static = None
-    _s3_api_endpoint = 's3.amazonaws.com'
-    _s3_port = 443
-    _s3_is_secure = True
-    _s3_https_connection_factory = None
 
     def __init__(self, path, config_paths=None,
                  PluginManagerClass=None, ExternalManagerClass=None,
@@ -60,7 +52,6 @@ class Site(SiteCompatibilityLayer):
         self.config = ConfigRouter(config_paths)
 
         # Load site-specific config values
-        self.url = self.config.get('site-url')
         self.prettify_urls = self.config.get('prettify', False)
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.locale = self.config.get("locale", None)
@@ -101,6 +92,15 @@ class Site(SiteCompatibilityLayer):
         # Load Django settings
         self.setup()
 
+    @property
+    def url(self):
+        return self.config.get('site-url')
+
+    @url.setter
+    def url(self, value):
+        self.config.set('site-url', value)
+        self.config.write()
+
     def verify_url(self):
         """
         We need the site url to generate the sitemap.
@@ -110,8 +110,6 @@ class Site(SiteCompatibilityLayer):
 
         if self.url is None:
             self.url = self.ui.prompt_url("Enter your site URL (e.g. http://example.com/)")
-            self.config.set('site-url', self.url)
-            self.config.write()
 
     @property
     def path(self):
