@@ -21,7 +21,6 @@ class BaseFile(object):
 
     def __init__(self, engine, path):
         self.engine = engine
-        self.site = engine.site
         self.path = path
 
         self.force_refresh = False
@@ -37,7 +36,7 @@ class BaseFile(object):
 
     @memoize
     def data(self):
-        with open(os.path.join(self.site.path, '.build', self.path), 'rb') as f:
+        with open(os.path.join(self.engine.site.path, '.build', self.path), 'rb') as f:
             return f.read()
 
     def payload(self):
@@ -131,7 +130,7 @@ class BaseFile(object):
         if self.is_compressed:
             self.headers['Content-Encoding'] = 'gzip'
 
-        self.site.plugin_manager.preDeployFile(self)
+        self.engine.site.plugin_manager.preDeployFile(self)
 
         remote_changed = self.remote_changed()
 

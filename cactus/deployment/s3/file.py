@@ -10,7 +10,7 @@ from cactus.utils.url import getURLHeaders
 
 class S3File(BaseFile):
     def remoteURL(self):
-        return 'http://%s/%s' % (self.site.config.get('aws-bucket-website'), self.path)
+        return 'http://%s/%s' % (self.engine.site.config.get('aws-bucket-website'), self.path)
 
     def remote_changed(self):
         """
