@@ -1,10 +1,9 @@
 #coding:utf-8
-from cactus.tests.integration import IntegrationTestCase
-from cactus.tests.integration.s3 import S3TestHTTPConnection
+from cactus.tests.integration.s3 import S3TestHTTPConnection, S3IntegrationTestCase
 
 
-class WorkflowTestCase(IntegrationTestCase):
-    connection_class = S3TestHTTPConnection
+class WorkflowTestCase(S3IntegrationTestCase):
+    HTTPConnectionClass = S3TestHTTPConnection
 
     def test_bucket_name_unset(self):
         """

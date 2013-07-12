@@ -3,13 +3,10 @@ import os
 import StringIO
 import gzip
 
-from cactus.tests.integration import IntegrationTestCase
-from cactus.tests.integration.s3 import S3TestHTTPConnection
+from cactus.tests.integration.s3 import S3IntegrationTestCase
 
 
-class DeployTestCase(IntegrationTestCase):
-    connection_class = S3TestHTTPConnection
-
+class DeployTestCase(S3IntegrationTestCase):
     def setUp(self):
         super(DeployTestCase, self).setUp()
         self.site.config.set('aws-bucket-name', 'website')

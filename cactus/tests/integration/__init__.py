@@ -4,10 +4,8 @@ import shutil
 from cactus.plugin.manager import PluginManager
 
 from cactus.site import Site
-from cactus.deployment.s3.engine import S3DeploymentEngine
 
 from cactus.tests import BaseTestCase
-from cactus.tests.integration.credentials import DummyAWSCredentialsManager
 from cactus.tests.integration.http import DebugHTTPSConnectionFactory
 from cactus.utils.parallel import PARALLEL_DISABLED
 
@@ -24,22 +22,13 @@ class DummyPluginManager(PluginManager):
 
 
 class IntegrationTestCase(BaseTestCase):
-    connection_class = None
-
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
 
-        # Create a connection factory
-        self.connection_factory = DebugHTTPSConnectionFactory(self.connection_class)
-
-
-        # Instantiate our site
-        class TestS3DeploymentEngine(S3DeploymentEngine):
-            _s3_https_connection_factory = (self.connection_factory, ())
-
         self.site = Site(self.path,
-            PluginManagerClass=DummyPluginManager, CredentialsManagerClass=DummyAWSCredentialsManager,
-            DeploymentEngineClass=TestS3DeploymentEngine)
+            PluginManagerClass=DummyPluginManager,
+            CredentialsManagerClass=self.get_credentials_manager_class(),
+            DeploymentEngineClass=self.get_deployment_engine_class())
         self.site._parallel = PARALLEL_DISABLED
 
         self.site.config.set('site-url', 'http://example.com/')
@@ -48,3 +37,14 @@ class IntegrationTestCase(BaseTestCase):
         for path in (self.site.page_path, self.site.static_path):
             shutil.rmtree(path)
             os.mkdir(path)
+
+    def get_deployment_engine_class(self):
+        """
+        Should return a deployment engine in tests.
+        """
+        pass
+
+    def get_credentials_manager_class(self):
+        """
+        Should return a credentials manager in tests.
+        """

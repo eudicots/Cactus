@@ -1,11 +1,8 @@
 #coding:utf-8
-from cactus.tests.integration import IntegrationTestCase
-from cactus.tests.integration.s3 import S3TestHTTPConnection
+from cactus.tests.integration.s3 import S3IntegrationTestCase
 
 
-class BucketTestCase(IntegrationTestCase):
-    connection_class = S3TestHTTPConnection
-
+class BucketTestCase(S3IntegrationTestCase):
     def test_create_bucket(self):
         """
         Test that we properly create a bucket in AWS

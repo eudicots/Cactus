@@ -1,8 +1,38 @@
 #coding:utf-8
 import os
+from cactus.deployment.s3.engine import S3DeploymentEngine
 
+from cactus.tests.integration import IntegrationTestCase, DebugHTTPSConnectionFactory
 from cactus.tests.integration.http import BaseTestHTTPConnection, TestHTTPResponse
 from cactus.utils.helpers import checksum
+
+
+class S3IntegrationTestCase(IntegrationTestCase):
+    def get_deployment_engine_class(self):
+        # Create a connection factory
+        self.connection_factory = DebugHTTPSConnectionFactory(S3TestHTTPConnection)
+
+        class TestS3DeploymentEngine(S3DeploymentEngine):
+            _s3_https_connection_factory = (self.connection_factory, ())
+
+        return TestS3DeploymentEngine
+
+    def get_credentials_manager_class(self):
+        return DummyAWSCredentialsManager
+
+
+class DummyAWSCredentialsManager(object):
+    def __init__(self, site):
+        self.site = site
+
+    def get_credentials(self):
+        return {
+            "access_key": "123",
+            "secret_key": "abc"
+        }
+
+    def save_credentials(self):
+        pass
 
 
 class S3TestHTTPConnection(BaseTestHTTPConnection):
@@ -23,7 +53,7 @@ class S3TestHTTPConnection(BaseTestHTTPConnection):
         raise Exception("Unsupported request {0} {1}".format(request.method, request.url))
 
     def _serve_data(self, name):
-        with open(os.path.join("cactus/tests/integration/data", name)) as f:
+        with open(os.path.join("cactus/tests/integration/s3/data", name)) as f:
             return TestHTTPResponse(200, body=f.read())
 
     def list_buckets(self):
