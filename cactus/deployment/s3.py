@@ -4,21 +4,16 @@ import logging
 import boto
 from boto.exception import S3ResponseError
 
+from cactus.deployment import DeploymentEngine
 from cactus.exceptions import InvalidCredentials
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 
 
-class S3DeploymentEngine(object):
+class S3DeploymentEngine(DeploymentEngine):
     _s3_api_endpoint = 's3.amazonaws.com'
     _s3_port = 443
     _s3_is_secure = True
     _s3_https_connection_factory = None
-
-    def __init__(self, site):
-        """
-        :param site: An instance of cactus.site.Site
-        """
-        self.site = site
 
     def get_connection(self):
         """
@@ -29,8 +24,8 @@ class S3DeploymentEngine(object):
         aws_secret_key = credentials["secret_key"]
 
         return boto.connect_s3(aws_access_key.strip(), aws_secret_key.strip(),
-                   host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
-                   https_connection_factory=self._s3_https_connection_factory)
+                               host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
+                               https_connection_factory=self._s3_https_connection_factory)
 
     def create_bucket(self, connection, bucket_name):
         """
@@ -124,6 +119,6 @@ class S3DeploymentEngine(object):
         if self.site._parallel <= PARALLEL_DISABLED:
             mapper = map
 
-        totalFiles = mapper(lambda p: p.upload(bucket), self.site.files())
+        totalFiles = mapper(lambda p: p.upload(bucket), self.files())
 
         return totalFiles

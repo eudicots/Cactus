@@ -377,10 +377,3 @@ class Site(SiteCompatibilityLayer):
                      (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
         logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))
-
-
-    def files(self):
-        """
-        List of build files.
-        """
-        return [File(self, p) for p in fileList(self.build_path, relative=True)]
