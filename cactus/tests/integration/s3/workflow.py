@@ -67,8 +67,8 @@ class WorkflowTestCase(S3IntegrationTestCase):
             def save_credentials(self):
                 self.saved = True
 
-        self.site.credentials_manager = DummyCredentialsManager()
+        self.site.deployment_engine.credentials_manager = DummyCredentialsManager()
         self.site.config.set('aws-bucket-name', 'website')
         self.site.upload()
 
-        self.assertTrue(self.site.credentials_manager.saved)
+        self.assertTrue(self.site.deployment_engine.credentials_manager.saved)

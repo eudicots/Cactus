@@ -6,12 +6,17 @@ from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 
 class BaseDeploymentEngine(object):
     FileClass = BaseFile
+    CredentialsManagerClass = None  #TODO: Define interface?
 
     def __init__(self, site, CredentialsManagerClass=None):
         """
         :param site: An instance of cactus.site.Site
         """
         self.site = site
+
+        if CredentialsManagerClass is None:
+            CredentialsManagerClass = self.CredentialsManagerClass
+        self.credentials_manager = CredentialsManagerClass(self)
 
     def deploy(self):
         self.configure()

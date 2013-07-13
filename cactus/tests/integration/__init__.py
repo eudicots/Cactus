@@ -26,9 +26,7 @@ class IntegrationTestCase(BaseTestCase):
         super(IntegrationTestCase, self).setUp()
 
         self.site = Site(self.path,
-            PluginManagerClass=DummyPluginManager,
-            CredentialsManagerClass=self.get_credentials_manager_class(),
-            DeploymentEngineClass=self.get_deployment_engine_class())
+            PluginManagerClass=DummyPluginManager, DeploymentEngineClass=self.get_deployment_engine_class())
         self.site._parallel = PARALLEL_DISABLED
 
         self.site.config.set('site-url', 'http://example.com/')
@@ -43,8 +41,3 @@ class IntegrationTestCase(BaseTestCase):
         Should return a deployment engine in tests.
         """
         pass
-
-    def get_credentials_manager_class(self):
-        """
-        Should return a credentials manager in tests.
-        """

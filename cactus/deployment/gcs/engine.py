@@ -14,13 +14,7 @@ from cactus.exceptions import InvalidCredentials
 class GCSDeploymentEngine(BaseDeploymentEngine):
     _HTTPClass = httplib2.Http
     FileClass = GCSFile
-
-    def __init__(self, site, CredentialsManagerClass=None):
-        super(GCSDeploymentEngine, self).__init__(site, CredentialsManagerClass)
-
-        if CredentialsManagerClass is None:
-            CredentialsManagerClass = GCSCredentialsManager
-        self.credentials_manager = CredentialsManagerClass(self)
+    CredentialsManagerClass = GCSCredentialsManager
 
     def create_bucket(self, service, project_id, bucket_name):
         public_acl = {

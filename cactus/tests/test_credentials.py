@@ -17,6 +17,11 @@ class DummySite(object):
     def __init__(self, config):
         self.config = config
 
+class DummyEngine(object):
+    def __init__(self, site):
+        self.site = site
+
+
 class DummyPasswordManager(object):
     def __init__(self):
         self.passwords = collections.defaultdict(dict)
@@ -41,9 +46,10 @@ class CredentialsManagerTestCase(unittest.TestCase):
         self.config = ConfigFile(self.path)
 
         self.site = DummySite(self.config)
+        self.engine = DummyEngine(self.site)
         self.password_manager = DummyPasswordManager()
 
-        self.credentials_manager = AWSCredentialsManager(self.site, self.password_manager)
+        self.credentials_manager = AWSCredentialsManager(self.engine, self.password_manager)
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)

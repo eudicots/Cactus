@@ -12,7 +12,6 @@ from django.template.loader import add_to_builtins
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
 from cactus.deployment.gcs.engine import GCSDeploymentEngine
-from cactus.deployment.s3.auth import AWSCredentialsManager
 from cactus.deployment.s3.engine import S3DeploymentEngine
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
@@ -41,10 +40,8 @@ class Site(SiteCompatibilityLayer):
     _parallel = PARALLEL_CONSERVATIVE  #TODO: Test me
     _static = None
 
-    def __init__(self, path, config_paths=None,
-                 PluginManagerClass=None, ExternalManagerClass=None,
-                 CredentialsManagerClass=None, ui=None,
-                 DeploymentEngineClass=None):
+    def __init__(self, path, config_paths=None, ui=None,
+        PluginManagerClass=None, ExternalManagerClass=None, DeploymentEngineClass=None):
 
         # Load the config engine
         if config_paths is None:
@@ -61,6 +58,10 @@ class Site(SiteCompatibilityLayer):
         self.verify_path()
 
         # Load Managers
+        if ui is None:
+            ui = ui_module
+        self.ui = ui
+
         if PluginManagerClass is None:
             PluginManagerClass =  PluginManager
         self.plugin_manager = PluginManagerClass(self,
@@ -77,10 +78,6 @@ class Site(SiteCompatibilityLayer):
             ExternalManagerClass = ExternalManager
         self.external_manager = ExternalManagerClass(self)
 
-        if ui is None:
-            ui = ui_module
-        self.ui = ui
-
         hosting_provider = self.config.get("host", "aws")
         assert hosting_provider in ["aws", "gce"], "Invalid hosting provider"  #TODO: Make this dynamic using a dict...
 
@@ -88,10 +85,6 @@ class Site(SiteCompatibilityLayer):
             DefaultDeploymentEngineClass = S3DeploymentEngine
         elif hosting_provider == "gce":
             DefaultDeploymentEngineClass = GCSDeploymentEngine
-
-        if CredentialsManagerClass is None:
-            CredentialsManagerClass = AWSCredentialsManager
-        self.credentials_manager = CredentialsManagerClass(self)  #TODO: Should be a piece of the DeploymentEngine
 
         if DeploymentEngineClass is None:
             DeploymentEngineClass = DefaultDeploymentEngineClass

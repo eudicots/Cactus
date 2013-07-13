@@ -37,6 +37,9 @@ class TestFile(BaseFile):
     def do_upload(self):
         pass
 
+class TestDeploymentEngine(BaseDeploymentEngine):
+    CredentialsManagerClass = lambda self, engine: None  # We never use it here
+
 
 #TODO: Retest this with a custom deployment engine or file class
 
@@ -53,7 +56,7 @@ class TestDeployFile(unittest.TestCase):
         self.site.config = ConfigRouter([os.path.join(self.test_dir, "config.json")])
         self.site.config.set("site-url", "http://example.com")
 
-        self.engine = BaseDeploymentEngine(self.site)
+        self.engine = TestDeploymentEngine(self.site)
 
 
     def tearDown(self):

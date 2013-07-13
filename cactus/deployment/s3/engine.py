@@ -5,6 +5,7 @@ import boto
 from boto.exception import S3ResponseError
 
 from cactus.deployment.engine import BaseDeploymentEngine
+from cactus.deployment.s3.auth import AWSCredentialsManager
 from cactus.deployment.s3.file import S3File
 from cactus.exceptions import InvalidCredentials
 
@@ -16,12 +17,13 @@ class S3DeploymentEngine(BaseDeploymentEngine):
     _s3_https_connection_factory = None
 
     FileClass = S3File
+    CredentialsManagerClass = AWSCredentialsManager
 
     def get_connection(self):
         """
         Create a new S3 Connection
         """
-        credentials = self.site.credentials_manager.get_credentials()
+        credentials = self.credentials_manager.get_credentials()
         aws_access_key = credentials["access_key"]
         aws_secret_key = credentials["secret_key"]
 
@@ -112,7 +114,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         self.site.config.set('aws-bucket-website', website_endpoint)
         self.site.config.write()
 
-        self.site.credentials_manager.save_credentials()
+        self.credentials_manager.save_credentials()
 
         logging.info("Bucket Name: %s", bucket_name)
         logging.info("Bucket Web Endpoint: %s", website_endpoint)

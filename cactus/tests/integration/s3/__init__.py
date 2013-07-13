@@ -7,20 +7,6 @@ from cactus.tests.integration.http import BaseTestHTTPConnection, TestHTTPRespon
 from cactus.utils.helpers import checksum
 
 
-class S3IntegrationTestCase(IntegrationTestCase):
-    def get_deployment_engine_class(self):
-        # Create a connection factory
-        self.connection_factory = DebugHTTPSConnectionFactory(S3TestHTTPConnection)
-
-        class TestS3DeploymentEngine(S3DeploymentEngine):
-            _s3_https_connection_factory = (self.connection_factory, ())
-
-        return TestS3DeploymentEngine
-
-    def get_credentials_manager_class(self):
-        return DummyAWSCredentialsManager
-
-
 class DummyAWSCredentialsManager(object):
     def __init__(self, site):
         self.site = site
@@ -64,3 +50,18 @@ class S3TestHTTPConnection(BaseTestHTTPConnection):
 
     def put_object(self, req):
         return TestHTTPResponse(200, headers={"ETag":'"{0}"'.format(checksum(req.body))})
+
+
+class S3IntegrationTestCase(IntegrationTestCase):
+    def get_deployment_engine_class(self):
+        # Create a connection factory
+        self.connection_factory = DebugHTTPSConnectionFactory(S3TestHTTPConnection)
+
+        class TestS3DeploymentEngine(S3DeploymentEngine):
+            _s3_https_connection_factory = (self.connection_factory, ())
+            CredentialsManagerClass = DummyAWSCredentialsManager
+
+        return TestS3DeploymentEngine
+
+    def get_credentials_manager_class(self):
+        return DummyAWSCredentialsManager
