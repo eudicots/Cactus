@@ -35,6 +35,13 @@ from cactus.server import Server, RequestHandler
 from cactus.browser import browserReload, browserReloadCSS
 
 
+SUPPORTED_PROVIDERS = {
+    "aws": S3DeploymentEngine,
+    "google": GCSDeploymentEngine,
+}
+DEFAULT_PROVIDER = "aws"
+
+
 class Site(SiteCompatibilityLayer):
     _path = None
     _parallel = PARALLEL_CONSERVATIVE  #TODO: Test me
@@ -78,16 +85,11 @@ class Site(SiteCompatibilityLayer):
             ExternalManagerClass = ExternalManager
         self.external_manager = ExternalManagerClass(self)
 
-        hosting_provider = self.config.get("host", "aws")
-        assert hosting_provider in ["aws", "gce"], "Invalid hosting provider"  #TODO: Make this dynamic using a dict...
-
-        if hosting_provider == "aws":
-            DefaultDeploymentEngineClass = S3DeploymentEngine
-        elif hosting_provider == "gce":
-            DefaultDeploymentEngineClass = GCSDeploymentEngine
+        hosting_provider = self.config.get("provider", DEFAULT_PROVIDER)
+        assert hosting_provider in SUPPORTED_PROVIDERS.keys(), "Invalid hosting provider (check conf: 'provider')."
 
         if DeploymentEngineClass is None:
-            DeploymentEngineClass = DefaultDeploymentEngineClass
+            DeploymentEngineClass = SUPPORTED_PROVIDERS[hosting_provider]
         self.deployment_engine = DeploymentEngineClass(self)
 
         # Load Django settings
