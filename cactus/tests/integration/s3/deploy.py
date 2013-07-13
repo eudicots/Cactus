@@ -2,6 +2,7 @@
 import os
 import StringIO
 import gzip
+from cactus.deployment.file import BaseFile
 
 from cactus.tests.integration.s3 import S3IntegrationTestCase
 
@@ -40,6 +41,9 @@ class DeployTestCase(S3IntegrationTestCase):
         # Where the AWS standard headers correct?
         self.assertEqual("public-read", put.headers["x-amz-acl"])
         self.assertEqual("gzip", put.headers["content-encoding"])
+        self.assertEqual("max-age={0}".format(BaseFile.DEFAULT_CACHE_EXPIRATION), put.headers["cache-control"])
+        # We just have to check that the max age is set. Another test (test_deploy) checks that this value can be
+        # changed using plugins
 
         # Did we use the correct access key?
         self.assertEqual("AWS 123", put.headers["authorization"].split(':')[0])

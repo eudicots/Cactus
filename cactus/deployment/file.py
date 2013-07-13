@@ -1,16 +1,10 @@
 #coding:utf-8
 import os
 import logging
-import socket
-import copy
-
-from boto.exception import S3ResponseError
 
 from cactus import mime
 from cactus.utils.file import compressString, fileSize
-from cactus.utils.helpers import CaseInsensitiveDict, memoize, checksum
-from cactus.utils.network import retry
-from cactus.utils import url
+from cactus.utils.helpers import memoize, checksum
 
 
 class BaseFile(object):
@@ -95,6 +89,7 @@ class BaseFile(object):
             content_type = "{0}; charset=utf-8".format(content_type)
 
         return content_type
+
     def must_refresh(self):
         if self.force_refresh:
             return True
@@ -104,22 +99,13 @@ class BaseFile(object):
     def upload(self):
         self.prepare()
 
-        self.headers = CaseInsensitiveDict()
-
-        # Plugins may actually update this value afterwards
-        if self.is_fingerprinted:
-            cache_control = self.MAX_CACHE_EXPIRATION
-        else:
-            cache_control = self.DEFAULT_CACHE_EXPIRATION
-        self.headers['Cache-Control'] = 'max-age={0}'.format(cache_control)
-
-        if self.is_compressed:
-            self.headers['Content-Encoding'] = 'gzip'
+        # Plugins may actually update those values afterwards
+        self.cache_control = self.MAX_CACHE_EXPIRATION if self.is_fingerprinted else self.DEFAULT_CACHE_EXPIRATION
+        self.content_encoding = 'gzip' if self.is_compressed else None
 
         self.engine.site.plugin_manager.preDeployFile(self)
 
         remote_changed = self.remote_changed()
-
         if remote_changed:
             self.do_upload()
 
@@ -145,4 +131,3 @@ class BaseFile(object):
         Actually upload the file to the remote
         """
         raise NotImplementedError()
-

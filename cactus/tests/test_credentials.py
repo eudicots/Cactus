@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import collections
+from cactus.deployment.s3.auth import AWSCredentialsManager
 
 try:
     import unittest2 as unittest
@@ -10,7 +11,6 @@ except ImportError:
     import unittest
 
 from cactus.config.file import ConfigFile
-from cactus.credentials import AWSCredentialsManager
 
 
 class DummySite(object):

@@ -11,6 +11,8 @@ from django.template.loader import add_to_builtins
 
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
+from cactus.deployment.gcs.engine import GCSDeploymentEngine
+from cactus.deployment.s3.auth import AWSCredentialsManager
 from cactus.deployment.s3.engine import S3DeploymentEngine
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
@@ -19,7 +21,6 @@ from cactus.plugin.builtin.ignore import IgnorePatternsPlugin
 from cactus.plugin.loader import CustomPluginsLoader, ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
-from cactus.credentials import AWSCredentialsManager
 from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
@@ -76,17 +77,25 @@ class Site(SiteCompatibilityLayer):
             ExternalManagerClass = ExternalManager
         self.external_manager = ExternalManagerClass(self)
 
-        if CredentialsManagerClass is None:
-            CredentialsManagerClass = AWSCredentialsManager
-        self.credentials_manager = CredentialsManagerClass(self)
-
-        if DeploymentEngineClass is None:
-            DeploymentEngineClass = S3DeploymentEngine
-        self.deployment_engine = DeploymentEngineClass(self)
-
         if ui is None:
             ui = ui_module
         self.ui = ui
+
+        hosting_provider = self.config.get("host", "aws")
+        assert hosting_provider in ["aws", "gce"], "Invalid hosting provider"  #TODO: Make this dynamic using a dict...
+
+        if hosting_provider == "aws":
+            DefaultDeploymentEngineClass = S3DeploymentEngine
+        elif hosting_provider == "gce":
+            DefaultDeploymentEngineClass = GCSDeploymentEngine
+
+        if CredentialsManagerClass is None:
+            CredentialsManagerClass = AWSCredentialsManager
+        self.credentials_manager = CredentialsManagerClass(self)  #TODO: Should be a piece of the DeploymentEngine
+
+        if DeploymentEngineClass is None:
+            DeploymentEngineClass = DefaultDeploymentEngineClass
+        self.deployment_engine = DeploymentEngineClass(self)
 
         # Load Django settings
         self.setup()

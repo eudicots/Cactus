@@ -120,9 +120,11 @@ setup(
     },
     install_requires=[
         'Django',
-        'boto>=2.4.1',
         'markdown',
-        'argparse'
+        'argparse',
+        'boto>=2.4.1',
+        'google-api-python-client',
+        'keyring'
     ],
     zip_safe=False,
     setup_requires=['nose'],

@@ -2,6 +2,7 @@
 import getpass
 from cactus.utils import password
 
+#TODO: Use the keyring module
 
 class AWSCredentialsManager(object):
     access_key = None

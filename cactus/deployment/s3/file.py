@@ -1,20 +1,30 @@
 #coding:utf-8
-import copy
 import logging
 import socket
+
 from boto.exception import S3ResponseError
+
 from cactus.deployment.file import BaseFile
+from cactus.utils.helpers import CaseInsensitiveDict
 from cactus.utils.network import retry
 from cactus.utils.url import getURLHeaders
 
 
 class S3File(BaseFile):
-    def remoteURL(self):
+
+    def get_headers(self):
+        headers = CaseInsensitiveDict()
+        headers['Cache-Control'] = 'max-age={0}'.format(self.cache_control)
+        if self.content_encoding is not None:
+            headers['Content-Encoding'] = self.content_encoding
+        return headers
+
+    def remote_url(self):
         return 'http://%s/%s' % (self.engine.site.config.get('aws-bucket-website'), self.path)
 
     def remote_changed(self):
-        remote_headers = dict((k, v.strip('"')) for k, v in getURLHeaders(self.remoteURL()).items())
-        local_headers = copy.copy(self.headers)
+        remote_headers = dict((k, v.strip('"')) for k, v in getURLHeaders(self.remote_url()).items())
+        local_headers = self.get_headers()
         local_headers['etag'] = self.payload_checksum
         for k, v in local_headers.items():  # Don't check AWS' own headers.
             if remote_headers.get(k) != v:
@@ -26,6 +36,7 @@ class S3File(BaseFile):
         # Show progress if the file size is big
         progressCallback = None
         progressCallbackCount = int(len(self.payload()) / (1024 * 1024))
+
 
         if len(self.payload()) > self.PROGRESS_MIN_SIZE:
             def progressCallback(current, total):
@@ -39,7 +50,7 @@ class S3File(BaseFile):
         key.content_type = self.content_type  # We don't it need before (local headers only)
         key.md5 = self.payload_checksum   # In case of a flaky network
         key.set_contents_from_string(self.payload(),
-            headers=self.headers,
+            headers=self.get_headers(),
             policy='public-read',
             cb=progressCallback,
             num_cb=progressCallbackCount)

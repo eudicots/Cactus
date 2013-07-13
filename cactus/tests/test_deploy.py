@@ -27,7 +27,7 @@ class TestHeadersPlugin(object):
         self.headers = None
 
     def preDeployFile(self, file):
-        self.headers = file.headers
+        self.file = file
 
 
 class TestFile(BaseFile):
@@ -37,6 +37,8 @@ class TestFile(BaseFile):
     def do_upload(self):
         pass
 
+
+#TODO: Retest this with a custom deployment engine or file class
 
 class TestDeployFile(unittest.TestCase):
     def setUp(self):
@@ -77,10 +79,7 @@ class TestDeployFile(unittest.TestCase):
         f = TestFile(self.engine, filename)
         f.upload()
 
-        self.assertIn("cache-control", p.headers)
-        cache_control = p.headers["cache-control"]
-        self.assertTrue(cache_control.startswith('max-age='))
-        self.assertEqual(int(cache_control.split('=')[1]), f.MAX_CACHE_EXPIRATION)
+        self.assertEqual(p.file.cache_control, f.MAX_CACHE_EXPIRATION)
 
 
         # Test a non fingerprinted file
@@ -98,17 +97,11 @@ class TestDeployFile(unittest.TestCase):
         self.site.plugin_manager.preDeploy(self.site)
 
         f.upload()
-        self.assertIn("cache-control", p.headers)
-        cache_control = p.headers["cache-control"]
-        self.assertTrue(cache_control.startswith('max-age='))
-        self.assertEqual(int(cache_control.split('=')[1]), f.DEFAULT_CACHE_EXPIRATION)
+        self.assertEqual(p.file.cache_control, f.DEFAULT_CACHE_EXPIRATION)
 
         # Test with a configured cache duration
         self.site.config.set("cache-duration", 123)
         self.site.plugin_manager.preDeploy(self.site)
 
         f.upload()
-        self.assertIn("cache-control", p.headers)
-        cache_control = p.headers["cache-control"]
-        self.assertTrue(cache_control.startswith('max-age='))
-        self.assertEqual(int(cache_control.split('=')[1]), 123)
+        self.assertEqual(p.file.cache_control, 123)

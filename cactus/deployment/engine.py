@@ -7,7 +7,7 @@ from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 class BaseDeploymentEngine(object):
     FileClass = BaseFile
 
-    def __init__(self, site):
+    def __init__(self, site, CredentialsManagerClass=None):
         """
         :param site: An instance of cactus.site.Site
         """
