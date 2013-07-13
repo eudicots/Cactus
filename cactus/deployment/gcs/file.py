@@ -1,9 +1,11 @@
 #coding:utf-8
 import io
 import base64
+import socket
 
 from apiclient.http import MediaIoBaseUpload
 from cactus.deployment.file import BaseFile
+from cactus.utils.network import retry
 
 
 class GCSFile(BaseFile):
@@ -31,7 +33,7 @@ class GCSFile(BaseFile):
 
         :rtype: bool
         """
-        resource = self.engine.service.objects()
+        resource = self.engine.get_service().objects()
         req = resource.get(bucket=self.engine.bucket_name, object=self.path)
         remote_metadata = req.execute()
 
@@ -42,8 +44,9 @@ class GCSFile(BaseFile):
                 return True
         return False
 
+    @retry((socket.error,), tries=5, delay=3, backoff=2)
     def do_upload(self):
-        resource = self.engine.service.objects()
+        resource = self.engine.get_service().objects()
 
         stream = io.BytesIO(self.payload())
         upload = MediaIoBaseUpload(stream, mimetype=self.content_type)

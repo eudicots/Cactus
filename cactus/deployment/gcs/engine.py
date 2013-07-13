@@ -1,6 +1,8 @@
 #coding:utf-8
 import logging
 import httplib2
+import multiprocessing
+import threading
 
 import apiclient.discovery
 import apiclient.errors
@@ -15,6 +17,10 @@ class GCSDeploymentEngine(BaseDeploymentEngine):
     _HTTPClass = httplib2.Http
     FileClass = GCSFile
     CredentialsManagerClass = GCSCredentialsManager
+
+    def __init__(self, *args, **kwargs):
+        super(GCSDeploymentEngine, self).__init__(*args, **kwargs)
+        self._service_pool = {}  # We can't share services (they share SSL connections) across processes.
 
     def create_bucket(self, service, project_id, bucket_name):
         public_acl = {
@@ -43,9 +49,23 @@ class GCSDeploymentEngine(BaseDeploymentEngine):
                 return None
             raise
 
-    def configure(self):
-        self.http_client = self._HTTPClass()
+    def get_service(self):
+        """
+        Worker threads may not share the same connection
+        """
+        thread = threading.current_thread()
+        ident = thread.ident
 
+        service = self._service_pool.get(ident)
+        if service is None:
+            http_client = self._HTTPClass()
+            self.credentials.authorize(http_client)
+            service = apiclient.discovery.build('storage', 'v1beta2', http=http_client)
+            self._service_pool[ident] = service
+
+        return service
+
+    def configure(self):
         bucket_name = self.site.config.get('gcs-bucket-name')
         if bucket_name is None:
             bucket_name = self.site.ui.prompt_normalized('GCS bucket name (www.yoursite.com)')
@@ -53,12 +73,12 @@ class GCSDeploymentEngine(BaseDeploymentEngine):
             self.site.config.write()
 
         try:
-            self.credentials_manager.authorize(bucket_name, self.http_client)
+            self.credentials = self.credentials_manager.get_credentials(bucket_name)
         except InvalidCredentials:
             logging.fatal("Invalid GCE credentials")
             return
 
-        service = apiclient.discovery.build('storage', 'v1beta2', http=self.http_client)
+        service = self.get_service()
 
         bucket = self.get_bucket(service, bucket_name)
 
@@ -78,5 +98,4 @@ class GCSDeploymentEngine(BaseDeploymentEngine):
                 'You can learn more about s3 (like pointing to your own domain)'
                 ' here: https://github.com/koenbok/Cactus')
 
-        self.service = service
         self.bucket_name = bucket_name

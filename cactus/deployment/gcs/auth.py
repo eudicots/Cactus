@@ -12,8 +12,7 @@ class GCSCredentialsManager(object):
     def __init__(self, engine):
         self.engine = engine
 
-    def authorize(self, bucket_name, http):
-        #TODO: Use keyring_storage
+    def get_credentials(self, bucket_name):
         storage = Storage("cactus/gcs", bucket_name)
 
         credentials = storage.get()
@@ -37,4 +36,4 @@ class GCSCredentialsManager(object):
 
             storage.put(credentials)
 
-        credentials.authorize(http)
+        return credentials
