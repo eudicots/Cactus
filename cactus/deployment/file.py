@@ -102,6 +102,7 @@ class BaseFile(object):
         # Plugins may actually update those values afterwards
         self.cache_control = self.MAX_CACHE_EXPIRATION if self.is_fingerprinted else self.DEFAULT_CACHE_EXPIRATION
         self.content_encoding = 'gzip' if self.is_compressed else None
+        self.content_length = len(self.payload())
 
         self.engine.site.plugin_manager.preDeployFile(self)
 

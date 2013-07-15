@@ -1,9 +1,8 @@
 #coding:utf-8
 import logging
-import httplib2
-import multiprocessing
 import threading
 
+import httplib2
 import apiclient.discovery
 import apiclient.errors
 

@@ -124,6 +124,7 @@ setup(
         'argparse',
         'boto>=2.4.1',
         'google-api-python-client',
+        'pyrax',
         'keyring'
     ],
     zip_safe=False,

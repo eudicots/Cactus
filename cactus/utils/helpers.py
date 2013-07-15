@@ -65,3 +65,19 @@ def checksum(s):
     We use MD5 because S3 does.
     """
     return hashlib.md5(s).hexdigest()
+
+
+def get_or_prompt(config, key, prompt_fn, *args, **kwargs):
+    """
+    :param config: The configuration object to get the value from
+    :param key: The configuration key to retrieve
+    :type key: str
+    :param prompt_fn: The prompt function to use to prompt the value
+    :param args: Extra arguments for the prompt function
+    :param kwargs: Extra keyword arguments for hte prompt function
+    """
+    value = config.get(key)
+    if value is None:
+        value = prompt_fn(*args, **kwargs)
+        config.set(key, value)
+    return value

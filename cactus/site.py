@@ -13,6 +13,7 @@ from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
 from cactus.deployment.gcs.engine import GCSDeploymentEngine
 from cactus.deployment.s3.engine import S3DeploymentEngine
+from cactus.deployment.cloudfiles.engine import CloudFilesDeploymentEngine
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.builtin.context import ContextPlugin
@@ -38,7 +39,9 @@ from cactus.browser import browserReload, browserReloadCSS
 SUPPORTED_PROVIDERS = {
     "aws": S3DeploymentEngine,
     "google": GCSDeploymentEngine,
+    "cloudfiles": CloudFilesDeploymentEngine,
 }
+
 DEFAULT_PROVIDER = "aws"
 
 
