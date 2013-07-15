@@ -7,6 +7,7 @@ MIMETYPE_MAP = {
     '.mp4': 'video/mp4',
     '.m4v': 'video/x-m4v',
     '.3gp': 'video/3gpp',
+    '.woff': 'application/font-woff',
 }
 
 
