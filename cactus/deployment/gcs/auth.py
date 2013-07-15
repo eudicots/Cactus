@@ -11,13 +11,19 @@ from cactus.exceptions import InvalidCredentials
 class GCSCredentialsManager(object):
     def __init__(self, engine):
         self.engine = engine
+        self.credentials = None
 
-    def get_credentials(self, bucket_name):
-        storage = Storage("cactus/gcs", bucket_name)
+    def get_storage(self):
+        return Storage("cactus/gcs", self.engine.bucket_name)
 
-        credentials = storage.get()
+    def get_credentials(self):
 
-        if credentials is None:
+        if self.credentials is not None:
+            return self.credentials
+
+        self.credentials = self.get_storage().get()
+
+        if self.credentials is None:
             flow = OAuth2WebServerFlow(
                 client_id=CACTUS_CLIENT_ID,
                 client_secret=CACTUS_CLIENT_SECRET,
@@ -30,10 +36,12 @@ class GCSCredentialsManager(object):
             code = self.engine.site.ui.prompt('Please enter the authorization code')
 
             try:
-                credentials = flow.step2_exchange(code)  #TODO: Catch invalid grant
+                self.credentials = flow.step2_exchange(code)  #TODO: Catch invalid grant
             except FlowExchangeError:
                 raise InvalidCredentials("The authorization did not match.")
 
-            storage.put(credentials)
+        return self.credentials
 
-        return credentials
+    def save_credentials(self):
+        assert self.credentials is not None, "You did not set credentials before saving them"
+        self.get_storage().put(self.credentials)

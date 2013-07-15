@@ -4,6 +4,7 @@ import base64
 import socket
 
 from apiclient.http import MediaIoBaseUpload
+from apiclient.errors import HttpError
 from cactus.deployment.file import BaseFile
 from cactus.utils.network import retry
 
@@ -33,9 +34,15 @@ class GCSFile(BaseFile):
 
         :rtype: bool
         """
-        resource = self.engine.get_service().objects()
+        resource = self.engine.get_connection().objects()
         req = resource.get(bucket=self.engine.bucket_name, object=self.path)
-        remote_metadata = req.execute()
+
+        try:
+            remote_metadata = req.execute()
+        except HttpError as e:
+            if e.resp.status == 404:
+                return True
+            raise
 
         ignore_metadata = ["acl"] # We can't control what we'll retrieve TODO: do the best we can do!
 
@@ -46,7 +53,7 @@ class GCSFile(BaseFile):
 
     @retry((socket.error,), tries=5, delay=3, backoff=2)
     def do_upload(self):
-        resource = self.engine.get_service().objects()
+        resource = self.engine.get_connection().objects()
 
         stream = io.BytesIO(self.payload())
         upload = MediaIoBaseUpload(stream, mimetype=self.content_type)

@@ -39,7 +39,7 @@ from cactus.browser import browserReload, browserReloadCSS
 SUPPORTED_PROVIDERS = {
     "aws": S3DeploymentEngine,
     "google": GCSDeploymentEngine,
-    "cloudfiles": CloudFilesDeploymentEngine,
+    "rackspace": CloudFilesDeploymentEngine,
 }
 
 DEFAULT_PROVIDER = "aws"
