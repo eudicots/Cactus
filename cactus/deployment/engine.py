@@ -18,15 +18,12 @@ class BaseDeploymentEngine(object):
 
     _connection = None
 
-    def __init__(self, site, CredentialsManagerClass=None):
+    def __init__(self, site):
         """
         :param site: An instance of cactus.site.Site
         """
         self.site = site
-
-        if CredentialsManagerClass is None:
-            CredentialsManagerClass = self.CredentialsManagerClass
-        self.credentials_manager = CredentialsManagerClass(self)
+        self.credentials_manager = self.CredentialsManagerClass(self)
 
     def deploy(self):
         self.configure()
