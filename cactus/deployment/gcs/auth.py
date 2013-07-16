@@ -10,11 +10,11 @@ from cactus.exceptions import InvalidCredentials
 
 class GCSCredentialsManager(object):
     def __init__(self, engine):
-        self.engine = engine
+        self.engine = engine  #TODO: Only pass those things that are needed?
         self.credentials = None
 
     def get_storage(self):
-        return Storage("cactus/gcs", self.engine.bucket_name)
+        return Storage("cactus/gcs", self.engine.bucket_name)  #TODO: Not a great key, but do we want to ask for email?
 
     def get_credentials(self):
 
@@ -43,5 +43,5 @@ class GCSCredentialsManager(object):
         return self.credentials
 
     def save_credentials(self):
-        assert self.credentials is not None, "You did not set credentials before saving them"
+        assert self.credentials is not None, "You did not set credentials before saving them"  #TODO: That's still bad
         self.get_storage().put(self.credentials)
