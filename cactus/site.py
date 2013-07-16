@@ -382,4 +382,4 @@ class Site(SiteCompatibilityLayer):
         logging.info('%s changed files with a size of %s' %
                      (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
-        logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))
+        logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix

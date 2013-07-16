@@ -122,6 +122,7 @@ setup(
         'Django',
         'markdown',
         'argparse',
+        #TODO: Import libs dynamically
         'boto>=2.4.1',
         'google-api-python-client',
         'pyrax',
