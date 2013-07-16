@@ -24,4 +24,5 @@ class ConfigFallback(object):
         return key in self.cnf
 
     def write(self):
-        logging.warn("Using config fallback, discarding config values: [%s]", ', '.join(self.cnf.keys()))
+        if self.cnf:
+            logging.warn("Using config fallback, discarding config values: [%s]", ', '.join(self.cnf.keys()))
