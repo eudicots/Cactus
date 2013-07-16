@@ -7,8 +7,8 @@ class BucketTestCase(S3IntegrationTestCase):
         """
         Test that we properly create a bucket in AWS
         """
-        connection = self.site.deployment_engine.get_connection()
-        bucket = self.site.deployment_engine.create_bucket(connection, "new")
+        self.site.deployment_engine.bucket_name = "new"
+        bucket = self.site.deployment_engine.create_bucket()
 
         self.assertEqual("new", bucket.name)
 
@@ -28,8 +28,7 @@ class BucketTestCase(S3IntegrationTestCase):
         """
         Test that we retrieve the correct list of buckets from AWS
         """
-        connection = self.site.deployment_engine.get_connection()
-        buckets = self.site.deployment_engine._get_buckets(connection)
+        buckets = self.site.deployment_engine._get_buckets()
         bucket_names = [bucket.name for bucket in buckets]
 
         self.assertEqual(sorted(bucket_names), sorted(["website", "other"]))
@@ -42,8 +41,8 @@ class BucketTestCase(S3IntegrationTestCase):
         """
         Test that we access the correct bucket in AWS
         """
-        connection = self.site.deployment_engine.get_connection()
-        bucket = self.site.deployment_engine.get_bucket(connection, "other")
+        self.site.deployment_engine.bucket_name = "other"
+        bucket = self.site.deployment_engine.get_bucket()
 
         self.assertEqual("other", bucket.name)
         self.assertEqual(1, len(self.connection_factory.requests))
