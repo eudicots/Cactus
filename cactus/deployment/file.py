@@ -30,7 +30,7 @@ class BaseFile(object):
 
     @memoize
     def data(self):
-        with open(os.path.join(self.engine.site.path, '.build', self.path), 'rb') as f:
+        with open(os.path.join(self.engine.site.build_path, self.path), 'rb') as f:
             return f.read()
 
     def payload(self):
