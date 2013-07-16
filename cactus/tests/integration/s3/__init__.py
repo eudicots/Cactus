@@ -12,10 +12,7 @@ class DummyAWSCredentialsManager(object):
         self.site = site
 
     def get_credentials(self):
-        return {
-            "access_key": "123",
-            "secret_key": "abc"
-        }
+        return "123", "abc"
 
     def save_credentials(self):
         pass

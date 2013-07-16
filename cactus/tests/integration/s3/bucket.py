@@ -29,7 +29,7 @@ class BucketTestCase(S3IntegrationTestCase):
         Test that we retrieve the correct list of buckets from AWS
         """
         connection = self.site.deployment_engine.get_connection()
-        buckets = self.site.deployment_engine.get_buckets(connection)
+        buckets = self.site.deployment_engine._get_buckets(connection)
         bucket_names = [bucket.name for bucket in buckets]
 
         self.assertEqual(sorted(bucket_names), sorted(["website", "other"]))
