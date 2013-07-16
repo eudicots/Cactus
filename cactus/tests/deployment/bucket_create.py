@@ -10,6 +10,9 @@ class BucketCreateTestCase(BaseDeploymentTestCase):
         self.engine = DummyDeploymentEngine(self.site)
 
     def test_bucket_does_not_exist(self):
+        """
+        Test that we create buckets that don't exist
+        """
         self.assertEqual(0, self.engine.create_bucket_calls)
         self.assertEqual(0, self.ui.asked_create)
 
@@ -20,6 +23,9 @@ class BucketCreateTestCase(BaseDeploymentTestCase):
         self.assertEqual(1, self.ui.asked_create)
 
     def test_bucket_exists(self):
+        """
+        Test that we don't attempt to re-create buckets that exist
+        """
         self.engine.create_bucket_calls = 1
 
         self.engine.configure()

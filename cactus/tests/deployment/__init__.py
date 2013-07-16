@@ -1,6 +1,8 @@
 #coding:utf-8
 import shutil
 import tempfile
+from cactus.plugin.manager import PluginManager
+from cactus.utils.parallel import PARALLEL_DISABLED
 
 try:
     import unittest2 as unittest
@@ -41,14 +43,28 @@ class DummyConfig(ConfigFallback):
         self.saved = True
 
 
+class DummyPluginManager(PluginManager):
+    """
+    Doesn't do anything
+    """
+    def call(self, method, *args, **kwargs):
+        """
+        Trap the call
+        """
+        pass
+
+
 class DummySite(object):
     """
     Something that pretends to be a site, as far as the deployment engine knows
     """
+    _parallel = PARALLEL_DISABLED
+
     def __init__(self, path, ui):
         self.build_path = path
         self.config = ConfigFallback()
         self.ui = ui
+        self.plugin_manager = DummyPluginManager(self, [])
 
 
 class DummyCredentialsManager(object):
@@ -73,10 +89,18 @@ class DummyFile(BaseFile):
     """
     A fake file class we can extend to test things
     """
+    def __init__(self, engine, path):
+        super(DummyFile, self).__init__(engine, path)
+        self.engine.created_files.append(self)
+        self.remote_changed_calls = 0
+        self.do_upload_calls = 0
+
     def remote_changed(self):
+        self.remote_changed_calls += 1
         return True
 
     def do_upload(self):
+        self.do_upload_calls += 1
         pass
 
 
@@ -95,6 +119,7 @@ class DummyDeploymentEngine(BaseDeploymentEngine):
         self.get_bucket_calls = 0
         self.create_bucket_calls = 0
         self.get_website_calls = 0
+        self.created_files = []
 
     def _create_connection(self):
         pass
