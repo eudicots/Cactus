@@ -1,13 +1,26 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
-import sys
 import os
+import sys
+import logging
 import time
 import argparse
 
 import cactus
 from cactus.bootstrap import bootstrap
+
+
+def setup_logging():
+    if os.environ.get('DEBUG'):
+        logging.basicConfig(
+            format = '%(filename)s:%(lineno)s / %(levelname)s -> %(message)s',
+            level = logging.DEBUG
+        )
+    else:
+        logging.basicConfig(
+            format = '%(levelname)s: %(message)s',
+            level = logging.INFO
+        )
 
 
 def create(path, skeleton=None):
@@ -92,6 +105,8 @@ def main():
     # given by the user, if there is
     if hasattr(args, 'config') and args.config is None:  # We don't need config for create
         args.config = ["config.json"]
+
+    setup_logging()
 
     args.target(**{k: v for k, v in vars(args).items() if k != 'target'})
 
