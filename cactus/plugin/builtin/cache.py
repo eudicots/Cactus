@@ -16,4 +16,4 @@ class CacheDurationPlugin(object):
         Set the cache duration expiry on the file
         """
         if self.cache_duration is not None and not file.is_fingerprinted:
-            file.headers['Cache-Control'] = 'max-age={0}'.format(self.cache_duration)
+            file.cache_control = self.cache_duration

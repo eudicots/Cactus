@@ -10,7 +10,7 @@ from cactus.tests import SiteTestCase
 class TestPluginLoader(SiteTestCase):
     def setUp(self):
         super(TestPluginLoader, self).setUp()
-        self.site.plugin_manager = PluginManager([CustomPluginsLoader(self.site.path)])
+        self.site.plugin_manager = PluginManager(self.site, [CustomPluginsLoader(self.site.path)])
         shutil.rmtree(self.site.plugin_path)
         os.makedirs(self.site.plugin_path)
 

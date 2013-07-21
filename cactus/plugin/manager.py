@@ -6,7 +6,8 @@ from cactus.plugin import defaults
 
 
 class PluginManager(object):
-    def __init__(self, loaders):
+    def __init__(self, site, loaders):
+        self.site = site
         self.loaders = loaders
         self.reload()
 

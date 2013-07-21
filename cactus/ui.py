@@ -12,7 +12,7 @@ class InvalidInput(Exception):
         self.reason = reason
 
 
-def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again"):
+def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again", prompt_fn=raw_input):
     """
     :param q: The prompt to display to the user
     :param coerce_fn: A function to coerce, and validate, the user input.
@@ -25,7 +25,7 @@ def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again"):
         coerce_fn = lambda x:x
 
     while 1:
-        r = raw_input(q + " > ")
+        r = prompt_fn(q + " > ")
         try:
             return coerce_fn(r)
         except InvalidInput as e:

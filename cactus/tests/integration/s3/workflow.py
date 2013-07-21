@@ -1,10 +1,9 @@
 #coding:utf-8
-from cactus.tests.integration import IntegrationTestCase
-from cactus.tests.integration.s3 import S3TestHTTPConnection
+from cactus.tests.integration.s3 import S3TestHTTPConnection, S3IntegrationTestCase
 
 
-class WorkflowTestCase(IntegrationTestCase):
-    connection_class = S3TestHTTPConnection
+class WorkflowTestCase(S3IntegrationTestCase):
+    HTTPConnectionClass = S3TestHTTPConnection
 
     def test_bucket_name_unset(self):
         """
@@ -68,8 +67,8 @@ class WorkflowTestCase(IntegrationTestCase):
             def save_credentials(self):
                 self.saved = True
 
-        self.site.credentials_manager = DummyCredentialsManager()
+        self.site.deployment_engine.credentials_manager = DummyCredentialsManager()
         self.site.config.set('aws-bucket-name', 'website')
         self.site.upload()
 
-        self.assertTrue(self.site.credentials_manager.saved)
+        self.assertTrue(self.site.deployment_engine.credentials_manager.saved)
