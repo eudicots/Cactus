@@ -11,12 +11,16 @@ from cactus.utils.url import getURLHeaders
 
 
 class S3File(BaseFile):
+    def __init__(self, engine, path):
+        super(S3File, self).__init__(engine, path)
+        self.extra_headers = CaseInsensitiveDict()
 
     def get_headers(self):
         headers = CaseInsensitiveDict()
         headers['Cache-Control'] = 'max-age={0}'.format(self.cache_control)
         if self.content_encoding is not None:
             headers['Content-Encoding'] = self.content_encoding
+        headers.update(self.extra_headers)
         return headers
 
     def remote_url(self):
