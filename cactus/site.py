@@ -11,9 +11,7 @@ from django.template.loader import add_to_builtins
 
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
-from cactus.deployment.gcs.engine import GCSDeploymentEngine
-from cactus.deployment.s3.engine import S3DeploymentEngine
-from cactus.deployment.cloudfiles.engine import CloudFilesDeploymentEngine
+from cactus.deployment import get_deployment_engine_class
 from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.builtin.context import ContextPlugin
@@ -35,12 +33,6 @@ from cactus.listener import Listener
 from cactus.server import Server, RequestHandler
 from cactus.browser import browserReload, browserReloadCSS
 
-
-SUPPORTED_PROVIDERS = {
-    "aws": S3DeploymentEngine,
-    "google": GCSDeploymentEngine,
-    "rackspace": CloudFilesDeploymentEngine,
-}
 
 DEFAULT_PROVIDER = "aws"
 
@@ -88,11 +80,11 @@ class Site(SiteCompatibilityLayer):
             ExternalManagerClass = ExternalManager
         self.external_manager = ExternalManagerClass(self)
 
-        hosting_provider = self.config.get("provider", DEFAULT_PROVIDER)
-        assert hosting_provider in SUPPORTED_PROVIDERS.keys(), "Invalid hosting provider (check conf: 'provider')."
-
         if DeploymentEngineClass is None:
-            DeploymentEngineClass = SUPPORTED_PROVIDERS[hosting_provider]
+            hosting_provider = self.config.get("provider", DEFAULT_PROVIDER)
+            DeploymentEngineClass = get_deployment_engine_class(hosting_provider)
+            assert DeploymentEngineClass is not None, \
+                   "Could not load Deployment for Provider: {0}".format(hosting_provider)
         self.deployment_engine = DeploymentEngineClass(self)
 
         # Load Django settings

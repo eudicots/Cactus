@@ -122,12 +122,13 @@ setup(
         'Django',
         'markdown',
         'argparse',
-        #TODO: Import libs dynamically
+        'keyring',
         'boto>=2.4.1',
-        'google-api-python-client',
-        'pyrax',
-        'keyring'
     ],
+    extras_require={
+        'GCS Deployment': ['google-api-python-client'],
+        'Cloud Files Deployment': ['pyrax'],
+    },
     zip_safe=False,
     setup_requires=['nose'],
     tests_require=['nose', 'mock', 'tox', 'unittest2'],
