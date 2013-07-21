@@ -1,6 +1,8 @@
+#coding:utf-8
 import os
 import time
-import thread
+import threading
+
 from cactus.utils.filesystem import fileList
 from cactus.utils.network import retry
 
@@ -34,7 +36,9 @@ class Listener(object):
 
     def run(self):
         # self._loop()
-        thread.start_new_thread(self._loop, ())
+        t = threading.Thread(target=self._loop)
+        t.daemon = True
+        t.start()
 
     def pause(self):
         self._pause = True
@@ -44,38 +48,37 @@ class Listener(object):
         self._pause = False
 
     def _loop(self):
-
         self._checksums = self.checksums()
 
-        while True and not self._pause:
+        while True:
             self._run()
 
     @retry((Exception,), tries = 5, delay = 0.5)
     def _run(self):
+        if not self._pause:
+            oldChecksums = self._checksums
+            newChecksums = self.checksums()
 
-        oldChecksums = self._checksums
-        newChecksums = self.checksums()
+            result = {
+                'added': [],
+                'deleted': [],
+                'changed': [],
+            }
 
-        result = {
-            'added': [],
-            'deleted': [],
-            'changed': [],
-        }
+            for k, v in oldChecksums.iteritems():
+                if k not in newChecksums:
+                    result['deleted'].append(k)
+                elif v != newChecksums[k]:
+                    result['changed'].append(k)
 
-        for k, v in oldChecksums.iteritems():
-            if k not in newChecksums:
-                result['deleted'].append(k)
-            elif v != newChecksums[k]:
-                result['changed'].append(k)
+            for k, v in newChecksums.iteritems():
+                if k not in oldChecksums:
+                    result['added'].append(k)
 
-        for k, v in newChecksums.iteritems():
-            if k not in oldChecksums:
-                result['added'].append(k)
+            result['any'] = result['added'] + result['deleted'] + result['changed']
 
-        result['any'] = result['added'] + result['deleted'] + result['changed']
-
-        if result['any']:
-            self._checksums = newChecksums
-            self.f(result)
+            if result['any']:
+                self._checksums = newChecksums
+                self.f(result)
 
         time.sleep(self.delay)

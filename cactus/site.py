@@ -298,6 +298,8 @@ class Site(SiteCompatibilityLayer):
         """
         Start a http server and rebuild on changes.
         """
+        self._parallel = PARALLEL_DISABLED
+
         self.clean()
         self.build()
 
@@ -313,6 +315,14 @@ class Site(SiteCompatibilityLayer):
             # like coffeescript and less don't trigger the listener again immediately.
             self.listener.pause()
             try:
+                #TODO: Fix this.
+                #TODO: The static files should handle collection of their static folder on their own
+                #TODO: The static files should not run everything on __init__
+                #TODO: Only rebuild static files that changed
+                # We need to "clear out" the list of static first. Otherwise, processors will not run again
+                # They run on __init__ to run before fingerprinting, and the "built" static files themselves,
+                # which are in a temporary folder, have been deleted already!
+                self._static = None
                 self.build()
             except Exception, e:
                 logger.info('*** Error while building\n%s', e)
