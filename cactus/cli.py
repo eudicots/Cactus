@@ -13,7 +13,7 @@ from cactus.bootstrap import bootstrap
 def setup_logging():
     if os.environ.get('DEBUG'):
         logging.basicConfig(
-            format = '%(filename)s:%(lineno)s / %(levelname)s -> %(message)s',
+            format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s',
             level = logging.DEBUG
         )
     else:
