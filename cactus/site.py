@@ -34,6 +34,8 @@ from cactus.server import Server, RequestHandler
 from cactus.browser import browserReload, browserReloadCSS
 
 
+logger = logging.getLogger(__name__)
+
 DEFAULT_PROVIDER = "aws"
 
 
@@ -159,7 +161,7 @@ class Site(SiteCompatibilityLayer):
 
         for p in required_subfolders:
             if not os.path.isdir(os.path.join(self.path, p)):
-                logging.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
+                logger.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
                 sys.exit(1)
 
     @memoize
@@ -178,7 +180,7 @@ class Site(SiteCompatibilityLayer):
         Generate the .po files for the site.
         """
         if self.locale is None:
-            logging.error("You should set a locale in your configuration file before running this command.")
+            logger.error("You should set a locale in your configuration file before running this command.")
             return
 
         message_maker = MessageMaker(self)
@@ -218,9 +220,9 @@ class Site(SiteCompatibilityLayer):
 
         self.plugin_manager.preBuild(self)
 
-        logging.info('Plugins:    %s', ', '.join([p.plugin_name for p in self.plugin_manager.plugins]))
-        logging.info('Processors: %s', ', '.join([p.__name__ for p in self.external_manager.processors]))
-        logging.info('Optimizers: %s', ', '.join([p.__name__ for p in self.external_manager.optimizers]))
+        logger.info('Plugins:    %s', ', '.join([p.plugin_name for p in self.plugin_manager.plugins]))
+        logger.info('Processors: %s', ', '.join([p.__name__ for p in self.external_manager.processors]))
+        logger.info('Optimizers: %s', ', '.join([p.__name__ for p in self.external_manager.optimizers]))
 
         # Make sure the build path exists
         if not os.path.exists(self.build_path):
@@ -299,13 +301,13 @@ class Site(SiteCompatibilityLayer):
         self.clean()
         self.build()
 
-        logging.info('Running webserver at 0.0.0.0:%s for %s' % (port, self.build_path))
-        logging.info('Type control-c to exit')
+        logger.info('Running webserver at 0.0.0.0:%s for %s' % (port, self.build_path))
+        logger.info('Type control-c to exit')
 
         os.chdir(self.build_path)
 
         def rebuild(changes):
-            logging.info('*** Rebuilding (%s changed)' % self.path)
+            logger.info('*** Rebuilding (%s changed)' % self.path)
 
             # We will pause the listener while building so scripts that alter the output
             # like coffeescript and less don't trigger the listener again immediately.
@@ -313,7 +315,7 @@ class Site(SiteCompatibilityLayer):
             try:
                 self.build()
             except Exception, e:
-                logging.info('*** Error while building\n%s', e)
+                logger.info('*** Error while building\n%s', e)
                 traceback.print_exc(file=sys.stdout)
 
             # When we have changes, we want to refresh the browser tabs with the updates.
@@ -334,8 +336,8 @@ class Site(SiteCompatibilityLayer):
         try:
             httpd = Server(("", port), RequestHandler)
         except socket.error:
-            logging.info('Could not start webserver, port is in use. To use another port:')
-            logging.info('  cactus serve %s' % (int(port) + 1))
+            logger.info('Could not start webserver, port is in use. To use another port:')
+            logger.info('  cactus serve %s' % (int(port) + 1))
             return
 
         if browser is True:
@@ -346,15 +348,15 @@ class Site(SiteCompatibilityLayer):
         except (KeyboardInterrupt, SystemExit):
             httpd.server_close()
 
-        logging.info('See you!')
+        logger.info('See you!')
 
     def upload(self):
         # Make sure we have internet
         if not internetWorking():
-            logging.info('There does not seem to be internet here, check your connection')
+            logger.info('There does not seem to be internet here, check your connection')
             return
 
-        logging.debug('Start upload')
+        logger.debug('Start upload')
 
         self.clean()
         self.build()
@@ -367,11 +369,11 @@ class Site(SiteCompatibilityLayer):
         self.plugin_manager.postDeploy(self)
 
         # Display done message and some statistics
-        logging.info('\nDone\n')
+        logger.info('\nDone\n')
 
-        logging.info('%s total files with a size of %s' %
+        logger.info('%s total files with a size of %s' %
                      (len(totalFiles), fileSize(sum([r['size'] for r in totalFiles]))))
-        logging.info('%s changed files with a size of %s' %
+        logger.info('%s changed files with a size of %s' %
                      (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
-        logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix
+        logger.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix

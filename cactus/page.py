@@ -7,6 +7,9 @@ from cactus.compat.paths import PageCompatibilityLayer
 from cactus.utils.url import ResourceURLHelperMixin
 
 
+logger = logging.getLogger(__name__)
+
+
 class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
     discarded = False
 
@@ -92,7 +95,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         """
         Save the rendered output to the output file.
         """
-        logging.info('Building {0} --> {1}'.format(self.source_path, self.final_url))  #TODO: Fix inconsistency w/ static
+        logger.info('Building {0} --> {1}'.format(self.source_path, self.final_url))  #TODO: Fix inconsistency w/ static
         data = self.render()  #TODO: This calls preBuild indirectly. Not great.
 
         if not self.discarded:

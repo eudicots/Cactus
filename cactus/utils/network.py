@@ -1,7 +1,12 @@
+#coding:utf-8
 import logging
 import time
 import urllib2
+
 from cactus.utils.parallel import multiMap
+
+
+logger = logging.getLogger(__name__)
 
 
 def retry(exceptions, tries=4, delay=3, backoff=2):
@@ -16,7 +21,7 @@ def retry(exceptions, tries=4, delay=3, backoff=2):
                 try:
                     return f(*args, **kwargs)
                 except exceptions as e:
-                    logging.warning("%s, Retrying in %.1f seconds..." % (str(e), mdelay))
+                    logger.warning("%s, Retrying in %.1f seconds..." % (str(e), mdelay))
                     time.sleep(mdelay)
                     mtries -= 1
                     mdelay *= backoff

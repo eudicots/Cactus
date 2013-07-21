@@ -7,6 +7,9 @@ from cactus.utils.file import compressString, fileSize
 from cactus.utils.helpers import memoize, checksum
 
 
+logger = logging.getLogger(__name__)
+
+
 class BaseFile(object):
     DEFAULT_CACHE_EXPIRATION = 60 * 60 * 24 * 7  # One week
     MAX_CACHE_EXPIRATION = 60 * 60 * 24 * 365 # 1 Year (for cached)
@@ -113,7 +116,7 @@ class BaseFile(object):
         op1 = '+' if remote_changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.is_compressed else ''
 
-        logging.info('%s %s - %s%s' % (op1, self.path, fileSize(len(self.data())), op2))
+        logger.info('%s %s - %s%s' % (op1, self.path, fileSize(len(self.data())), op2))
 
         return {'changed': remote_changed, 'size': len(self.payload())}
 

@@ -3,6 +3,9 @@ import json
 import logging
 
 
+logger = logging.getLogger(__name__)
+
+
 class ConfigFile(object):
     """
     A single config file, as present on the filesystem.
@@ -28,14 +31,14 @@ class ConfigFile(object):
             self._data = json.load(open(self.path, 'rU'))
             self._dirty = False
         except IOError:
-            logging.info('No configuration file found at {0}'.format(self.path))
+            logger.info('No configuration file found at {0}'.format(self.path))
             self._data = {}
-        except Exception:
-            logging.warning('Unable to load configuration at {0}'.format(self.path))
+        except Exception: #TODO: Specify
+            logger.warning('Unable to load configuration at {0}'.format(self.path))
             self._data = {}
 
     def write(self):
         if self._dirty:
             json.dump(self._data, open(self.path, 'w'), sort_keys=True, indent=4, separators=(',', ': '))
             self._dirty = False
-        logging.debug('Saved configuration at {0}'.format(self.path))
+        logger.debug('Saved configuration at {0}'.format(self.path))

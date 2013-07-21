@@ -10,6 +10,9 @@ from cactus.utils.network import retry
 from cactus.utils.url import getURLHeaders
 
 
+logger = logging.getLogger(__name__)
+
+
 class S3File(BaseFile):
     def __init__(self, engine, path):
         super(S3File, self).__init__(engine, path)
@@ -46,7 +49,7 @@ class S3File(BaseFile):
             def progressCallback(current, total):
                 if current > self.lastUpload:
                     uploadPercentage = (float(current) / float(total)) * 100
-                    logging.info('+ %s upload progress %.1f%%' % (self.path, uploadPercentage))
+                    logger.info('+ %s upload progress %.1f%%' % (self.path, uploadPercentage))
                     self.lastUpload = current
 
 

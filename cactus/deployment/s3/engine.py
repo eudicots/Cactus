@@ -10,6 +10,9 @@ from cactus.deployment.s3.file import S3File
 from cactus.exceptions import InvalidCredentials
 
 
+logger = logging.getLogger(__name__)
+
+
 class S3DeploymentEngine(BaseDeploymentEngine):
     FileClass = S3File
     CredentialsManagerClass = AWSCredentialsManager
@@ -31,7 +34,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             return self.get_connection().get_all_buckets()
         except S3ResponseError as e:
             if e.error_code == u'InvalidAccessKeyId':
-                logging.info("Received an Error from AWS:\n %s", e.body)
+                logger.info("Received an Error from AWS:\n %s", e.body)
                 raise InvalidCredentials()
             raise
 
@@ -61,7 +64,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         try:
             bucket = self.get_connection().create_bucket(self.bucket_name, policy='public-read')
         except boto.exception.S3CreateError:
-            logging.info(
+            logger.info(
                 'Bucket with name %s already is used by someone else, '
                 'please try again with another name', self.bucket_name)
             return  #TODO: These should be exceptions

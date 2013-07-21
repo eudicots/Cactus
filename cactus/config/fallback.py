@@ -2,6 +2,9 @@
 import logging
 
 
+logger = logging.getLogger(__name__)
+
+
 class ConfigFallback(object):
     """
     A transient fallback config.
@@ -25,4 +28,4 @@ class ConfigFallback(object):
 
     def write(self):
         if self.cnf:
-            logging.warn("Using config fallback, discarding config values: [%s]", ', '.join(self.cnf.keys()))
+            logger.warn("Using config fallback, discarding config values: [%s]", ', '.join(self.cnf.keys()))

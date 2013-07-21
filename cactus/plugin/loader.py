@@ -1,5 +1,4 @@
 #coding:utf-8
-
 import os
 import sys
 import imp
@@ -7,6 +6,9 @@ import logging
 
 from cactus.plugin import defaults
 from cactus.utils.filesystem import fileList
+
+
+logger = logging.getLogger(__name__)
 
 
 class BasePluginsLoader(object):
@@ -107,7 +109,7 @@ class CustomPluginsLoader(BasePluginsLoader):
         try:
             plugin_module = imp.load_source(module_name, plugin_path)
         except Exception, e:
-            logging.info('Error: Could not load plugin at path %s\n%s' % (plugin_path, e))
+            logger.info('Error: Could not load plugin at path %s\n%s' % (plugin_path, e))
             sys.exit()
 
         return plugin_module

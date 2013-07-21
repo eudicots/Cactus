@@ -10,6 +10,9 @@ from cactus.utils.filesystem import alt_file
 from cactus.utils.url import ResourceURLHelperMixin
 
 
+logger = logging.getLogger(__name__)
+
+
 class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
     """
     A static resource in the repo
@@ -121,7 +124,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         shutil.copy(self.full_source_path, pre_path)
 
         # Pre-process
-        logging.info('Pre-processing: %s' % self.src_name)
+        logger.info('Pre-processing: %s' % self.src_name)
 
         # Run processors (those might change the extension)
         self.final_extension = self.run_externals(self.src_extension, pre_path, self.site.external_manager.processors)
@@ -143,7 +146,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
 
         if not self.discarded:
 
-            logging.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
+            logger.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
             try:
                 os.makedirs(os.path.dirname(self.full_build_path))

@@ -13,6 +13,6 @@ if os.environ.get('DEBUG'):
     )
 else:
     logging.basicConfig(
-        format = '%(message)s',
+        format = '%(levelname)s: %(message)s',
         level = logging.INFO
     )

@@ -2,6 +2,8 @@
 import os
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 class PageContextCompatibilityPlugin(object):
     """
@@ -12,15 +14,15 @@ class PageContextCompatibilityPlugin(object):
         prefix = '/'.join(['..' for i in xrange(len(page.source_path.split('/')) - 1)]) or '.'
 
         def static_url():
-            logging.warn("{{ STATIC_URL }} is deprecated, use {% static '/static/path/to/file' %} instead.")
+            logger.warn("{{ STATIC_URL }} is deprecated, use {% static '/static/path/to/file' %} instead.")
             return os.path.join(prefix, 'static')
 
         def root_url():
-            logging.warn("{{ ROOT_URL }} is deprecated, use {% url '/page.html' %} instead.")
+            logger.warn("{{ ROOT_URL }} is deprecated, use {% url '/page.html' %} instead.")
             return prefix
 
         def page_url():
-            logging.warn("{{ PAGE_URL }} is deprecated, use {% current_page %} instead")
+            logger.warn("{{ PAGE_URL }} is deprecated, use {% current_page %} instead")
             return page.source_path
 
         context.update({

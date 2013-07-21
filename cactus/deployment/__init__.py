@@ -1,13 +1,16 @@
 #coding:utf-8
 import logging
 
+
 logger = logging.getLogger(__name__)
+
 
 PROVIDER_MAPPING = {
     "rackspace": "cactus.deployment.cloudfiles.engine.CloudFilesDeploymentEngine",
     "google": "cactus.deployment.gcs.engine.GCSDeploymentEngine",
     "aws": "cactus.deployment.s3.engine.S3DeploymentEngine",
 }
+
 
 def get_deployment_engine_class(provider):
     """

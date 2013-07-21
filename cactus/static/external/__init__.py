@@ -2,6 +2,9 @@ import logging
 from cactus.static.external.exceptions import ExternalFailure
 
 
+logger = logging.getLogger(__name__)
+
+
 # Helpers to build the Externals
 
 ACCEPTED = 1
@@ -17,7 +20,7 @@ def status_getter(status):
 
 def status_setter(status):
     def set_status(external):
-        logging.debug('External {0} ({1}) status > {2}'.format(
+        logger.debug('External {0} ({1}) status > {2}'.format(
             external.__class__.__name__, external.src, status))
         external.status = status
     return set_status
@@ -59,10 +62,10 @@ class External(object):
             msg = 'Could not call external processor {0}: {1}'.format(self.__class__.__name__, e)
 
             if self.critical:
-                logging.critical(msg)
+                logger.critical(msg)
                 raise ExternalFailure(self.__class__.__name__, e)
             else:
-                logging.info(msg)
+                logger.info(msg)
                 self.refuse()
 
     def _run(self):

@@ -1,9 +1,13 @@
 #coding:utf-8
 import logging
+
 from cactus.deployment.file import BaseFile
 from cactus.utils.filesystem import fileList
 from cactus.utils.helpers import get_or_prompt
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseDeploymentEngine(object):
@@ -100,7 +104,7 @@ class BaseDeploymentEngine(object):
         self.credentials_manager.save_credentials()
 
         if created:
-            logging.info('Bucket %s was created with website endpoint %s',  self.bucket_name, website_endpoint)
+            logger.info('Bucket %s was created with website endpoint %s',  self.bucket_name, website_endpoint)
 
-        logging.info("Bucket Name: %s", self.bucket_name)
-        logging.info("Bucket Web Endpoint: %s", website_endpoint)
+        logger.info("Bucket Name: %s", self.bucket_name)
+        logger.info("Bucket Web Endpoint: %s", website_endpoint)

@@ -1,7 +1,11 @@
 #coding:utf-8
 import logging
+
 from cactus.config.fallback import ConfigFallback
 from cactus.config.file import ConfigFile
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigRouter(object):
@@ -24,7 +28,7 @@ class ConfigRouter(object):
 
         self.configs.append(ConfigFallback())
 
-        logging.debug("Loaded configs: %s", ', '.join([config.path for config in self.configs]))
+        logger.debug("Loaded configs: %s", ', '.join([config.path for config in self.configs]))
 
 
     def _get_nested(self, key, default=None):
@@ -33,14 +37,14 @@ class ConfigRouter(object):
         output = {}
         for config in reversed(self.configs):
             output.update(config.get(key, default))
-            logging.debug("Retrieving %s from %s", key, config.path)
+            logger.debug("Retrieving %s from %s", key, config.path)
 
         return output
 
     def _get_first(self, key, default=None):
         for config in self.configs:
             if config.has_key(key):
-                logging.debug("Retrieved %s from %s", key, config.path)
+                logger.debug("Retrieved %s from %s", key, config.path)
                 return config.get(key)
 
         return default
@@ -50,7 +54,7 @@ class ConfigRouter(object):
         Retrieve a config key from the first config that has it.
         Return default if no config has it.
         """
-        logging.debug("Searching for %s (nested:%s)", key, nested)
+        logger.debug("Searching for %s (nested:%s)", key, nested)
         if nested:
             return self._get_nested(key, default)
         else:
@@ -74,7 +78,7 @@ class ConfigRouter(object):
             write_to = self.configs[0]
 
         write_to.set(key, value)
-        logging.debug("Set %s in %s", key, write_to.path)
+        logger.debug("Set %s in %s", key, write_to.path)
 
     def write(self):
         """
