@@ -2,6 +2,9 @@
 import os
 import logging
 
+from cactus.utils.url import path_to_url
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -11,19 +14,19 @@ class PageContextCompatibilityPlugin(object):
     deprecation warnings.
     """
     def preBuildPage(self, page, context, data):
-        prefix = '/'.join(['..' for i in xrange(len(page.source_path.split('/')) - 1)]) or '.'
+        prefix = os.path.relpath(".", os.path.dirname(page.build_path))
 
         def static_url():
             logger.warn("{{ STATIC_URL }} is deprecated, use {% static '/static/path/to/file' %} instead.")
-            return os.path.join(prefix, 'static')
+            return path_to_url(os.path.join(prefix, 'static'))
 
         def root_url():
             logger.warn("{{ ROOT_URL }} is deprecated, use {% url '/page.html' %} instead.")
-            return prefix
+            return path_to_url(prefix)
 
         def page_url():
             logger.warn("{{ PAGE_URL }} is deprecated, use {% current_page %} instead")
-            return page.source_path
+            return page.final_url[1:]  # We don't want the leading slash (backwards compatibility)
 
         context.update({
             "STATIC_URL": static_url,

@@ -79,7 +79,7 @@ class TestStatic(SiteTestCase):
         expected = None
 
         for static in self.site.static():
-            if static.path == "js/main.js":
+            if static.src_filename == "main.js":
                 expected = static.final_url
 
         self.assertIsNotNone(expected)  # Was the JS built?
