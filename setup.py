@@ -7,7 +7,7 @@ from distutils.sysconfig import get_python_lib
 from setuptools import setup
 
 
-VERSION = "2.5.0"
+VERSION = "3.0.0"
 SKELETON_FOLDERS = ['pages', 'plugins', 'static/css', 'static/images', 'static/js', 'templates', 'locale']
 SKELETON_GLOB = ['skeleton/{0}/*'.format(folder) for folder in SKELETON_FOLDERS]
 
@@ -132,5 +132,17 @@ setup(
     zip_safe=False,
     setup_requires=['nose'],
     tests_require=['nose', 'mock', 'tox', 'unittest2'],
-    classifiers=[],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 2 :: Only",
+        "Topic :: Internet :: WWW/HTTP",
+    ],
 )
