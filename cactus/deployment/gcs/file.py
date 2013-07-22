@@ -35,7 +35,7 @@ class GCSFile(BaseFile):
         :rtype: bool
         """
         resource = self.engine.get_connection().objects()
-        req = resource.get(bucket=self.engine.bucket_name, object=self.path)
+        req = resource.get(bucket=self.engine.bucket_name, object=self.url)
 
         try:
             remote_metadata = req.execute()
@@ -60,7 +60,7 @@ class GCSFile(BaseFile):
 
         req = resource.insert(
             bucket=self.engine.bucket_name,
-            name=self.path,
+            name=self.url,
             body=self.get_metadata(),
             media_body=upload,
         )

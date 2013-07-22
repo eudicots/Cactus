@@ -27,7 +27,7 @@ class S3File(BaseFile):
         return headers
 
     def remote_url(self):
-        return 'http://%s/%s' % (self.engine.site.config.get('aws-bucket-website'), self.path)
+        return 'http://%s/%s' % (self.engine.site.config.get('aws-bucket-website'), self.url)
 
     def remote_changed(self):
         remote_headers = dict((k, v.strip('"')) for k, v in getURLHeaders(self.remote_url()).items())
@@ -49,11 +49,11 @@ class S3File(BaseFile):
             def progressCallback(current, total):
                 if current > self.lastUpload:
                     uploadPercentage = (float(current) / float(total)) * 100
-                    logger.info('+ %s upload progress %.1f%%' % (self.path, uploadPercentage))
+                    logger.info('+ %s upload progress %.1f%%' % (self.url, uploadPercentage))
                     self.lastUpload = current
 
 
-        key = self.engine.bucket.new_key(self.path)
+        key = self.engine.bucket.new_key(self.url)
         key.content_type = self.content_type  # We don't it need before (local headers only)
         key.md5 = self.payload_checksum   # In case of a flaky network
         key.set_contents_from_string(self.payload(),

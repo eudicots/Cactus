@@ -5,6 +5,7 @@ import logging
 from cactus import mime
 from cactus.utils.file import compressString, fileSize
 from cactus.utils.helpers import memoize, checksum
+from cactus.utils.url import path_to_url
 
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,14 @@ class BaseFile(object):
         payload = self.payload()  # Decide whether we'll compress or not.
         self.payload_checksum = checksum(payload)
         self.lastUpload = 0
+
+    @property
+    def url(self):
+        """
+        We must use this when deploying, otherwise the paths will be broken when
+        deploying from Windows
+        """
+        return path_to_url(self.path)
 
     @memoize
     def data(self):

@@ -6,7 +6,7 @@ from cactus.utils.helpers import CaseInsensitiveDict
 
 class CloudFilesFile(BaseFile):
     def remote_changed(self):
-        obj = self.engine.bucket.get_object(self.path)
+        obj = self.engine.bucket.get_object(self.url)
         #TODO: Headers
         return obj.etag != self.payload_checksum
 
@@ -19,6 +19,6 @@ class CloudFilesFile(BaseFile):
         return headers
 
     def do_upload(self):
-        obj = self.engine.bucket.store_object(self.path, self.payload(), content_type=self.content_type,
+        obj = self.engine.bucket.store_object(self.url, self.payload(), content_type=self.content_type,
                                               etag=self.payload_checksum, content_encoding=self.content_encoding,)
         obj.set_metadata(self.get_headers())
