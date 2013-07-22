@@ -49,7 +49,7 @@ class BaseTestArchiveBootstrap(object):
         self.skeleton_path = "cactus/skeleton"
         self.archive_path = os.path.join(self.test_dir, "archive")
 
-        with open(self.archive_path, "w") as f:
+        with open(self.archive_path, "wb") as f:
             self.make_archive(f)
 
     def make_archive(self, f):
