@@ -1,4 +1,6 @@
 import json
+import logging
+
 
 class Config(object):
 	
@@ -15,7 +17,9 @@ class Config(object):
 	def load(self):
 		try:
 			self._data = json.load(open(self.path, 'r'))
-		except:
+			logging.info("Config param : %s", self._data)
+		except Exception as inst:
+			logging.info("Failed to load config file : %s", inst)
 			self._data = {}
 	
 	def write(self):
