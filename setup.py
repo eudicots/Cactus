@@ -41,7 +41,7 @@ if "install" in sys.argv or "bdist_egg" in sys.argv:
 	p2 = '/usr/local/bin/cactus.pyc'
 	
 	if os.path.exists(p1) or os.path.exists(p2):
-		print "Error: you have an old version of Cactus installed, we need to move it:"
+		print "Error: you have an old version of Cactus installed, we need to remove it:"
 		if os.path.exists(p1): print "  sudo rm %s" % p1 
 		if os.path.exists(p2): print "  sudo rm %s" % p2
 		sys.exit()
