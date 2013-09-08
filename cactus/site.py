@@ -108,8 +108,8 @@ class Site(SiteCompatibilityLayer):
         #TODO: Make a "required" option in the config.
         #TODO: Use URL tags in the sitemap
 
-        if self.url is None:
-            self.url = self.ui.prompt_url("Enter your site URL (e.g. http://example.com/)")
+        # if self.url is None:
+        #     self.url = self.ui.prompt_url("Enter your site URL (e.g. http://example.com/)")
 
     @property
     def path(self):
