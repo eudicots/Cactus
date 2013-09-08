@@ -259,9 +259,9 @@ class Site(SiteCompatibilityLayer):
         return self._static
 
     def _get_url(self, src_url, resources):
+        
         if is_external(src_url):
             return src_url
-
         
         for split_char in ["#", "?"]:
             if split_char in src_url:
@@ -272,7 +272,8 @@ class Site(SiteCompatibilityLayer):
         try:
             return resources_dict[src_url].final_url
         except KeyError:
-            raise Exception('Resource does not exist: {0}'.format(src_url))
+            #raise Exception('Resource does not exist: {0}'.format(src_url))
+            logger.warn('Resource does not exist: {0}'.format(src_url))
 
     def get_url_for_static(self, src_path):
         return self._get_url(src_path, self.static())
