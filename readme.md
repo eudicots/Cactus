@@ -109,4 +109,4 @@ Cactus will auto generate a robots.txt and sitemap.xml file for you based on you
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/d343671f7f437766f6d1aa1b089dd137 "githalytics.com")](http://githalytics.com/koenbok/Cactus)
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/koenbok/framer/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/koenbok/cactus/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
