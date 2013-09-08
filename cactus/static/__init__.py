@@ -35,11 +35,17 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         # Actual source file
         self.src_dir = os.path.join('static', _static_path)
         self.src_filename = filename
-        self.src_name, self.src_extension = filename.rsplit('.', 1)
+        
+        try:
+            self.src_name, self.src_extension = filename.rsplit('.', 1)
+        except ValueError:
+            self.src_name = filename
+            self.src_extension = ""
 
+            
         # Useless we'll crash before.
-        # TODO
-        assert self.src_extension, "No extension for file?! {0}".format(self.src_name)
+        # # TODO
+        # assert self.src_extension, "No extension for file?! {0}".format(self.src_name)
 
         # Do some pre-processing (e.g. optimizations):
         # must be done before fingerprinting
