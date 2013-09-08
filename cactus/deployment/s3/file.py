@@ -51,9 +51,6 @@ class S3File(BaseFile):
                     uploadPercentage = (float(current) / float(total)) * 100
                     logger.info('+ %s upload progress %.1f%%' % (self.url, uploadPercentage))
                     self.lastUpload = current
-
-        
-        print self.url, self.get_headers()
         
         key = self.engine.bucket.new_key(self.url)
         
