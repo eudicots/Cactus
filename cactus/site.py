@@ -262,6 +262,11 @@ class Site(SiteCompatibilityLayer):
         if is_external(src_url):
             return src_url
 
+        
+        for split_char in ["#", "?"]:
+            if split_char in src_url:
+                src_url = src_url.split(split_char)[0]
+        
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
         try:
