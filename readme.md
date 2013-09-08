@@ -108,3 +108,5 @@ Cactus also makes sure all your text files are compressed and adds caching heade
 Cactus will auto generate a robots.txt and sitemap.xml file for you based on your pages. This will help bots to index your pages for Google and Bing for example.
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/d343671f7f437766f6d1aa1b089dd137 "githalytics.com")](http://githalytics.com/koenbok/Cactus)
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/koenbok/framer/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
