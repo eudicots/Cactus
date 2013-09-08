@@ -130,7 +130,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         shutil.copy(self.full_source_path, pre_path)
 
         # Pre-process
-        logger.info('Pre-processing: %s' % self.src_name)
+        logger.debug('Pre-processing: %s' % self.src_name)
 
         # Run processors (those might change the extension)
         self.final_extension = self.run_externals(self.src_extension, pre_path, self.site.external_manager.processors)
@@ -152,7 +152,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
 
         if not self.discarded:
 
-            logger.info('Building {0} --> {1}'.format(self.src_name, self.final_url))
+            logger.debug('Building {0} --> {1}'.format(self.src_name, self.final_url))
 
             try:
                 os.makedirs(os.path.dirname(self.full_build_path))
