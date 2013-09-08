@@ -7,3 +7,4 @@ Cactus.egg-info
 examples/blog/config.json
 *.egg
 .tox
+TestProject
