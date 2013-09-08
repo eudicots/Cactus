@@ -38,7 +38,7 @@ class S3File(BaseFile):
                 return True
         return False
 
-    @retry((S3ResponseError, socket.error), tries=5, delay=3, backoff=2)
+    @retry((S3ResponseError, socket.error), tries=5, delay=1, backoff=2)
     def do_upload(self):
         # Show progress if the file size is big
         progressCallback = None
@@ -52,9 +52,13 @@ class S3File(BaseFile):
                     logger.info('+ %s upload progress %.1f%%' % (self.url, uploadPercentage))
                     self.lastUpload = current
 
-
+        
+        print self.url, self.get_headers()
+        
         key = self.engine.bucket.new_key(self.url)
-        key.content_type = self.content_type  # We don't it need before (local headers only)
+        
+        if self.content_type:
+            key.content_type = self.content_type  # We don't it need before (local headers only)
         key.md5 = self.payload_checksum   # In case of a flaky network
         key.set_contents_from_string(self.payload(),
             headers=self.get_headers(),
