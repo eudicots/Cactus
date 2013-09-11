@@ -53,7 +53,7 @@ class Site(object):
 			from django.conf import settings
 			settings.configure(
 				TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']],
-				INSTALLED_APPS=['django.contrib.markup']
+				INSTALLED_APPS=['django.contrib.markup']+[self.config.get('installed-apps').strip(',')]
 			)
 		except:
 			pass
@@ -105,6 +105,10 @@ class Site(object):
 			logging.info('New project generated at %s', self.path)
 		else:
 			logging.error("Cannot process skeleton '%s'. At this time, skeleton argument must be a directory, a zipfile, or a tarball." % skeleton)
+
+		installed_apps = raw_input('Any INSTALLED_APPS? (comma separated): ')
+		self.config.set('installed-apps', installed_apps)
+		self.config.write()
 
 	def context(self):
 		"""
