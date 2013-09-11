@@ -15,6 +15,7 @@ import zipfile
 import urllib
 
 import boto
+from paramiko import SFTPClient, Transport, RSAKey
 
 from .config import Config
 from .utils import *
@@ -52,7 +53,7 @@ class Site(object):
 			from django.conf import settings
 			settings.configure(
 				TEMPLATE_DIRS=[self.paths['templates'], self.paths['pages']],
-				INSTALLED_APPS=['django.contrib.markup']
+				INSTALLED_APPS=['django.contrib.markup']+[self.config.get('installed-apps').strip(',')]
 			)
 		except:
 			pass
@@ -104,6 +105,10 @@ class Site(object):
 			logging.info('New project generated at %s', self.path)
 		else:
 			logging.error("Cannot process skeleton '%s'. At this time, skeleton argument must be a directory, a zipfile, or a tarball." % skeleton)
+
+		installed_apps = raw_input('Any INSTALLED_APPS? (comma separated): ')
+		self.config.set('installed-apps', installed_apps)
+		self.config.write()
 
 	def context(self):
 		"""
@@ -274,85 +279,152 @@ class Site(object):
 		logging.debug('Start preDeploy')
 		self.pluginMethod('preDeploy', self)
 		logging.debug('End preDeploy')
-		
-		# Get access information from the config or the user
-		awsAccessKey = self.config.get('aws-access-key') or \
-			raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
-		awsSecretKey = getpassword('aws', awsAccessKey) or \
-			getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
-		
-		# Try to fetch the buckets with the given credentials
-		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
-		
-		logging.debug('Start get_all_buckets')
-		# Exit if the information was not correct
-		try:
-			buckets = connection.get_all_buckets()
-		except:
-			logging.info('Invalid login credentials, please try again...')
-			return
-		logging.debug('end get_all_buckets')
-		
-		# If it was correct, save it for the future
-		self.config.set('aws-access-key', awsAccessKey)
-		self.config.write()
-	
-		setpassword('aws', awsAccessKey, awsSecretKey)
-	
-		awsBucketName = self.config.get('aws-bucket-name') or \
-			raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
-	
-		if awsBucketName not in [b.name for b in buckets]:
-			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
-				
-				logging.debug('Start create_bucket')
-				try:
-					awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
-				except boto.exception.S3CreateError, e:
-					logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
-					return
-				logging.debug('end create_bucket')
-				
-				# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
-				awsBucket.configure_website('index.html', 'error.html')
 
-				self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
-				self.config.set('aws-bucket-name', awsBucketName)
-				self.config.write()
+		protocol = self.config.get('protocol') or \
+			raw_input('Choose protocol Amazon S3 [amazon] or SFTP [sftp]:')
 
-				logging.info('Bucket %s was selected with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
-				logging.info('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
-
-
-			else: return
-		else:
+		if protocol == 'amazon':
+		
+			# Get access information from the config or the user
+			awsAccessKey = self.config.get('aws-access-key') or \
+				raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
+			awsSecretKey = getpassword('aws', awsAccessKey) or \
+				getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
 			
-			# Grab a reference to the existing bucket
-			for b in buckets:
-				if b.name == awsBucketName:
-					awsBucket = b
+			# Try to fetch the buckets with the given credentials
+			connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
+			
+			logging.debug('Start get_all_buckets')
+			# Exit if the information was not correct
+			try:
+				buckets = connection.get_all_buckets()
+			except:
+				logging.info('Invalid login credentials, please try again...')
+				return
+			logging.debug('end get_all_buckets')
+			
+			# If it was correct, save it for the future
+			self.config.set('aws-access-key', awsAccessKey)
+			self.config.set('protocol', protocol)
+			self.config.write()
+		
+			setpassword('aws', awsAccessKey, awsSecretKey)
+		
+			awsBucketName = self.config.get('aws-bucket-name') or \
+				raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
+		
+			if awsBucketName not in [b.name for b in buckets]:
+				if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
+					
+					logging.debug('Start create_bucket')
+					try:
+						awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
+					except boto.exception.S3CreateError, e:
+						logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
+						return
+					logging.debug('end create_bucket')
+					
+					# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
+					awsBucket.configure_website('index.html', 'error.html')
 
-		self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
-		self.config.set('aws-bucket-name', awsBucketName)
-		self.config.write()
-		
-		logging.info('Uploading site to bucket %s' % awsBucketName)
-		
-		# Upload all files concurrently in a thread pool
-		totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
-		changedFiles = [r for r in totalFiles if r['changed'] == True]
-		
+					self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+					self.config.set('aws-bucket-name', awsBucketName)
+					self.config.write()
+
+					logging.info('Bucket %s was selected with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
+					logging.info('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
+
+
+				else: return
+			else:
+				
+				# Grab a reference to the existing bucket
+				for b in buckets:
+					if b.name == awsBucketName:
+						awsBucket = b
+
+			self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+			self.config.set('aws-bucket-name', awsBucketName)
+			self.config.write()
+			
+			logging.info('Uploading site to bucket %s' % awsBucketName)
+			
+			# Upload all files concurrently in a thread pool
+			totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
+			changedFiles = [r for r in totalFiles if r['changed'] == True]
+			
+			
+			
+			# Display done message and some statistics
+			logging.info('\nDone\n')
+			
+			logging.info('%s total files with a size of %s' % \
+				(len(totalFiles), fileSize(sum([r['size'] for r in totalFiles]))))
+			logging.info('%s changed files with a size of %s' % \
+				(len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
+			
+			logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))
+
+		elif protocol == 'sftp':
+			# Get access information from the config or the user
+			sshKey = self.config.get('ssh-key-path') or \
+				raw_input('SSH Key path: ').strip().lower()
+			sshUser = self.config.get('ssh-user') or \
+				raw_input('SFTP User: ').strip().lower()
+			sshHost = self.config.get('ssh-host') or \
+				raw_input('SFTP Host: ').strip().lower()
+			directory = self.config.get('ssh-dir') or \
+				raw_input('SFTP Directory [full path]: ').strip()
+
+			# Try to connect to the server
+			transport = Transport((sshHost, 22))
+			key = RSAKey.from_private_key_file(sshKey)
+			transport.connect(username=sshUser,pkey=key)
+			client = SFTPClient.from_transport(transport)
+
+			# If it was correct, save it for the future
+			self.config.set('ssh-key-path', sshKey)
+			self.config.set('ssh-user', sshUser)
+			self.config.set('ssh-host', sshHost)
+			self.config.set('ssh-dir', directory)
+			self.config.set('protocol', protocol)
+			self.config.write()
+
+			def mkdir_p(sftp, remote_directory):
+				if remote_directory == '//':
+					# absolute path so change directory to root
+					sftp.chdir('/')
+					return
+				if remote_directory == '':
+					# top-level relative directory must exist
+					return
+				remote_dirname, basename = os.path.split(remote_directory)
+				mkdir_p(sftp, os.path.dirname(remote_dirname)+'/')  # make parent directories
+				try:
+					sftp.chdir(remote_dirname)   # sub-directory exists
+				except IOError:
+					sftp.mkdir(remote_dirname)   # sub-directory missing, so created it
+					sftp.chdir(remote_dirname)
+
+			files = self.files()
+			for f in files:
+				origin = os.path.join('.build', f.path)
+				destiny = os.path.join(directory, f.path)
+				logging.info('Uploading [%s] to [%s]' % (origin, destiny))
+				try:
+					if '' != os.path.split(f.path)[0]:
+						mkdir_p(client, os.path.dirname(os.path.join(directory, f.path))+'/')
+						client.chdir(directory)
+					client.put(origin, destiny)
+				except IOError, e:
+					logging.error("Could not put file [%s] host [%s] remotefile [%s]: %s" % (origin, sshHost, destiny, e))
+
+			client.close()
+			transport.close()
+			logging.info('\nDone\n')
+
+
 		self.pluginMethod('postDeploy', self)
-		
-		# Display done message and some statistics
-		logging.info('\nDone\n')
-		
-		logging.info('%s total files with a size of %s' % \
-			(len(totalFiles), fileSize(sum([r['size'] for r in totalFiles]))))
-		logging.info('%s changed files with a size of %s' % \
-			(len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
-		
-		logging.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))
 
 
 	def files(self):
