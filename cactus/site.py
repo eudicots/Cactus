@@ -274,6 +274,7 @@ class Site(SiteCompatibilityLayer):
         except KeyError:
             #raise Exception('Resource does not exist: {0}'.format(src_url))
             logger.warn('Resource does not exist: {0}'.format(src_url))
+            return src_url
 
     def get_url_for_static(self, src_path):
         return self._get_url(src_path, self.static())
