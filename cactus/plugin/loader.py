@@ -79,9 +79,10 @@ class CustomPluginsLoader(BasePluginsLoader):
         # Load user plugins
         for plugin_path in fileList(self.plugin_path):
             if self._is_plugin_path(plugin_path):
-                custom_plugin = self._load_plugin_path(plugin_path)
-                self._initialize_plugin(custom_plugin)
-                plugins.append(custom_plugin)
+                custom_plugin = self._load_plugin_path(plugin_path)                
+                if custom_plugin:
+                    self._initialize_plugin(custom_plugin)
+                    plugins.append(custom_plugin)
 
 
         return plugins
@@ -107,9 +108,11 @@ class CustomPluginsLoader(BasePluginsLoader):
         module_name = "plugin_{0}".format(os.path.splitext(os.path.basename(plugin_path))[0])
 
         try:
-            plugin_module = imp.load_source(module_name, plugin_path)
+            return imp.load_source(module_name, plugin_path)
         except Exception, e:
-            logger.info('Error: Could not load plugin at path %s\n%s' % (plugin_path, e))
-            sys.exit()
+            logger.warning('Could not load plugin at path %s: %s' % (plugin_path, e))
+            return None
 
-        return plugin_module
+            # sys.exit()
+
+        
