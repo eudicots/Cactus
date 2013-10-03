@@ -33,8 +33,6 @@ from bs4 import BeautifulSoup
 
 # TODOs
 # 1. support for packaging of inline scripts/css
-# 2. clean up old generated files from the static folder
-# 3. clean up old packages from the server
 
 # Known limitations:
 # 1. Does not support @import syntax in css
@@ -197,6 +195,10 @@ def analyzeAndPackageAssets(site):
 
 # CACTUS METHODS
 
+def preBuild(site):
+  # disable symlinking so we don't end up with a mess of files
+  site.nosymlink = True
+
 def postBuild(site):
   if PACKAGE_LOCALLY_DEBUG:
     analyzeAndPackageAssets(site)
@@ -216,3 +218,14 @@ def postBuildPage(site, path):
     assets.append(map(lambda x: _getAssetFrom(x, site), _getScripts(soup)))
   if PACKAGE_CSS:
     assets.append(map(lambda x: _getAssetFrom(x, site), _getLinks(soup)))
+
+def postDeploy(site):
+  # cleanup all static files that aren't used anymore
+  files = [f.path for f in site.files()]
+  keys = site.bucket.list(_staticPath(site))
+  unused = filter(lambda k: k.name not in files, keys)
+  if len(unused) > 0:
+    print '\nCleaning up %d unused static files on the server:' % len(unused)
+    for key in list(unused):
+      print 'D\t' + _withoutStatic(site, key.name)
+    site.bucket.delete_keys(unused)

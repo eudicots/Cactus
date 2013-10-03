@@ -160,7 +160,7 @@ class Site(object):
 		"""
 		staticBuildPath = os.path.join(self.paths['build'], 'static')
 
-    		if callable(getattr(os, "symlink", None)):
+    		if not hasattr(self, 'nosymlink') and callable(getattr(os, "symlink", None)):
 			# If there is a folder, replace it with a symlink
 			if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
 				os.remove(staticBuildPath)
@@ -307,16 +307,16 @@ class Site(object):
 				
 				logging.debug('Start create_bucket')
 				try:
-					awsBucket = connection.create_bucket(awsBucketName, policy='public-read')
+					self.bucket = connection.create_bucket(awsBucketName, policy='public-read')
 				except boto.exception.S3CreateError, e:
 					logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
 					return
 				logging.debug('end create_bucket')
 				
 				# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
-				awsBucket.configure_website('index.html', 'error.html')
+				self.bucket.configure_website('index.html', 'error.html')
 
-				self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+				self.config.set('aws-bucket-website', self.bucket.get_website_endpoint())
 				self.config.set('aws-bucket-name', awsBucketName)
 				self.config.write()
 
@@ -330,16 +330,16 @@ class Site(object):
 			# Grab a reference to the existing bucket
 			for b in buckets:
 				if b.name == awsBucketName:
-					awsBucket = b
+					self.bucket = b
 
-		self.config.set('aws-bucket-website', awsBucket.get_website_endpoint())
+		self.config.set('aws-bucket-website', self.bucket.get_website_endpoint())
 		self.config.set('aws-bucket-name', awsBucketName)
 		self.config.write()
 		
 		logging.info('Uploading site to bucket %s' % awsBucketName)
 		
 		# Upload all files concurrently in a thread pool
-		totalFiles = multiMap(lambda p: p.upload(awsBucket), self.files())
+		totalFiles = multiMap(lambda p: p.upload(self.bucket), self.files())
 		changedFiles = [r for r in totalFiles if r['changed'] == True]
 		
 		self.pluginMethod('postDeploy', self)
