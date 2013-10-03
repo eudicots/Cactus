@@ -30,9 +30,7 @@ from bs4 import BeautifulSoup
 # Preserves original asset order.
 # Supports blacklisting of assest with data-nopackage
 # Downloads and packages remote assets so you can package your site's base function with your js framework
-
-# TODOs
-# 1. support for packaging of inline scripts/css
+# Compresses all CSS/JS, even if it's included inline
 
 # Known limitations:
 # 1. Does not support @import syntax in css
@@ -64,16 +62,10 @@ AUTOGEN_PREFIX = 'cx_' # file prefix for packaged files
 localpath_re = re.compile('^(?!http|\/\/)')
 relativedir_re = re.compile('^(\.+\/)+')
 assets = []
+inline_assets = set()
 
 def _isLocalFile(path):
   return re.match(localpath_re, path)
-
-def _getLinks(soup):
-  return soup.find_all('link', attrs={
-    'rel': 'stylesheet',
-    'data-nopackage': None,
-    'href': True if INCLUDE_REMOTE_ASSETS else localpath_re
-  })
 
 def _staticPath(site, includeBuild=False):
   static = os.path.relpath(site.paths['static'], site.path)
@@ -87,13 +79,26 @@ def _withoutStatic(site, url):
 def _relToStaticBuild(site, url):
   return os.path.join(_staticPath(site, includeBuild=True), url)
 
-def _getScripts(soup):
-  return soup.find_all('script', attrs={
-    'data-nopackage': None,
-    'src': True if INCLUDE_REMOTE_ASSETS else localpath_re
-  })
+def _getDir(path):
+  if os.path.isdir(path):
+    return path
+  else:
+    return os.path.dirname(path)
 
-def _getAssetFrom(tag, site):
+def _getLinks(soup):
+  all_links = soup.find_all('link', attrs={
+    'rel': 'stylesheet',
+    'href': True if INCLUDE_REMOTE_ASSETS else localpath_re
+  }) + soup.find_all('style')
+  return [x for x in all_links if not 'data-nopackage' in x.attrs]
+
+def _getScripts(soup):
+  all_scripts = soup.find_all('script', attrs={ # scripts with src's
+    'src': True if INCLUDE_REMOTE_ASSETS else localpath_re
+  }) + soup.find_all('script', attrs={'src': None}) # ... and scripts without (inline)
+  return [x for x in all_scripts if not 'data-nopackage' in x.attrs]
+
+def _getAssetFrom(tag, site, save=False):
   url = tag.get('href') or tag.get('src') or None
   if url:
     # normalize across subdirectories by removing leading "./" or "../"
@@ -101,7 +106,51 @@ def _getAssetFrom(tag, site):
     if url.startswith(_staticPath(site)):
       # change 'static/js/foo' to '/full/absolute/static/.build/static/js/foo'
       url = _relToStaticBuild(site, _withoutStatic(site, url))
+  else:
+    extension = 'css' if tag.name == 'style' else 'js'
+    contents = tag.renderContents()
+    url = 'inline_%s_%s.%s' % (
+        extension,
+        hashlib.md5(contents).hexdigest(),
+        extension
+      )
+    url = _relToStaticBuild(site, url)
+    if save:
+      inline_assets.add(url) # for cleanup later
+      with open(url, 'w') as f:
+        f.write(contents)
+
   return url
+
+def _replaceHTMLWithPackaged(html, replace_map, path, site):
+  soup = BeautifulSoup(html)
+  replaced = []
+  for tag in _getLinks(soup) + _getScripts(soup):
+    asset = _getAssetFrom(tag, site)
+    if asset not in replace_map:
+      continue
+
+    path_to_static = os.path.relpath(_staticPath(site, includeBuild=True), _getDir(path))
+    new_url = os.path.join(path_to_static, replace_map[asset])
+    if new_url in replaced:
+      # remove HTML node; this was already covered by another node with same package
+      tag.extract()
+    else:
+      # replace assets with packaged version, but just once per package
+      replaced.append(new_url)
+
+      # update the actual HTML
+      if tag.name == 'script':
+        if not tag.get('src'): # inline scripts
+          tag.clear()
+        tag['src'] = new_url
+      else:
+        if tag.name == 'style': # inline styles
+          new_tag = soup.new_tag('link', rel="stylesheet")
+          tag.replace_with(new_tag)
+          tag = new_tag
+        tag['href'] = new_url
+  return soup.prettify().encode('UTF-8')
 
 def _getPackagedFilename(path_list):
   merged_name = '__'.join(map(os.path.basename, path_list))
@@ -118,24 +167,6 @@ def _getPackagedFilename(path_list):
   return filename, no_local_paths
 
 def analyzeAndPackageAssets(site):
-  def _replaceHTMLWithPackaged(soup, replace_map, path_to_static):
-    replaced = []
-    for tag in _getLinks(soup) + _getScripts(soup):
-      asset = _getAssetFrom(tag, site)
-      if asset not in replace_map:
-        continue
-
-      new_url = os.path.join(path_to_static, replace_map[asset])
-      if new_url in replaced:
-        # remove HTML node; this was already covered by another node with same package
-        tag.extract()
-      else:
-        # replace assets with packaged version, but just once per package
-        replaced.append(new_url)
-
-        # update the actual HTML
-        tag['href' if tag.get('href') else 'src'] = new_url
-
   sys.stdout.write('Analyzing %d gathered assets across %d pages...' %
     (len(list(itertools.chain.from_iterable(assets))), len(assets))
   )
@@ -155,8 +186,9 @@ def analyzeAndPackageAssets(site):
 
     packaged_filename, no_local = _getPackagedFilename(package)
 
-    if no_local and len(package) <= 1:
+    if len(package) <= 1 and (no_local or not COMPRESS_PACKAGES):
       # it would be silly to compress a remote file and "package it with itself"
+      # also silly for a local file to be packaged with itself if we won't be compressing it
       continue
 
     # Create and save the packaged, minified files
@@ -170,25 +202,20 @@ def analyzeAndPackageAssets(site):
     for asset in package:
       replace_map[asset] = packaged_filename
 
-  def getDir(path):
-    if os.path.isdir(path):
-      return path
-    else:
-      return os.path.dirname(path)
-
   sys.stdout.write('\nUpdating HTML sources...')
   sys.stdout.flush()
   for page in site.pages():
     path = page.paths['full-build']
-    path_to_static = os.path.relpath(_staticPath(site, includeBuild=True), getDir(path))
 
     with open(pipes.quote(path), 'r') as f:
-      soup = BeautifulSoup(f.read())
-      _replaceHTMLWithPackaged(soup, replace_map, path_to_static)
+      html = _replaceHTMLWithPackaged(f.read(), replace_map, path, site)
       f.close()
     with open(pipes.quote(path), "wb") as f:
-      f.write(soup.prettify().encode('UTF-8'))
+      f.write(html)
       f.close()
+
+  for asset in inline_assets:
+    os.remove(asset) # clean up temp buffers
   print('done')
 
 
@@ -215,9 +242,9 @@ def postBuildPage(site, path):
   with open(pipes.quote(path), 'r') as f:
     soup = BeautifulSoup(f.read())
   if PACKAGE_JS:
-    assets.append(map(lambda x: _getAssetFrom(x, site), _getScripts(soup)))
+    assets.append(map(lambda x: _getAssetFrom(x, site, save=True), _getScripts(soup)))
   if PACKAGE_CSS:
-    assets.append(map(lambda x: _getAssetFrom(x, site), _getLinks(soup)))
+    assets.append(map(lambda x: _getAssetFrom(x, site, save=True), _getLinks(soup)))
 
 def postDeploy(site):
   # cleanup all static files that aren't used anymore
