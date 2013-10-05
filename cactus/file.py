@@ -10,7 +10,7 @@ from .utils import compressString, getURLHeaders, fileSize, retry, memoize
 class File(object):
 	
 	CACHE_EXPIRATION = 60 * 60 * 24 * 7 # One week
-	COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml']
+	COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml', 'ttf', 'svg', 'eot']
 	COMPRESS_MIN_SIZE = 1024 # 1kb
 	PROGRESS_MIN_SIZE = (1024 * 1024) / 2 # 521 kb
 	
