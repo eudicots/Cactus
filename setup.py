@@ -124,6 +124,7 @@ setup(
         'argparse',
         'keyring',
         'boto>=2.4.1',
+        'colorlog',
     ],
     extras_require={
         'GCS Deployment': ['google-api-python-client'],
