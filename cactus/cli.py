@@ -24,8 +24,8 @@ def setup_logging():
             datefmt=None,
             reset=True,
             log_colors={
-                    'DEBUG':    'cyan',
-                    'INFO':     'green',
+                    'DEBUG':    'white',
+                    'INFO':     'white',
                     'WARNING':  'bold_yellow',
                     'ERROR':    'bold_red',
                     'CRITICAL': 'bold_red',
