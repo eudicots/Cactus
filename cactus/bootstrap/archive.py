@@ -1,12 +1,26 @@
 #coding:utf-8
 import os
+import shutil
 import urllib
 import tarfile
 import zipfile
 
 
+class Folder(object):
+    def __init__(self, from_path):
+        self.from_path = from_path
+
+    def extractall(self, path):
+        os.rmdir(path)
+        shutil.copytree(self.from_path, path)
+
+    def close(self):
+        pass
+
+
 def open_zipfile(archive):
     return zipfile.ZipFile(archive)
+
 
 def open_tarfile(archive):
     return tarfile.open(name=archive, mode='r')
@@ -15,11 +29,12 @@ def open_tarfile(archive):
 SUPPORTED_ARCHIVES = [
     (open_tarfile, tarfile.is_tarfile),
     (open_zipfile, zipfile.is_zipfile),
+    (Folder, os.path.isdir),
 ]
 
 
 def bootstrap_from_archive(path, skeleton):
-    if os.path.isfile(skeleton):
+    if os.path.isfile(skeleton) or os.path.isdir(skeleton):
         # Is is a local file?
         skeleton_file = skeleton
     else:
@@ -27,9 +42,12 @@ def bootstrap_from_archive(path, skeleton):
         skeleton_file, headers = urllib.urlretrieve(skeleton)
 
     for opener, test in SUPPORTED_ARCHIVES:
-        if test(skeleton_file):
-            archive = opener(skeleton_file)
-            break
+        try:
+            if test(skeleton_file):
+                archive = opener(skeleton_file)
+                break
+        except IOError:
+            pass
     else:
         raise Exception("Unsupported skeleton file type. Only .tar and .zip are supported at this time.")
 
