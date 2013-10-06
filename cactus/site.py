@@ -110,7 +110,7 @@ class Site(SiteCompatibilityLayer):
         #TODO: Use URL tags in the sitemap
 
         if self.url is None:
-            self.url = self.ui.prompt_url("Enter your site URL (e.g. http://example.com/)")
+            self.url = self.ui.prompt_url("Enter your site URL (e.g. http://example.com/), you can change it later.")
 
     @property
     def path(self):
@@ -162,7 +162,7 @@ class Site(SiteCompatibilityLayer):
 
         for p in required_subfolders:
             if not os.path.isdir(os.path.join(self.path, p)):
-                logger.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
+                logger.error('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
                 sys.exit(1)
 
     @memoize
