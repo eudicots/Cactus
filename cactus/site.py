@@ -54,6 +54,7 @@ class Site(SiteCompatibilityLayer):
 
         # Load site-specific config values
         self.prettify_urls = self.config.get('prettify', False)
+        self.compress_extensions = self.config.get('compress', ['html', 'css', 'js', 'txt', 'xml'])
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.locale = self.config.get("locale", None)
 

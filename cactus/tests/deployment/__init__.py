@@ -65,6 +65,7 @@ class DummySite(object):
         self.config = ConfigFallback()
         self.ui = ui
         self.plugin_manager = DummyPluginManager(self, [])
+        self.compress_extensions = []
 
 
 class DummyCredentialsManager(object):

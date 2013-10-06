@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 class BaseFile(object):
     DEFAULT_CACHE_EXPIRATION = 60 * 60 * 24 * 7  # One week
     MAX_CACHE_EXPIRATION = 60 * 60 * 24 * 365 # 1 Year (for cached)
-    COMPRESS_TYPES = ['html', 'css', 'js', 'txt', 'xml']
     PROGRESS_MIN_SIZE = (1024 * 1024) / 2  # 521 kb
 
     def __init__(self, engine, path):
@@ -53,7 +52,7 @@ class BaseFile(object):
         if not hasattr(self, '_payload'):
             raw_data = self.data()
 
-            if self.extension() in self.COMPRESS_TYPES:
+            if self.extension() in self.engine.site.compress_extensions:
                 compressed_data = compressString(raw_data)
 
                 if len(compressed_data) < len(raw_data):

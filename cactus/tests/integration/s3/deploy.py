@@ -54,3 +54,29 @@ class DeployTestCase(S3IntegrationTestCase):
         # Are the file contents correct?
         compressed = gzip.GzipFile(fileobj=StringIO.StringIO(put.body), mode="r")
         self.assertEqual(payload, compressed.read())
+
+    def test_compression(self):
+        compress_extensions = ["yes", "html"]
+        payload = "\x01" * 1000 + "\x02" * 1000  # Will compress very well
+        self.site.compress_extensions = compress_extensions
+
+        with open(os.path.join(self.site.static_path, "static.yes"), 'wb') as f:
+            f.write(payload)
+
+        with open(os.path.join(self.site.static_path, "static.no"), 'wb') as f:
+            f.write(payload)
+
+        self.site.upload()
+
+        puts = [req for req in self.connection_factory.requests if req.method == "PUT"]
+
+        self.assertEqual(2, len(puts))
+        compressed = 0
+        for put in puts:
+            if put.url.rsplit(".", 1)[1] in compress_extensions:
+                self.assertEqual("gzip", put.headers["content-encoding"])
+                compressed += 1
+            else:
+                self.assertIsNone(put.headers.get("content-encoding"))
+
+        self.assertEqual(1, compressed)

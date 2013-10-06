@@ -85,6 +85,7 @@ class BaseDeploymentEngine(object):
         """
         self.bucket_name = get_or_prompt(self.site.config, self.config_bucket_name, self.site.ui.prompt_normalized,
                                          "Enter the bucket name (e.g.: www.example.com)")
+        #TODO: Validate this is not empty
 
         self.bucket = self.get_bucket()  #TODO: Catch auth errors
 
