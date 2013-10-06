@@ -23,7 +23,7 @@ class BaseTestCase(unittest.TestCase):
         self.path = os.path.join(self.test_dir, 'test')
         self.clear_django_settings()
 
-        bootstrap(self.path)
+        bootstrap(self.path, os.path.join("cactus", "tests", "data", "skeleton"))
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)

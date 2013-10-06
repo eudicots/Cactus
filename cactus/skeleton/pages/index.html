@@ -1,4 +1,38 @@
 {% extends "base.html" %}
-{% block content %}
-Welcome to Cactus!
+
+{% block body %}
+<div class="jumbotron">
+  <div class="container">
+    <h1>Welcome to Cactus!</h1>
+    <p>Get started with this template based on HTML 5 Boilerplate. Go ahead, explore!</p>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Example row of columns -->
+  <div class="row">
+
+    <div class="col-lg-3">
+      <h2>Full featured template engine</h2>
+      <p>Cactus uses and extends Django's templating engine. If you've built sites using Django before, you'll feel right at home.</p>
+    </div>
+
+    <div class="col-lg-3">
+      <h2>Pretty URLs</h2>
+      <p>Cactus can prettify URLs, so you can turn <code>/about.html</code> into a fancier <code>/about/</code>.</p>
+    </div>
+
+    <div class="col-lg-3">
+      <h2>Minification & Fingerprinting</h2>
+      <p>For maximum performance, Cactus can minify and fingerprint your static assets. As for your pages, Cactus will automatically compress them.</p>
+   </div>
+
+    <div class="col-lg-3">
+      <h2>And much more</h2>
+      <p>There's of course a lot more you can do with Cactus. Plus, Cactus's plugin framework lets you easily extend its functionality.</p>
+   </div>
+
+
+  </div>
+</div>
 {% endblock %}

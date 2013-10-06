@@ -34,8 +34,22 @@ def ArchiveServerHandlerFactory(archive_path):
     return ArchiveHandler
 
 
-class TestBootstrap(BaseTestCase):
-    def testBootstrap(self):
+class TestFolderBootstrap(BaseTestCase):
+    def test_bootstrap(self):
+        self.assertEqual(
+            sorted(fileList(self.path, relative=True)),
+            sorted(fileList("cactus/tests/data/skeleton", relative=True)),
+        )
+
+
+class TestCactusPackageBootstrap(BaseTestCase):
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp()
+        self.path = os.path.join(self.test_dir, 'test')
+        self.clear_django_settings()
+        bootstrap(self.path)
+
+    def test_bootstrap(self):
         self.assertEqual(
             sorted(fileList(self.path, relative=True)),
             sorted(fileList("cactus/skeleton", relative=True)),
