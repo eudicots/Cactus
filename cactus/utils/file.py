@@ -1,6 +1,8 @@
 #coding:utf-8
+import os
 import cStringIO
 import gzip
+import hashlib
 
 from cactus.utils.helpers import checksum
 
@@ -38,3 +40,8 @@ def calculate_file_checksum(path):
     """
     with open(path, 'rb') as f:
         return checksum(f.read())
+
+def file_changed_hash(path):
+    info = os.stat(path)
+    hashKey = str(info.st_mtime) + str(info.st_size)
+    return checksum(hashKey)

@@ -7,6 +7,7 @@ from boto.exception import S3ResponseError
 from cactus.deployment.engine import BaseDeploymentEngine
 from cactus.deployment.s3.auth import AWSCredentialsManager
 from cactus.deployment.s3.file import S3File
+from cactus.deployment.s3.domain import AWSBucket, AWSDomain
 from cactus.exceptions import InvalidCredentials
 
 
@@ -76,3 +77,33 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
     def get_website_endpoint(self):
        return self.bucket.get_website_endpoint()
+    
+    def domain_setup(self):
+        
+        bucket_name = self.site.config.get(self.config_bucket_name)
+        
+        if not bucket_name:
+            logger.warning("No bucket name")
+            return
+        
+        aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
+        
+        domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
+        domain.setup()
+
+    def domain_list(self):
+        bucket_name = self.site.config.get(self.config_bucket_name)
+        
+        if not bucket_name:
+            logger.warning("No bucket name")
+            return
+        
+        aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
+        
+        domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
+        
+        return domain.nameServers()
+
+
+    def domain_remove(self):
+        pass

@@ -5,13 +5,12 @@ import tempfile
 import shutil
 
 from cactus.compat.paths import StaticCompatibilityLayer
-from cactus.utils.file import calculate_file_checksum
+from cactus.utils.file import calculate_file_checksum, file_changed_hash
 from cactus.utils.filesystem import alt_file
 from cactus.utils.url import ResourceURLHelperMixin
 
 
 logger = logging.getLogger(__name__)
-
 
 class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
     """
@@ -63,6 +62,9 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         self.link_url = '/' + os.path.join(self.src_dir, '{0}.{1}'.format(self.src_name, self.final_extension))
 
         self.final_name = "{0}.{1}".format(new_name, self.final_extension)
+        
+        if not hasattr(self.site, "_static_file_cache"):
+            self.site._static_file_cache = {}
 
 
     @property
@@ -148,8 +150,20 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         self.discarded = True  #TODO: Warn on usage of the static!
 
     def build(self):
+        
+        # See if we can maybe skip this if the file did not change
+        curr_hash = file_changed_hash(self.full_source_path)
+        prev_hash = self.site._static_file_cache.get(self.full_source_path)
+        
+        if os.path.exists(self.full_build_path):
+            if curr_hash == prev_hash:
+                logger.debug("skip building (unchanged) %s %s", self.src_name, self.final_url)
+                return
+                        
+        self.site._static_file_cache[self.full_source_path] = curr_hash
+        
         self.site.plugin_manager.preBuildStatic(self)
-
+        
         if not self.discarded:
 
             logger.debug('Building {0} --> {1}'.format(self.src_name, self.final_url))

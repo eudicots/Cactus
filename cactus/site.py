@@ -310,7 +310,7 @@ class Site(SiteCompatibilityLayer):
         self.clean()
         self.build()
 
-        logger.info('Running webserver at 0.0.0.0:%s for %s' % (port, self.build_path))
+        logger.info('Running webserver at http://127.0.0.1:%s for %s' % (port, self.build_path))
         logger.info('Type control-c to exit')
 
         os.chdir(self.build_path)
@@ -394,3 +394,24 @@ class Site(SiteCompatibilityLayer):
                      (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
         logger.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix
+    
+    
+    def domain_setup(self):
+        
+        # Make sure we have internet
+        if not internetWorking():
+            logger.info('There does not seem to be internet here, check your connection')
+            return
+        
+        self.deployment_engine.domain_setup()
+        self.domain_list()
+    
+    def domain_list(self):
+        
+        domain_list = self.deployment_engine.domain_list()
+        
+        if domain_list:
+            for ns in domain_list:
+                logging.info(ns)
+        else:
+            logging.info("No name servers configured")

@@ -18,7 +18,8 @@ def setup_logging():
         )
     else:
         logging.basicConfig(
-            format = '%(levelname)s: %(message)s',
+            # format = '%(levelname)s: %(message)s',
+            format = '%(message)s',
             level = logging.INFO
         )
 
@@ -65,6 +66,15 @@ def serve(path, config, port, browser):
     site = cactus.Site(path, config)
     site.serve(port=port, browser=browser)
 
+def domain_setup(path, config):
+    site = cactus.Site(path, config)
+    site.domain_setup()
+
+def domain_list(path, config):
+    site = cactus.Site(path, config)
+    site.domain_list()
+
+
 
 def main():
     parser = argparse.ArgumentParser(description = "Build and deploy static websites using Django templates.")
@@ -89,11 +99,17 @@ def main():
     parser_serve.add_argument('-b', '--browser', action = 'store_true',
                               help = 'Whether to open a browser for the site.')
 
-    parser_make_messages = subparsers.add_parser('makemessages', help='Create translation files for the current project')
+    parser_make_messages = subparsers.add_parser('messages:make', help='Create translation files for the current project')
     parser_make_messages.set_defaults(target=make_messages)
 
+    parser_domain_setup = subparsers.add_parser('domain:setup', help='Setup records for a domain with route 53')
+    parser_domain_setup.set_defaults(target=domain_setup)
 
-    for subparser in (parser_build, parser_deploy, parser_serve, parser_make_messages):
+    parser_domain_list = subparsers.add_parser('domain:list', help='Setup records for a domain with route 53')
+    parser_domain_list.set_defaults(target=domain_list)
+
+
+    for subparser in (parser_build, parser_deploy, parser_serve, parser_make_messages, parser_domain_setup, parser_domain_list):
         subparser.add_argument('-c', '--config', action="append",
                                help='Add a config file you want to use')
 
