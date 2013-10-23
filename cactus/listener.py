@@ -16,16 +16,13 @@ except ImportError, e:
 
 # Wrapper that supports streams around single files
 def createStream(path, callback):
-    
-    print "createStream", path
-    
+
     if not os.path.isdir(path):
         
-        print "link", os.path.dirname(path)
-        
         def cb(event):
-            print "cb", path
-            if event.name == path: callback(event)
+            if event.name == path: 
+                callback(event)
+        
         return Stream(cb, os.path.dirname(path), file_events=True)
     else:
         return Stream(callback, path, file_events=True)
@@ -72,10 +69,10 @@ class MacListener(object):
         
         path = event.name
         
-        print "_update", path
-        
         if self.ignore and self.ignore(path):
             return
+        
+        logging.info("Changed: %s", path)
 
         result = {
             'added': [],
@@ -167,5 +164,5 @@ class Listener(object):
 
         time.sleep(self.delay)
         
-# if USE_FSEVENTS:
-#     Listener = MacListener
+if USE_FSEVENTS:
+    Listener = MacListener

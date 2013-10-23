@@ -120,6 +120,7 @@ class Site(SiteCompatibilityLayer):
         self._path = path
 
         self.build_path = os.path.join(path, '.build')
+        self.deploy_path = os.path.join(path, '.deploy')
         self.template_path = os.path.join(path, 'templates')
         self.page_path = os.path.join(path, 'pages')
         self.plugin_path = os.path.join(path, 'plugins')
@@ -220,9 +221,9 @@ class Site(SiteCompatibilityLayer):
 
         self.plugin_manager.preBuild(self)
 
-        logger.info('Plugins:    %s', ', '.join([p.plugin_name for p in self.plugin_manager.plugins]))
-        logger.info('Processors: %s', ', '.join([p.__name__ for p in self.external_manager.processors]))
-        logger.info('Optimizers: %s', ', '.join([p.__name__ for p in self.external_manager.optimizers]))
+        logger.debug('Plugins:    %s', ', '.join([p.plugin_name for p in self.plugin_manager.plugins]))
+        logger.debug('Processors: %s', ', '.join([p.__name__ for p in self.external_manager.processors]))
+        logger.debug('Optimizers: %s', ', '.join([p.__name__ for p in self.external_manager.optimizers]))
 
         # Make sure the build path exists
         if not os.path.exists(self.build_path):
@@ -347,7 +348,7 @@ class Site(SiteCompatibilityLayer):
 
             self.listener.resume()
 
-        self.listener = Listener(self.path, rebuild, ignore=lambda x: '/.build/' in x)
+        self.listener = Listener(self.path, rebuild, ignore=lambda x: '/.build' in x or '/.deploy' in x)
         self.listener.run()
 
         try:
@@ -375,9 +376,13 @@ class Site(SiteCompatibilityLayer):
 
         logger.debug('Start upload')
 
+        previousBuildPath = self.build_path
+        
+        self.build_path = self.deploy_path
         self.clean()
         self.build()
-
+        self.build_path = previousBuildPath
+        
         self.plugin_manager.preDeploy(self)
 
         totalFiles = self.deployment_engine.deploy()
