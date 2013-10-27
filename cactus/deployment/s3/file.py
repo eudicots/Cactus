@@ -40,18 +40,32 @@ class S3File(BaseFile):
 
     @retry((S3ResponseError, socket.error), tries=5, delay=1, backoff=2)
     def do_upload(self):
+        
         # Show progress if the file size is big
         progressCallback = None
-        progressCallbackCount = int(len(self.payload()) / (1024 * 1024))
+        # progressCallbackCount = int(len(self.payload()) / (1024 * 1024))
 
 
-        if len(self.payload()) > self.PROGRESS_MIN_SIZE:
-            def progressCallback(current, total):
-                if current > self.lastUpload:
-                    uploadPercentage = (float(current) / float(total)) * 100
-                    logger.info('+ %s upload progress %.1f%%' % (self.url, uploadPercentage))
-                    self.lastUpload = current
+        # if len(self.payload()) > self.PROGRESS_MIN_SIZE:
+        #     def progressCallback(current, total):
+        #         if current > self.lastUpload:
+        #             uploadPercentage = (float(current) / float(total)) * 100
+        #             logger.info('+ %s upload progress %.1f%%' % (self.url, uploadPercentage))
+        #             self.lastUpload = current
         
+        progressCallbackCount = len(self.payload()) / (1024 * 10) # Every byte
+
+        def progressCallback(current, total):
+            self.total_bytes_uploaded = current
+            logger.signal("deploy.progress", {
+                "progress": float(self.engine.total_bytes_uploaded()) / float(self.engine.total_bytes()),
+                "fileName": ""
+            })
+
+            logger.info('+ %s upload progress %.1f%%', 
+                self.url, float(current) / float(total) * 100)
+
+
         key = self.engine.bucket.new_key(self.url)
         
         if self.content_type:

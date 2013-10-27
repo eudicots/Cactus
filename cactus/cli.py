@@ -10,18 +10,7 @@ import cactus
 from cactus.bootstrap import bootstrap
 
 
-def setup_logging():
-    if os.environ.get('DEBUG'):
-        logging.basicConfig(
-            format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s',
-            level = logging.DEBUG
-        )
-    else:
-        logging.basicConfig(
-            # format = '%(levelname)s: %(message)s',
-            format = '%(message)s',
-            level = logging.INFO
-        )
+from logger import setup_logging
 
 
 def create(path, skeleton=None):

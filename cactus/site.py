@@ -312,6 +312,7 @@ class Site(SiteCompatibilityLayer):
         self.build()
 
         logger.info('Running webserver at http://127.0.0.1:%s for %s' % (port, self.build_path))
+        logger.signal("server.didstart")
         logger.info('Type control-c to exit')
 
         os.chdir(self.build_path)
@@ -380,8 +381,7 @@ class Site(SiteCompatibilityLayer):
         
         self.build_path = self.deploy_path
         self.clean()
-        self.build()
-        self.build_path = previousBuildPath
+        self.build() 
         
         self.plugin_manager.preDeploy(self)
 
@@ -389,6 +389,8 @@ class Site(SiteCompatibilityLayer):
         changedFiles = [r for r in totalFiles if r['changed']]
 
         self.plugin_manager.postDeploy(self)
+
+        self.build_path = previousBuildPath
 
         # Display done message and some statistics
         logger.info('\nDone\n')
@@ -412,11 +414,4 @@ class Site(SiteCompatibilityLayer):
         self.domain_list()
     
     def domain_list(self):
-        
-        domain_list = self.deployment_engine.domain_list()
-        
-        if domain_list:
-            for ns in domain_list:
-                logging.info(ns)
-        else:
-            logging.info("No name servers configured")
+        self.deployment_engine.domain_list()

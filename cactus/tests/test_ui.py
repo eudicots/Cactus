@@ -41,13 +41,15 @@ class UITestCase(unittest.TestCase):
         self.assertRaises(ui.InvalidInput, ui._url_coerce_fn, "http://www.example.com/#hash")
 
 
-class InteractiveUITestCase(BaseTestCase):
-    def test_site_url_not_set(self):
-        class DummyUI(object):
-            def prompt_url(self, q):
-                return "http://example.com"
+# Disabled for now with the desktop app
 
-        site = Site(self.path, ui=DummyUI())
-        self.assertEqual(None, site.url)
-        site.build()
-        self.assertEqual("http://example.com", site.url)
+# class InteractiveUITestCase(BaseTestCase):
+#     def test_site_url_not_set(self):
+#         class DummyUI(object):
+#             def prompt_url(self, q):
+#                 return "http://example.com"
+
+#         site = Site(self.path, ui=DummyUI())
+#         self.assertEqual(None, site.url)
+#         site.build()
+#         self.assertEqual("http://example.com", site.url)

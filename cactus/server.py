@@ -25,6 +25,8 @@ class Server(SocketServer.ThreadingMixIn, SocketServer.TCPServer, object):
         # Don't complain about agressive browsers all the time
         if "Broken pipe" in exc_obj:
             return
+
+        logger.info("handle_error", request, exc_obj);
         
         return super(Server, self).handle_error(request, client_address)
 

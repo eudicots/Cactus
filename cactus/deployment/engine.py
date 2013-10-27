@@ -3,7 +3,7 @@ import logging
 
 from cactus.deployment.file import BaseFile
 from cactus.utils.filesystem import fileList
-from cactus.utils.helpers import get_or_prompt
+from cactus.utils.helpers import get_or_prompt, memoize
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 
 
@@ -41,11 +41,24 @@ class BaseDeploymentEngine(object):
 
         return totalFiles
 
+    @memoize
     def files(self):
         """
         List of build files.
         """
         return [self.FileClass(self, file_path) for file_path in fileList(self.site.build_path, relative=True)]
+
+    def total_bytes(self):
+        """
+        Total size of files to be uploaded
+        """
+        return sum([len(f.payload()) for f in self.files()])
+
+    def total_bytes_uploaded(self):
+        """
+        Total size of files to be uploaded
+        """
+        return sum([f.total_bytes_uploaded for f in self.files()])
 
     def get_connection(self):
         if self._connection is None:

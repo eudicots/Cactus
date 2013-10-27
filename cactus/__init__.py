@@ -1,3 +1,4 @@
+import logger
 import socket
 
 from cactus.site import Site

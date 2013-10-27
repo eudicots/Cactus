@@ -23,6 +23,7 @@ class BaseFile(object):
 
         self.force_refresh = False
         self._is_compressed = None
+        self.total_bytes_uploaded = 0
 
     def prepare(self):
         """
@@ -122,8 +123,15 @@ class BaseFile(object):
         if remote_changed:
             self.do_upload()
 
+        self.total_bytes_uploaded = len(self.payload())
+
         op1 = '+' if remote_changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.is_compressed else ''
+
+        logger.signal("deploy.progress", {
+            "progress": float(self.engine.total_bytes_uploaded()) / float(self.engine.total_bytes()),
+            "fileName": self.path
+        })
 
         logger.info('%s %s - %s%s' % (op1, self.path, fileSize(len(self.data())), op2))
 

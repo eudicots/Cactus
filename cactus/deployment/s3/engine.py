@@ -3,6 +3,7 @@ import logging
 
 import boto
 from boto.exception import S3ResponseError
+from boto.route53.exception import DNSServerError
 
 from cactus.deployment.engine import BaseDeploymentEngine
 from cactus.deployment.s3.auth import AWSCredentialsManager
@@ -89,7 +90,13 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
         
         domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
-        domain.setup()
+
+        try:
+            domain.setup()
+        except DNSServerError, e:
+            logger.debug(e)
+            logger.signal("domain.setup.error", {"errorKey": "AccountDisabled"})
+            logger.error("Account cannot use route 53")
 
     def domain_list(self):
         bucket_name = self.site.config.get(self.config_bucket_name)
@@ -101,8 +108,21 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
         
         domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
-        
-        return domain.nameServers()
+
+        try:
+            domain_list = domain.nameServers()
+        except DNSServerError, e:
+            print e
+            logger.signal("domain.list.error", {"errorKey": "AccountDisabled"})
+            logger.error("Account cannot use route 53")
+            return
+
+        if domain_list:
+            logger.signal("domain.list.result", {"nameservers": domain_list})
+            for domain in domain_list:
+                logger.info(domain)
+        else:
+            logger.error("No name servers configured")
 
 
     def domain_remove(self):
