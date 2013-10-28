@@ -7,11 +7,9 @@ import time
 import argparse
 
 import cactus
+
 from cactus.bootstrap import bootstrap
-
-
-from logger import setup_logging
-
+from cactus.logger import setup_logging
 
 def create(path, skeleton=None):
     """

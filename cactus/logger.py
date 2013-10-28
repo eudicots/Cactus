@@ -1,8 +1,7 @@
 import os
 import logging
-import json
 import types
-
+import json
 
 class JsonFormatter(logging.Formatter):
 
@@ -10,40 +9,42 @@ class JsonFormatter(logging.Formatter):
 
         data = {}
 
-    	data["level"] = record.levelno
+        data["level"] = record.levelno
         data["levelName"] = record.levelname
-       	data["msg"] = logging.Formatter.format(self, record)
+        data["msg"] = logging.Formatter.format(self, record)
 
-    	if type(record.args) is types.DictType:
-        	for k, v in record.args.iteritems():
-        		data[k] = v
+        if type(record.args) is types.DictType:
+            for k, v in record.args.iteritems():
+                data[k] = v
 
         return json.dumps(data)
 
-class SignalLogger(logging.Logger):
-    def signal(self, name, data={}):
-    	data["signal"] = name
-    	self.debug("", data)
-
-logging.setLoggerClass(SignalLogger)
 
 def setup_logging():
+
+    logger = logging.getLogger()
+    handler = logging.StreamHandler()
+
     if os.environ.get('DEBUG'):
-        logging.basicConfig(
-            format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s',
-            level = logging.DEBUG
-        )
+        log_level = logging.INFO
+        log_format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s'
+
+        handler.setFormatter(logging.Formatter(fmt=log_format))
+
     elif os.environ.get('DESKTOPAPP'):
-	    logging.basicConfig(
-	        format = '%(message)s',
-	        level = logging.INFO,
-	    )
-	   	
-	    handler = logging.getLogger().handlers[0]
-	    handler.setFormatter(JsonFormatter())
+        log_level = logging.DEBUG
+        log_format = '%(message)s'
+
+        handler.setFormatter(JsonFormatter())
 
     else:
-        logging.basicConfig(
-            format = '%(message)s',
-            level = logging.INFO
-        )
+        log_level = logging.INFO
+        log_format = '%(message)s'
+
+        handler.setFormatter(logging.Formatter(fmt=log_format))
+
+    logger.setLevel(log_level)
+
+    logger.handlers = []
+    logger.addHandler(handler)
+    

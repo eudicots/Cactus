@@ -32,6 +32,7 @@ from cactus.static import Static
 from cactus.listener import Listener
 from cactus.server import Server, RequestHandler
 from cactus.browser import browserReload, browserReloadCSS
+from cactus.utils import ipc
 
 
 logger = logging.getLogger(__name__)
@@ -312,7 +313,7 @@ class Site(SiteCompatibilityLayer):
         self.build()
 
         logger.info('Running webserver at http://127.0.0.1:%s for %s' % (port, self.build_path))
-        logger.signal("server.didstart")
+        ipc.signal("server.didstart")
         logger.info('Type control-c to exit')
 
         os.chdir(self.build_path)
@@ -349,7 +350,7 @@ class Site(SiteCompatibilityLayer):
 
             self.listener.resume()
 
-        self.listener = Listener(self.path, rebuild, ignore=lambda x: '/.build' in x or '/.deploy' in x)
+        self.listener = Listener(self.path, rebuild, ignore=self._ignore_file_changes)
         self.listener.run()
 
         try:
@@ -368,6 +369,19 @@ class Site(SiteCompatibilityLayer):
             httpd.server_close()
 
         logger.info('See you!')
+
+    def _ignore_file_changes(self, filePath):
+
+        if os.path.basename(filePath).startswith("."):
+            return True
+
+        if filePath.startswith(self.build_path):
+            return True
+
+        if filePath.startswith(self.deploy_path):
+            return True
+
+        return False
 
     def upload(self):
         # Make sure we have internet

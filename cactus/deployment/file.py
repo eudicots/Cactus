@@ -3,6 +3,7 @@ import os
 import logging
 
 from cactus import mime
+from cactus.utils import ipc
 from cactus.utils.file import compressString, fileSize
 from cactus.utils.helpers import memoize, checksum
 from cactus.utils.url import path_to_url
@@ -23,6 +24,8 @@ class BaseFile(object):
 
         self.force_refresh = False
         self._is_compressed = None
+
+        self.total_bytes = 0
         self.total_bytes_uploaded = 0
 
     def prepare(self):
@@ -110,6 +113,7 @@ class BaseFile(object):
         return self.remote_changed()
 
     def upload(self):
+
         self.prepare()
 
         # Plugins may actually update those values afterwards
@@ -120,16 +124,19 @@ class BaseFile(object):
         self.engine.site.plugin_manager.preDeployFile(self)
 
         remote_changed = self.remote_changed()
+        
+        self.total_bytes = len(self.payload())
+
         if remote_changed:
             self.do_upload()
-
-        self.total_bytes_uploaded = len(self.payload())
-
+        
+        self.total_bytes_uploaded = self.total_bytes
+        
         op1 = '+' if remote_changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.is_compressed else ''
 
-        logger.signal("deploy.progress", {
-            "progress": float(self.engine.total_bytes_uploaded()) / float(self.engine.total_bytes()),
+        ipc.signal("deploy.progress", {
+            "progress": self.engine.progress(),
             "fileName": self.path
         })
 

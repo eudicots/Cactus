@@ -1,4 +1,5 @@
 #coding:utf-8
+import os
 import logging
 
 from cactus.deployment.file import BaseFile
@@ -41,24 +42,50 @@ class BaseDeploymentEngine(object):
 
         return totalFiles
 
+    def _ignore_file(self, path):
+        
+        if os.path.basename(path).startswith("."):
+            return True
+
+        # Special case for Finder Icon files
+        if "\r" in os.path.basename(path):
+            return True
+
+        return False
+
+
     @memoize
     def files(self):
         """
         List of build files.
         """
-        return [self.FileClass(self, file_path) for file_path in fileList(self.site.build_path, relative=True)]
+        return [self.FileClass(self, file_path) for file_path in fileList(
+            self.site.build_path, relative=True) if self._ignore_file(file_path) is False]
 
     def total_bytes(self):
         """
         Total size of files to be uploaded
         """
-        return sum([len(f.payload()) for f in self.files()])
+        return sum([f.total_bytes for f in self.files()])
 
     def total_bytes_uploaded(self):
         """
         Total size of files to be uploaded
         """
         return sum([f.total_bytes_uploaded for f in self.files()])
+
+    def progress(self):
+        """
+        Progress of upload in percentage
+        """
+        total_bytes = float(self.total_bytes())
+        total_bytes_uploaded = float(self.total_bytes_uploaded())
+
+        if total_bytes == 0 or total_bytes_uploaded == 0:
+            return 0.0
+
+        return total_bytes_uploaded / total_bytes
+
 
     def get_connection(self):
         if self._connection is None:

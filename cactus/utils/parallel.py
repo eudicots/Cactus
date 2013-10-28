@@ -1,11 +1,24 @@
 #coding:utf-8
+import sys
+import logging
 import multiprocessing.pool
 
 PARALLEL_AGGRESSIVE = 2
 PARALLEL_CONSERVATIVE = 1
 PARALLEL_DISABLED = 0
 
-
 def multiMap(f, items, workers = 8):
-    pool = multiprocessing.pool.ThreadPool(workers)  # Code in GCS engine +/- depends on this being threads
-    return pool.map(f, items)
+
+    # Code in GCS engine +/- depends on this being threads
+    pool = multiprocessing.pool.ThreadPool(workers)  
+
+    def wrapper(*args, **kwargs):
+    	try:
+    		return f(*args, **kwargs)
+    	except Exception, e:
+    		import traceback
+    		print traceback.format_exc()
+    		pool.join()
+    		sys.exit()
+
+    return pool.map(wrapper, items)

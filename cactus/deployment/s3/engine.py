@@ -10,6 +10,7 @@ from cactus.deployment.s3.auth import AWSCredentialsManager
 from cactus.deployment.s3.file import S3File
 from cactus.deployment.s3.domain import AWSBucket, AWSDomain
 from cactus.exceptions import InvalidCredentials
+from cactus.utils import ipc
 
 
 logger = logging.getLogger(__name__)
@@ -95,7 +96,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             domain.setup()
         except DNSServerError, e:
             logger.debug(e)
-            logger.signal("domain.setup.error", {"errorKey": "AccountDisabled"})
+            ipc.signal("domain.setup.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
 
     def domain_list(self):
@@ -113,12 +114,12 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             domain_list = domain.nameServers()
         except DNSServerError, e:
             print e
-            logger.signal("domain.list.error", {"errorKey": "AccountDisabled"})
+            ipc.signal("domain.list.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
             return
 
         if domain_list:
-            logger.signal("domain.list.result", {"nameservers": domain_list})
+            ipc.signal("domain.list.result", {"nameservers": domain_list})
             for domain in domain_list:
                 logger.info(domain)
         else:
