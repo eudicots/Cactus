@@ -271,8 +271,9 @@ class Site(SiteCompatibilityLayer):
             self._static = []
 
             for path in fileList(self.static_path, relative=True):
+                
                 # Edge case: deal with missing symlink
-                if not os.path.exists(os.path.abspath(path)):
+                if not os.path.exists(os.path.join(self.static_path, path)):
                     continue
 
                 self._static.append(Static(self, path))
