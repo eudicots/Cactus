@@ -104,14 +104,19 @@ class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         return fileHandler
 
     def log_message(self, fmt, *args):
-        sys.stdout.write("%s\n" % fmt % args)
+        
+        # Be less noisy
+        if "timed out" in fmt:
+            return
+        
+        logger.info(fmt, *args)
 
     def log_request(self, code = '', size = ''):
         
         action = self.requestline.split(' ')[0]
         path = self.requestline.split(' ')[1]
         
-        if code in [200]:
+        if code in [200, 301]:
             logger.info('%s %s %s', str(code), action, path)
         else:
             logger.warning('%s %s %s', str(code), action, path)
