@@ -238,8 +238,19 @@ class Site(SiteCompatibilityLayer):
         # Copy the static files
         self.buildStatic()
 
-        # Render the pages to their output files
+        # Always clean out the pages
 
+        build_static_path = os.path.join(self.build_path, "static")
+
+        for path in os.listdir(self.build_path):
+            path = os.path.join(self.build_path, path)
+            if path != build_static_path:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+
+        # Render the pages to their output files
         mapper = map
         if self._parallel >= PARALLEL_AGGRESSIVE:
             mapper = multiMap
@@ -256,8 +267,16 @@ class Site(SiteCompatibilityLayer):
         Retrieve a list of static files for the site
         """
         if self._static is None:
-            paths = fileList(self.static_path, relative=True)
-            self._static = [Static(self, path) for path in paths]
+
+            self._static = []
+
+            for path in fileList(self.static_path, relative=True):
+                # Edge case: deal with missing symlink
+                if not os.path.exists(os.path.abspath(path)):
+                    continue
+
+                self._static.append(Static(self, path))
+
         return self._static
 
     def _get_url(self, src_url, resources):
@@ -294,14 +313,27 @@ class Site(SiteCompatibilityLayer):
 
         mapper(lambda s: s.build(), self.static())
 
-    @memoize
     def pages(self):
         """
         List of pages.
         """
-        paths = fileList(self.page_path, relative=True)
-        paths = filter(lambda x: not x.endswith("~"), paths)
-        return [Page(self, p) for p in paths]
+
+        if not hasattr(self, "_page_cache"):
+            self._page_cache = {}
+
+        pages = []
+
+        for path in fileList(self.page_path, relative=True):
+            
+            if path.endswith("~"):
+                continue
+
+            if not self._page_cache.has_key(path):
+                self._page_cache[path] = Page(self, path)
+
+            pages.append(self._page_cache[path])
+
+        return pages
 
     def serve(self, browser=True, port=8000):
         """
