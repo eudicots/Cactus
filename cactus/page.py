@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
+    
     discarded = False
 
     def __init__(self, site, source_path):
