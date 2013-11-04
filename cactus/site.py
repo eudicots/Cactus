@@ -336,11 +336,97 @@ class Site(SiteCompatibilityLayer):
 
         return pages
 
+    def _rebuild_should_ignore(self, file_path):
+
+        # filePath = os.path.normpath(filePath)
+
+        # if filePath.startswith(os.path.realpath(self.page_path)):
+        #     return False
+
+        # if filePath.startswith(os.path.realpath(self.template_path)):
+        #     return False
+
+        # if filePath.startswith(os.path.realpath(self.static_path)):
+        #     return False
+
+        # return True
+
+        file_path = os.path.normpath(file_path)
+
+        # Ignore the build path
+        if file_path.startswith(self.build_path):
+            return True
+
+        # Ignore the deploy path
+        if file_path.startswith(self.deploy_path):
+            return True
+
+        # Ignore anything in a hidden folder like .git
+        for path_part in os.path.split(file_path):
+            if path_part.startswith("."):
+                return True
+
+        return False
+
+    def _rebuild(self, changes):
+
+        should_rebuild = False
+
+        for change_key, change_list in changes.iteritems():
+            for file_path in change_list:
+                if self._rebuild_should_ignore(file_path) is False:
+                    should_rebuild = True
+                    break;
+
+        if should_rebuild is False:
+            return
+
+        logger.info('*** Rebuilding (%s changed)' % self.path)
+
+        # We will pause the listener while building so scripts that alter the output
+        # like coffeescript and less don't trigger the listener again immediately.
+        self.listener.pause()
+
+        try:
+            #TODO: Fix this.
+            #TODO: The static files should handle collection of their static folder on their own
+            #TODO: The static files should not run everything on __init__
+            #TODO: Only rebuild static files that changed
+            # We need to "clear out" the list of static first. Otherwise, processors will not run again
+            # They run on __init__ to run before fingerprinting, and the "built" static files themselves,
+            # which are in a temporary folder, have been deleted already!
+            self._static = None
+            self.build()
+
+        except Exception, e:
+            logger.info('*** Error while building\n%s', e)
+            traceback.print_exc(file=sys.stdout)
+
+        changed_file_extension = set(map(lambda x: os.path.splitext(x)[1], changes["changed"]))
+
+        # When we have changes, we want to refresh the browser tabs with the updates.
+        # Mostly we just refresh the browser except when there are just css changes,
+        # then we reload the css in place.
+
+        local_hosts = [
+            "http://127.0.0.1:%s" % self._port,
+            "http://localhost:%s" % self._port,
+            "http://0.0.0.0:%s" % self._port
+        ]
+
+        if len(changes["added"]) == 0 and len(changes["deleted"]) == 0 and changed_file_extension== set([".css"]):
+            browserReloadCSS(local_hosts)
+        else:
+            browserReload(local_hosts)
+
+        self.listener.resume()
+
     def serve(self, browser=True, port=8000):
         """
         Start a http server and rebuild on changes.
         """
         self._parallel = PARALLEL_DISABLED
+        self._port = port
 
         self.clean()
         self.build()
@@ -350,40 +436,8 @@ class Site(SiteCompatibilityLayer):
         logger.info('Type control-c to exit')
 
         os.chdir(self.build_path)
-
-        def rebuild(changes):
-            logger.info('*** Rebuilding (%s changed)' % self.path)
-
-            # We will pause the listener while building so scripts that alter the output
-            # like coffeescript and less don't trigger the listener again immediately.
-            self.listener.pause()
-            try:
-                #TODO: Fix this.
-                #TODO: The static files should handle collection of their static folder on their own
-                #TODO: The static files should not run everything on __init__
-                #TODO: Only rebuild static files that changed
-                # We need to "clear out" the list of static first. Otherwise, processors will not run again
-                # They run on __init__ to run before fingerprinting, and the "built" static files themselves,
-                # which are in a temporary folder, have been deleted already!
-                self._static = None
-                self.build()
-            except Exception, e:
-                logger.info('*** Error while building\n%s', e)
-                traceback.print_exc(file=sys.stdout)
-
-            # When we have changes, we want to refresh the browser tabs with the updates.
-            # Mostly we just refresh the browser except when there are just css changes,
-            # then we reload the css in place.
-            if len(changes["added"]) == 0 and \
-                    len(changes["deleted"]) == 0 and \
-                    set(map(lambda x: os.path.splitext(x)[1], changes["changed"])) == set([".css"]):
-                browserReloadCSS('http://127.0.0.1:%s' % port)
-            else:
-                browserReload('http://127.0.0.1:%s' % port)
-
-            self.listener.resume()
-
-        self.listener = Listener(self.path, rebuild, ignore=self._ignore_file_changes)
+ 
+        self.listener = Listener(self.path, self._rebuild, ignore=self._rebuild_should_ignore)
         self.listener.run()
 
         try:
@@ -403,18 +457,7 @@ class Site(SiteCompatibilityLayer):
 
         logger.info('See you!')
 
-    def _ignore_file_changes(self, filePath):
 
-        if os.path.basename(filePath).startswith("."):
-            return True
-
-        if filePath.startswith(self.build_path):
-            return True
-
-        if filePath.startswith(self.deploy_path):
-            return True
-
-        return False
 
     def upload(self):
         # Make sure we have internet

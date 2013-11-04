@@ -2,27 +2,33 @@ import subprocess
 import platform
 
 s1 = """
+set hostLists to %s
 tell application "Google Chrome"
     set windowsList to windows as list
     repeat with currWindow in windowsList
         set tabsList to currWindow's tabs as list
         repeat with currTab in tabsList
-            if "%s" is in currTab's URL then execute currTab javascript "%s"
+            repeat with currentHost in hostLists
+                if currentHost is in currTab's URL then execute currTab javascript "%s"
+            end repeat
         end repeat
     end repeat
 end tell
 """
 
 s2 = """
+set hostLists to %s
 tell application "Safari"
     if (count of windows) is greater than 0 then
         set windowsList to windows as list
         repeat with currWindow in windowsList
             set tabsList to currWindow's tabs as list
             repeat with currTab in tabsList
-                if "%s" is in currTab's URL then
-                    tell currTab to do JavaScript "%s"
-                end if
+                repeat with currentHost in hostLists
+                    if currentHost is in currTab's URL then
+                        tell currTab to do JavaScript "%s"
+                    end if
+                end repeat 
             end repeat
         end repeat
     end if
@@ -36,12 +42,6 @@ window.location.reload()
 s4 = """
 (function() {
     function updateQueryStringParameter(uri, key, value) {
-
-
-        // console.log('updateQueryStringParameter')
-        // console.log(uri)
-        // console.log(key)
-        // console.log(value)
 
         var re = new RegExp('([?|&])' + key + '=.*?(&|$)', 'i');
         separator = uri.indexOf('?') !== -1 ? '&' : '?';
@@ -59,12 +59,13 @@ s4 = """
 
         var link = links[i];
 
-        console.log('inspect', link);
-
         if (link.rel === 'stylesheet') {
 
             // Don't reload external urls, they likely did not change
-            if (link.href.indexOf('127.0.0.1') == -1 && link.href.indexOf('localhost') == -1) {
+            if (
+                link.href.indexOf('127.0.0.1') == -1 && 
+                link.href.indexOf('localhost') == -1 &&
+                link.href.indexOf('0.0.0.0') == -1) {
                 continue;
             }
 
@@ -89,19 +90,31 @@ def applescript(input):
         return
 
     command = "osascript<<END%sEND" % input
-    return subprocess.check_output(command, shell=True)
+    
+    try:
+        return subprocess.check_call(command, 
+            stdin=subprocess.PIPE, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE, 
+            shell=True)
+    except Exception, e:
+        pass
+
+    # return subprocess.check_output(command, shell=True)
 
 def _insertJavascript(urlMatch, js):
 
     apps = appsRunning(['Safari', 'Google Chrome'])
 
+    # urlMatch is a list that needs to be converted to applescript format
+    # ["a", "b"] -> {"a", "b"}
+    urlMatch = "{\"" + "\",\"".join(urlMatch) + "\"}"
+
     if apps['Google Chrome']:
-        try: applescript(s1 % (urlMatch, js))
-        except Exception, e: pass
+        applescript(s1 % (urlMatch, js))
 
     if apps['Safari']:
-        try: applescript(s2 % (urlMatch, js))
-        except Exception, e: pass
+        applescript(s2 % (urlMatch, js))
 
 def browserReload(url):
     _insertJavascript(url, s3)
