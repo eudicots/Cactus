@@ -15,6 +15,13 @@ clean:
 test:
 	tox
 
+testw:
+	watchmedo shell-command \
+		--patterns="*.py;*.txt" \
+		--recursive \
+		--command='nosetests -x' \
+		cactus
+
 alltests:
 	make clean
 	make uninstall
