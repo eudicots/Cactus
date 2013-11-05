@@ -5,6 +5,7 @@ import urlparse
 from django.template import Template, Context
 from cactus.compat.paths import PageCompatibilityLayer
 from cactus.utils.url import ResourceURLHelperMixin
+from cactus.utils.helpers import memoize
 
 
 logger = logging.getLogger(__name__)
@@ -65,9 +66,12 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
 
     def data(self):
         with open(self.full_source_path, 'rU') as f:
-            return f.read().decode('utf-8')
+            try:
+                return f.read().decode('utf-8')
+            except:
+                logger.warning("Template engine could not process page: %s", self.path)
 
-    def context(self, extra=None):
+    def context(self, data=None, extra=None):
         """
         The page context.
         """
@@ -76,7 +80,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
 
         context = {'__CACTUS_CURRENT_PAGE__': self,}
         
-        page_context, data = self.parse_context(self.data())
+        page_context, data = self.parse_context(data or self.data())
 
         context.update(self.site.context())
         context.update(extra)
@@ -89,9 +93,12 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         Takes the template data with context and renders it to the final output file.
         """
 
-        page_context, data = self.parse_context(self.data())
-        
-        context = self.context()
+        data = self.data()
+        context = self.context(data=data)
+
+        # This is not very nice, but we already used the header context in the
+        # page context, so we don't need it anymore.
+        page_context, data = self.parse_context(data)
 
         context, data = self.site.plugin_manager.preBuildPage(
             self.site, self, context, data)
