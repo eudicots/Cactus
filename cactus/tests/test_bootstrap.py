@@ -6,13 +6,13 @@ import tempfile
 import unittest
 import zipfile
 import threading
+import random
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 from cactus.bootstrap import bootstrap
 from cactus.tests import BaseTestCase
 from cactus.utils.filesystem import fileList
-
 
 def ArchiveServerHandlerFactory(archive_path):
     class ArchiveHandler(SimpleHTTPRequestHandler):
@@ -68,14 +68,19 @@ class BaseTestArchiveBootstrap(object):
         )
 
     def test_url(self):
+
+        global ServerPort
+
         archive_path = self.archive_path
 
-        server_address = ("127.0.0.1", 7777)
+        port = random.choice(xrange(7000, 10000))
+
+        server_address = ("127.0.0.1", port)
         httpd = HTTPServer(server_address, ArchiveServerHandlerFactory(archive_path))
         t = threading.Thread(target=httpd.serve_forever)
         t.start()
 
-        bootstrap(self.path, "http://127.0.0.1:7777")
+        bootstrap(self.path, "http://127.0.0.1:%s" % port)
         httpd.shutdown()
 
         self.assertEqual(
