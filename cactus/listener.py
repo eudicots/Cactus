@@ -88,7 +88,7 @@ class MacListener(object):
         
         self.f(result)
 
-class Listener(object):
+class PollingListener(object):
     def __init__(self, path, f, delay = .5, ignore = None):
         self.path = path
         self.f = f
@@ -166,3 +166,5 @@ class Listener(object):
         
 if USE_FSEVENTS:
     Listener = MacListener
+else:
+    Listener = PollingListener
