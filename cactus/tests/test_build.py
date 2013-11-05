@@ -1,0 +1,88 @@
+#coding:utf-8
+import os
+import logging
+from cactus.tests import SiteTestCase
+
+
+class TestBuild(SiteTestCase):
+
+    def test_existing_symlink(self):
+
+        with open(os.path.join(self.site.static_path, 'file.js'), "w") as f:
+            f.write("hello")
+
+        os.symlink(
+            os.path.join(self.site.static_path, 'file.js'),
+            os.path.join(self.site.static_path, 'file-link.js'))
+
+        self.site.build()
+
+        self.assertFileExists(os.path.join(self.site.build_path, 'static', 'file.js'))
+        self.assertFileExists(os.path.join(self.site.build_path, 'static', 'file-link.js'))
+
+        with open(os.path.join(self.site.build_path, 'static', 'file-link.js')) as f:
+            self.assertEqual(f.read(), "hello")
+
+        self.assertEqual(
+            os.path.islink(os.path.join(self.site.build_path, 'static', 'file-link.js')), False)
+
+    def test_nonexisting_symlink(self):
+
+        os.symlink(
+            os.path.join(self.site.static_path, 'file.js'),
+            os.path.join(self.site.static_path, 'file-link.js'))
+
+        self.site.build()
+
+        self.assertFileDoesNotExist(os.path.join(self.site.build_path, 'static', 'file.js'))
+        self.assertFileDoesNotExist(os.path.join(self.site.build_path, 'static', 'file-link.js'))
+
+    def test_pages_binary_file(self):
+
+        with open(os.path.join(self.site.page_path, 'file.zip'), "wb") as f:
+            f.write(os.urandom(1024))
+
+        self.site.build()
+
+    def test_listener_ignores(self):
+
+        # Some complete;y random files
+        self.assertEqual(True, self.site._rebuild_should_ignore("/Users/test/a.html"))
+        self.assertEqual(True, self.site._rebuild_should_ignore("a.html"))
+        self.assertEqual(True, self.site._rebuild_should_ignore("/a.html"))
+
+        # Some plausible files
+        self.assertEqual(True, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "config.json")))
+        self.assertEqual(True, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "readme.txt")))
+        self.assertEqual(True, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, ".git", "config")))
+        self.assertEqual(True, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, ".build", "index.html")))
+        self.assertEqual(True, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, ".build", "static", "main.js")))
+
+        # Files we do want
+        self.assertEqual(False, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "pages", "index.html")))
+        self.assertEqual(False, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "pages", "staging", "index.html")))
+        self.assertEqual(False, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "templates", "base.html")))
+        self.assertEqual(False, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "static", "main.js")))
+        self.assertEqual(False, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "plugins", "test.py")))
+
+        # Dotfile stuff
+        self.assertEqual(True, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "pages", ".DS_Store")))
+        self.assertEqual(True, self.site._rebuild_should_ignore(
+            os.path.join(self.site.path, "pages", ".hidden", "a.htmk")))
+
+
+
+
+
+    # TEST A BUNCH OF RELOADS
