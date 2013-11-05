@@ -75,8 +75,12 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             extra = {}
 
         context = {'__CACTUS_CURRENT_PAGE__': self,}
+        
+        page_context, data = self.parse_context(self.data())
+
         context.update(self.site.context())
         context.update(extra)
+        context.update(page_context)
 
         return Context(context)
 
@@ -86,9 +90,11 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         """
 
         page_context, data = self.parse_context(self.data())
-        context = self.context(page_context)
+        
+        context = self.context()
 
-        context, data = self.site.plugin_manager.preBuildPage(self.site, self, context, data)
+        context, data = self.site.plugin_manager.preBuildPage(
+            self.site, self, context, data)
 
         return Template(data).render(context)
 
