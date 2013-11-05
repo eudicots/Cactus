@@ -338,48 +338,40 @@ class Site(SiteCompatibilityLayer):
 
     def _rebuild_should_ignore(self, file_path):
 
-        # filePath = os.path.normpath(filePath)
-
-        # if filePath.startswith(os.path.realpath(self.page_path)):
-        #     return False
-
-        # if filePath.startswith(os.path.realpath(self.template_path)):
-        #     return False
-
-        # if filePath.startswith(os.path.realpath(self.static_path)):
-        #     return False
-
-        # return True
-
-        file_path = os.path.normpath(file_path)
-
-        # Ignore the build path
-        if file_path.startswith(self.build_path):
-            return True
-
-        # Ignore the deploy path
-        if file_path.startswith(self.deploy_path):
-            return True
+        file_path = os.path.realpath(file_path)
+        file_relative_path = os.path.relpath(file_path, os.path.realpath(self.path))
 
         # Ignore anything in a hidden folder like .git
-        for path_part in os.path.split(file_path):
+        for path_part in file_relative_path.split(os.path.sep):
             if path_part.startswith("."):
                 return True
 
-        return False
+        if file_path.startswith(os.path.realpath(self.page_path)):
+            return False
+
+        if file_path.startswith(os.path.realpath(self.template_path)):
+            return False
+
+        if file_path.startswith(os.path.realpath(self.static_path)):
+            return False
+
+        if file_path.startswith(os.path.realpath(self.plugin_path)):
+            return False
+
+        return True
 
     def _rebuild(self, changes):
 
-        should_rebuild = False
+        # should_rebuild = False
 
-        for change_key, change_list in changes.iteritems():
-            for file_path in change_list:
-                if self._rebuild_should_ignore(file_path) is False:
-                    should_rebuild = True
-                    break;
+        # for change_key, change_list in changes.iteritems():
+        #     for file_path in change_list:
+        #         if self._rebuild_should_ignore(file_path) is False:
+        #             should_rebuild = True
+        #             break;
 
-        if should_rebuild is False:
-            return
+        # if should_rebuild is False:
+        #     return
 
         logger.info('*** Rebuilding (%s changed)' % self.path)
 
@@ -420,7 +412,7 @@ class Site(SiteCompatibilityLayer):
             browserReload(local_hosts)
 
         self.listener.resume()
-
+    
     def serve(self, browser=True, port=8000):
         """
         Start a http server and rebuild on changes.
@@ -460,16 +452,16 @@ class Site(SiteCompatibilityLayer):
 
 
     def upload(self):
+        
         # Make sure we have internet
         if not internetWorking():
             logger.info('There does not seem to be internet here, check your connection')
             return
 
         logger.debug('Start upload')
-
-        previousBuildPath = self.build_path
         
         self.build_path = self.deploy_path
+
         self.clean()
         self.build() 
         
@@ -479,8 +471,6 @@ class Site(SiteCompatibilityLayer):
         changedFiles = [r for r in totalFiles if r['changed']]
 
         self.plugin_manager.postDeploy(self)
-
-        self.build_path = previousBuildPath
 
         # Display done message and some statistics
         logger.info('\nDone\n')
