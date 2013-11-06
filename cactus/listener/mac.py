@@ -118,16 +118,10 @@ class FSEventsListener(object):
             'deleted': [],
             'changed': [],
         }
-
-
         
         if os.path.exists(path):
 
             seconds_since_created = int(time.time()) - get_creation_time(os.path.realpath(path))
-            
-            print "path", path
-            print time.time()
-            print get_creation_time(os.path.realpath(path))
 
             if seconds_since_created < 1.0:
                 result["added"].append(path)
