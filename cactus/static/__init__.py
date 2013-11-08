@@ -40,7 +40,6 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         except ValueError:
             self.src_name = filename
             self.src_extension = ""
-
             
         # Useless we'll crash before.
         # # TODO
@@ -74,7 +73,12 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         else:
             relative_to = self.site.path
 
-        return os.path.join(relative_to, self.src_dir, self.src_filename)
+        full_source_path = os.path.join(relative_to, self.src_dir, self.src_filename)
+
+        if os.path.islink(full_source_path):
+            return os.path.realpath(full_source_path)
+
+        return full_source_path
 
     @property
     def build_path(self):
@@ -150,7 +154,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         self.discarded = True  #TODO: Warn on usage of the static!
 
     def build(self):
-        
+
         # See if we can maybe skip this if the file did not change
         curr_hash = file_changed_hash(self.full_source_path)
         prev_hash = self.site._static_file_cache.get(self.full_source_path)
@@ -164,17 +168,19 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         
         self.site.plugin_manager.preBuildStatic(self)
         
-        if not self.discarded:
+        if self.discarded:
+            return        
 
-            logger.debug('Building {0} --> {1}'.format(self.src_name, self.final_url))
+        logger.debug('Building {0} --> {1}'.format(self.src_name, self.full_build_path))
 
-            try:
-                os.makedirs(os.path.dirname(self.full_build_path))
-            except OSError:
-                pass
-            shutil.copy(self._preprocessing_path, self.full_build_path)
+        try:
+            os.makedirs(os.path.dirname(self.full_build_path))
+        except OSError:
+            pass
+        
+        shutil.copy(self._preprocessing_path, self.full_build_path)
 
-            self.site.plugin_manager.postBuildStatic(self)
+        # self.site.plugin_manager.postBuildStatic(self)
 
     def __repr__(self):
         return '<Static: {0}>'.format(self.src_filename)

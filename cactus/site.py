@@ -207,6 +207,8 @@ class Site(SiteCompatibilityLayer):
         """
         Remove all build files.
         """
+        logger.debug("*** CLEAN %s", self.path)
+
         if os.path.isdir(self.build_path):
             shutil.rmtree(self.build_path)
 
@@ -214,6 +216,9 @@ class Site(SiteCompatibilityLayer):
         """
         Generate fresh site from templates.
         """
+
+        logger.debug("*** BUILD %s", self.path)
+
         self.verify_url()
 
         #TODO: Facility to reset the site, and reload config.
@@ -271,10 +276,13 @@ class Site(SiteCompatibilityLayer):
             self._static = []
 
             for path in fileList(self.static_path, relative=True):
-                
-                # Edge case: deal with missing symlink
-                if not os.path.exists(os.path.join(self.static_path, path)):
-                    continue
+
+                full_path = os.path.join(self.static_path, path)
+
+                if os.path.islink(full_path):
+                    if not os.path.exists(os.path.realpath(full_path)):
+                        logger.warning("Skipping symlink that points to unexisting file:\n%s", full_path)
+                        continue
 
                 self._static.append(Static(self, path))
 
@@ -337,41 +345,31 @@ class Site(SiteCompatibilityLayer):
         return pages
 
     def _rebuild_should_ignore(self, file_path):
-
-        file_path = os.path.realpath(file_path)
-        file_relative_path = os.path.relpath(file_path, os.path.realpath(self.path))
+        
+        file_relative_path = os.path.relpath(file_path, self.path)
 
         # Ignore anything in a hidden folder like .git
         for path_part in file_relative_path.split(os.path.sep):
             if path_part.startswith("."):
                 return True
 
-        if file_path.startswith(os.path.realpath(self.page_path)):
+        if file_path.startswith(self.page_path):
             return False
 
-        if file_path.startswith(os.path.realpath(self.template_path)):
+        if file_path.startswith(self.template_path):
             return False
 
-        if file_path.startswith(os.path.realpath(self.static_path)):
+        if file_path.startswith(self.static_path):
             return False
 
-        if file_path.startswith(os.path.realpath(self.plugin_path)):
+        if file_path.startswith(self.plugin_path):
             return False
 
         return True
 
     def _rebuild(self, changes):
 
-        # should_rebuild = False
-
-        # for change_key, change_list in changes.iteritems():
-        #     for file_path in change_list:
-        #         if self._rebuild_should_ignore(file_path) is False:
-        #             should_rebuild = True
-        #             break;
-
-        # if should_rebuild is False:
-        #     return
+        logger.debug("*** REBUILD %s", self.path)
 
         logger.info('*** Rebuilding (%s changed)' % self.path)
 

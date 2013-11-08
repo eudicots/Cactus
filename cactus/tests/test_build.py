@@ -1,6 +1,8 @@
 #coding:utf-8
 import os
 import logging
+import tempfile
+
 from cactus.tests import SiteTestCase
 
 
@@ -83,6 +85,15 @@ class TestBuild(SiteTestCase):
 
 
 
+    def test_symlink_ignore(self):
 
+        file_path = os.path.join(tempfile.mkdtemp(), 'file.js')
+        link_path = os.path.join(self.site.static_path, 'file-link.js')
 
-    # TEST A BUNCH OF RELOADS
+        with open(file_path, "w") as f:
+            f.write("hello")
+
+        os.symlink(file_path, link_path)
+
+        # Test for ignore function to work with symlinks
+        self.assertEqual(self.site._rebuild_should_ignore(link_path), False)

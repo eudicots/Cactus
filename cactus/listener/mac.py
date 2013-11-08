@@ -34,6 +34,7 @@ libc = CDLL('libc.dylib')
 stat64 = libc.stat64
 stat64.argtypes = [c_char_p, POINTER(struct_stat64)]
 
+# OS-X only function to get actual creation date
 def get_creation_time(path):
     buf = struct_stat64()
     rv = stat64(path, pointer(buf))
@@ -45,6 +46,7 @@ def get_creation_time(path):
 def createStream(real_path, link_path, callback):
 
     def cb(event):
+
         if not os.path.isdir(link_path):
             event.name = link_path
         else:
