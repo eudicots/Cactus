@@ -19,8 +19,8 @@ testw:
 	watchmedo shell-command \
 		--patterns="*.py;*.txt" \
 		--recursive \
-		--command='nosetests -x' \
-		cactus
+		--command='nosetests -x -s --processes=4' \
+		.
 
 alltests:
 	make clean
