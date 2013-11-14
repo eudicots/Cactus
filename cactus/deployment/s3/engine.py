@@ -98,6 +98,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             logger.debug(e)
             ipc.signal("domain.setup.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
+            logger.error(e)
 
     def domain_list(self):
         bucket_name = self.site.config.get(self.config_bucket_name)
@@ -116,6 +117,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             print e
             ipc.signal("domain.list.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
+            logger.error(e)
             return
 
         if domain_list:

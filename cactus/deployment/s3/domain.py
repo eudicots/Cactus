@@ -104,6 +104,11 @@ class AWSDomain(object):
         return self.hostedZone()['HostedZone']['Id'].replace('/hostedzone/', '')
 
     @property
+    def fullDomain(self):
+        parts = self.domain.split(".")
+        return parts[len(parts) - 2] + "." + parts[len(parts) - 1]
+
+    @property
     def dnsDomain(self):
         return self.domain + "."
     
@@ -117,12 +122,12 @@ class AWSDomain(object):
         pass
     
     def createHostedZone(self):
-        logging.info('Creating hosted zone for %s', self.domain)
-        self.connection.create_hosted_zone(self.domain)
+        logging.info('Creating hosted zone for %s', self.fullDomain)
+        self.connection.create_hosted_zone(self.fullDomain)
     
     def hostedZone(self):
         if not self._cache.has_key("hostedZone"):
-            hostedZone = self.connection.get_hosted_zone_by_name(self.domain)
+            hostedZone = self.connection.get_hosted_zone_by_name(self.fullDomain)
             if not hostedZone:
                 return
             self._cache["hostedZone"] = hostedZone.get("GetHostedZoneResponse", None)
@@ -193,14 +198,16 @@ class AWSDomain(object):
         bucket = AWSBucket(self.accessKey, self.secretKey, self.domain)
         endpoint = bucket.websiteEndpoint()
         endpointDomain = endpoint[len(self.dnsDomain):]
-        
+
         # Remove old A record for the root domain
         for record in self.records():
-            if record.type == "A" and record.name == self.dnsDomain:
+            # if record.type == "A" and record.name == self.dnsDomain:
+            if record.name == self.dnsDomain:
                 self.delete(record)
         
         # Create new root domain record that points to the bucket
         self.createAlias(self.dnsDomain, "A", HOSTED_ZONES[endpointDomain], endpointDomain)
+
     
     def setupRedirect(self):
         
