@@ -259,16 +259,20 @@ class Site(SiteCompatibilityLayer):
             self._static = [Static(self, path) for path in paths]
         return self._static
 
-    def _get_url(self, src_url, resources):
+    def _get_resource(self, src_url, resources):
         if is_external(src_url):
             return src_url
 
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
         try:
-            return resources_dict[src_url].final_url
+            return resources_dict[src_url]
         except KeyError:
             raise Exception('Resource does not exist: {0}'.format(src_url))
+
+
+    def _get_url(self, src_url, resources):
+        return self._get_resource(src_url, resources).final_url
 
     def get_url_for_static(self, src_path):
         return self._get_url(src_path, self.static())
