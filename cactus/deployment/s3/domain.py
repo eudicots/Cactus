@@ -122,7 +122,9 @@ class AWSDomain(object):
         pass
     
     def createHostedZone(self):
+
         logging.info('Creating hosted zone for %s', self.fullDomain)
+
         self.connection.create_hosted_zone(self.fullDomain)
     
     def hostedZone(self):
@@ -201,8 +203,7 @@ class AWSDomain(object):
 
         # Remove old A record for the root domain
         for record in self.records():
-            # if record.type == "A" and record.name == self.dnsDomain:
-            if record.name == self.dnsDomain:
+            if record.type in ["A", "CNAME"] and record.name == self.dnsDomain:
                 self.delete(record)
         
         # Create new root domain record that points to the bucket
