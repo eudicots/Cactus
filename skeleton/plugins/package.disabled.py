@@ -95,7 +95,7 @@ def _getLinks(soup):
     if tag.name == 'link':
       href = tag.get('href')
       if not href or \
-         tag.get('rel') != 'stylesheet' or \
+         'stylesheet' not in tag.get('rel') or \
          not (INCLUDE_REMOTE_ASSETS or _isLocalFile(href)):
         return False
 
