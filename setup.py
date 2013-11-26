@@ -6,7 +6,7 @@ import shutil
 from setuptools import setup
 from distutils.sysconfig import get_python_lib
 
-VERSION = "2.2.0"
+VERSION = "2.2.1"
 
 if "uninstall" in sys.argv:
 	
@@ -63,7 +63,7 @@ setup(
 		],
 	},
 	install_requires=[
-		'Django',
+		'Django==1.5.5',
 		'boto>=2.4.1',
 		'markdown'
 	],
