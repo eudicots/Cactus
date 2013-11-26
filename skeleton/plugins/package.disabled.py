@@ -167,7 +167,7 @@ def _replaceHTMLWithPackaged(html, replace_map, path, site):
           tag.replace_with(new_tag)
           tag = new_tag
         tag['href'] = urllib.quote(new_url, '/:')
-  return soup.prettify().encode('UTF-8')
+  return str(soup)
 
 def _getPackagedFilename(path_list):
   def shortFileName(path):
