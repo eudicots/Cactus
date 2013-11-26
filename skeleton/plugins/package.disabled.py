@@ -61,6 +61,7 @@ AUTOGEN_PREFIX = 'cx_' # file prefix for packaged files
 
 localpath_re = re.compile('^(?!http|\/\/)')
 relativedir_re = re.compile('^(\.+\/)+')
+shortfilename_re = re.compile('(\.js|\.css)$')
 assets = []
 inline_assets = set()
 
@@ -169,9 +170,12 @@ def _replaceHTMLWithPackaged(html, replace_map, path, site):
   return soup.prettify().encode('UTF-8')
 
 def _getPackagedFilename(path_list):
-  merged_name = '__'.join(map(os.path.basename, path_list))
-  split = merged_name.rsplit('.', 1)
+  def shortFileName(path):
+    return re.sub(shortfilename_re, '', os.path.basename(path))
+
+  split = path_list[-1].rsplit('.', 1)
   extension = '.' + split[1] if len(split) > 1 else ''
+  merged_name = '__'.join(map(shortFileName, path_list)) + extension
 
   if MINIFY_FILENAMES:
     merged_name = hashlib.md5(merged_name).hexdigest()[:7] + extension
