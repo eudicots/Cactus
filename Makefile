@@ -19,7 +19,7 @@ testw:
 	watchmedo shell-command \
 		--patterns="*.py;*.txt" \
 		--recursive \
-		--command='nosetests -x -s --processes=4' \
+		--command='nosetests -x -s --logging-level=CRITICAL --processes=4' \
 		.
 
 alltests:
