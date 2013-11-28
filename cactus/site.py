@@ -265,7 +265,8 @@ class Site(SiteCompatibilityLayer):
         self.plugin_manager.postBuild(self)
 
         for static in self.static():
-            shutil.rmtree(static.pre_dir)
+            if os.path.isdir(static.pre_dir):
+                shutil.rmtree(static.pre_dir)
 
     def static(self):
         """

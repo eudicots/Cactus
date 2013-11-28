@@ -67,19 +67,18 @@ class FSEventsListener(object):
         self.f = f
         self.ignore = ignore
         
-        self._paused = False
-        
         self.observer = Observer()
         self.observer.daemon = True
 
-        self.observer.schedule(createStream(self.path, path, self._update))
+        self._streams = []
+        self._streams.append(createStream(self.path, path, self._update))
         
         self._streamed_folders = [self.path]
 
         def add_stream(p):
             if p in self._streamed_folders:
                 return 
-            self.observer.schedule(
+            self._streams.append(
                 createStream(p, file_path, self._update))
             self._streamed_folders.append(p)
 
@@ -92,28 +91,32 @@ class FSEventsListener(object):
                     add_stream(os.path.dirname(os.path.realpath(file_path)))
         
     def run(self):
+        self.resume()
         self.observer.start()
 
     def pause(self):
-        self._paused = True
+        logging.debug("MacListener.PAUSE")
+
+        for stream in self._streams:
+            self.observer.unschedule(stream)
 
     def resume(self):
-        self._paused = False
-    
+        logging.debug("MacListener.RESUME")
+        
+        for stream in self._streams:
+            self.observer.schedule(stream)
+
     def stop():
         self.observer.stop()
     
     def _update(self, event):
         
-        logging.debug("MacListener.update %s", event)
-
-        if self._paused is True:
-            return
-        
         path = event.name
         
         if self.ignore and self.ignore(path):
             return
+
+        logging.debug("MacListener.update %s", event)
 
         result = {
             'added': [],
