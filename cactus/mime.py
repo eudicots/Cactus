@@ -2,13 +2,15 @@ import os
 import mimetypes
 
 MIMETYPE_MAP = {
-    '.js': 'text/javascript',
-    '.mov': 'video/quicktime',
-    '.mp4': 'video/mp4',
-    '.m4v': 'video/x-m4v',
-    '.3gp': 'video/3gpp',
+    '.js':   'text/javascript',
+    '.mov':  'video/quicktime',
+    '.mp4':  'video/mp4',
+    '.m4v':  'video/x-m4v',
+    '.3gp':  'video/3gpp',
     '.woff': 'application/font-woff',
-    '.eot': 'vnd.ms-fontobject',
+    '.eot':  'application/vnd.ms-fontobject',
+    '.ttf':  'application/x-font-truetype',
+    '.otf':  'application/x-font-opentype',
 }
 
 
