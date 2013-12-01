@@ -8,6 +8,7 @@ MIMETYPE_MAP = {
     '.m4v': 'video/x-m4v',
     '.3gp': 'video/3gpp',
     '.woff': 'application/font-woff',
+    '.eot': 'vnd.ms-fontobject',
 }
 
 
@@ -17,9 +18,9 @@ def guess(path):
     if ext.lower() in MIMETYPE_MAP:
         return MIMETYPE_MAP[ext.lower()]
 
-    suggested = mimetypes.guess_type(path)
+    type, encoding = mimetypes.guess_type(path)
 
-    if suggested:
-        return suggested[0]
+    if type:
+        return type
 
     return 'application/octet-stream'
