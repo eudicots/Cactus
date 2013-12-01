@@ -61,6 +61,7 @@ AUTOGEN_PREFIX = 'cx_' # file prefix for packaged files
 
 localpath_re = re.compile('^(?!http|\/\/)')
 relativedir_re = re.compile('^(\.+\/)+')
+shortfilename_re = re.compile('(\.js|\.css)$')
 assets = []
 inline_assets = set()
 
@@ -94,7 +95,7 @@ def _getLinks(soup):
     if tag.name == 'link':
       href = tag.get('href')
       if not href or \
-         tag.get('rel') != 'stylesheet' or \
+         'stylesheet' not in tag.get('rel') or \
          not (INCLUDE_REMOTE_ASSETS or _isLocalFile(href)):
         return False
 
@@ -166,12 +167,15 @@ def _replaceHTMLWithPackaged(html, replace_map, path, site):
           tag.replace_with(new_tag)
           tag = new_tag
         tag['href'] = urllib.quote(new_url, '/:')
-  return soup.prettify().encode('UTF-8')
+  return str(soup)
 
 def _getPackagedFilename(path_list):
-  merged_name = '__'.join(map(os.path.basename, path_list))
-  split = merged_name.rsplit('.', 1)
+  def shortFileName(path):
+    return re.sub(shortfilename_re, '', os.path.basename(path))
+
+  split = path_list[-1].rsplit('.', 1)
   extension = '.' + split[1] if len(split) > 1 else ''
+  merged_name = '__'.join(map(shortFileName, path_list)) + extension
 
   if MINIFY_FILENAMES:
     merged_name = hashlib.md5(merged_name).hexdigest()[:7] + extension
