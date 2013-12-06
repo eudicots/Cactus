@@ -86,3 +86,17 @@ class TestStatic(SiteTestCase):
 
         with open(os.path.join(self.site.build_path, "test.html")) as f:
             self.assertEqual(f.read(), expected)
+
+class TestMarkdown(SiteTestCase):
+
+    def setUp(self):
+        super(TestMarkdown, self).setUp()
+
+        with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
+            f.write("{% filter markdown %}### Hello{% endfilter %}")
+
+    def test_h3(self):
+        self.site.build()
+
+        with open(os.path.join(self.site.build_path, "test.html")) as f:
+            self.assertEqual(f.read(), "<h3>Hello</h3>\n")

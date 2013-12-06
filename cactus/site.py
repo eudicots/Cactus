@@ -137,8 +137,7 @@ class Site(SiteCompatibilityLayer):
         """
 
         settings = {
-            "TEMPLATE_DIRS": [self.template_path, self.page_path],
-            "INSTALLED_APPS": ['django.contrib.markup'],
+            "TEMPLATE_DIRS": [self.template_path, self.page_path]
         }
 
         if self.locale is not None:

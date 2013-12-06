@@ -120,7 +120,7 @@ setup(
     },
     install_requires=[
         'Django',
-        'markdown',
+        'markdown2',
         'argparse',
         'keyring',
         'boto>=2.4.1',
