@@ -66,7 +66,7 @@ class AWSBucket(object):
         self.connection.create_bucket(self.name, policy='public-read')
     
     def isCreated(self):
-        self.bucket() is not None
+        return self.bucket() is not None
     
     def configureWebsite(self):
         logging.info('Configuring website endpoint %s', self.name)
@@ -217,9 +217,13 @@ class AWSDomain(object):
         
         bucket = AWSBucket(self.accessKey, self.secretKey, redirectDomain)
         
-        if not bucket.isCreated():
-            bucket.create()
-            
+        if bucket.isCreated():
+            logging.info("Bucket with name %s already exists, so skipping redirect bucket setup. \
+                If you've set this up before, this will still work. Delete the bucket if you want Cactus to\
+                set it up again.", redirectDomain)
+            return
+        
+        bucket.create()    
         bucket.configureRedirect(self.domain)
 
         for record in self.records():
