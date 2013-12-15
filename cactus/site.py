@@ -164,9 +164,8 @@ class Site(object):
 		"""
 		staticBuildPath = os.path.join(self.paths['build'], 'static')
 
-		# If there is a folder, replace it with a symlink
-		if os.path.lexists(staticBuildPath) and not os.path.exists(staticBuildPath):
-			os.remove(staticBuildPath)
+		if os.path.lexists(staticBuildPath):
+			shutil.rmtree(staticBuildPath)
 
 		if not os.path.exists(staticBuildPath):
 			shutil.copytree(self.paths['static'], staticBuildPath)
