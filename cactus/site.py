@@ -34,7 +34,7 @@ class Site(object):
 		if config_path is None:
 			config_path = os.path.join(path, 'config.json')
 		if build_path is None:
-			os.path.join(path, '.build'),
+			build_path = os.path.join(path, '.build'),
 
 		self.paths = {
 			'config': config_path,
