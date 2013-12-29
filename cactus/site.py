@@ -254,7 +254,6 @@ class Site(object):
 			httpd.server_close() 
 
 		logging.info('See you!')
-
 	
 	def upload(self):
 		"""
@@ -267,27 +266,27 @@ class Site(object):
 			return
 
 		logging.debug('Start upload')
-		
+
 		self.clean()
 		self.build()
-		
+
 		logging.debug('Start preDeploy')
 		self.pluginMethod('preDeploy', self)
 		logging.debug('End preDeploy')
 
-                # Get bucket name form the config or the user
-                awsBucketName = self.config.get('aws-bucket-name') or \
-                        raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
-		
+		# Get bucket name form the config or the user
+		awsBucketName = self.config.get('aws-bucket-name') or \
+			raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
+
 		# Get access information from the config or the user
 		awsAccessKey = self.config.get('aws-access-key') or \
 			raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
 		awsSecretKey = getpassword('aws', awsAccessKey) or \
 			getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
-		
+
 		# Try to fetch the buckets with the given credentials
 		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
-		
+
 		logging.debug('Start get_bucket')
 		# Exit if the information was not correct
 		try:
