@@ -87,16 +87,61 @@ class TestStatic(SiteTestCase):
         with open(os.path.join(self.site.build_path, "test.html")) as f:
             self.assertEqual(f.read(), expected)
 
+class TestStaticLookup(SiteTestCase):
+    """
+    {% static %} should auto append static
+    """
+    # def setUp(self):
+    #     super(TestStaticLookup, self).setUp()
+
+    def test_prepend_exists(self):
+
+        with open(os.path.join(self.site.static_path, "exists.js"), "w") as f:
+            f.write("hello")
+
+        with open(os.path.join(self.site.page_path, "test1.html"), "w") as f:
+            f.write("{% static '/exists.js' %}")
+
+        with open(os.path.join(self.site.page_path, "test2.html"), "w") as f:
+            f.write("{% static 'exists.js' %}")
+
+        self.site.build()
+
+        with(open(os.path.join(self.site.build_path, "test1.html"))) as f:
+            self.assertEqual(f.read(), "/static/exists.js")
+
+        with(open(os.path.join(self.site.build_path, "test2.html"))) as f:
+            self.assertEqual(f.read(), "/static/exists.js")
+
+    def test_prepend_nonexists(self):
+
+        with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
+            f.write("{% static '/notexists.js' %}")
+
+        self.site.build()
+
+        with(open(os.path.join(self.site.build_path, "test.html"))) as f:
+            self.assertEqual(f.read(), "/notexists.js")
+
+
+
+
+
 class TestMarkdown(SiteTestCase):
 
     def setUp(self):
         super(TestMarkdown, self).setUp()
 
-        with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
-            f.write("{% filter markdown %}### Hello{% endfilter %}")
+    def test_tags(self):
 
-    def test_h3(self):
-        self.site.build()
+        for level in [1, 2, 3, 4, 5]:
 
-        with open(os.path.join(self.site.build_path, "test.html")) as f:
-            self.assertEqual(f.read(), "<h3>Hello</h3>\n")
+            levelStr = "#" * level
+
+            with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
+                f.write("{% filter markdown %}" + levelStr + " Hello{% endfilter %}")
+
+            self.site.build()
+
+            with open(os.path.join(self.site.build_path, "test.html")) as f:
+                self.assertEqual(f.read(), "<h%s>Hello</h%s>\n" % (level, level))

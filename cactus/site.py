@@ -221,6 +221,9 @@ class Site(SiteCompatibilityLayer):
 
         self.verify_url()
 
+        # Reset the static content
+        self._static = None
+
         #TODO: Facility to reset the site, and reload config.
         #TODO: Currently, we can't build a site instance multiple times
         self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
@@ -300,12 +303,23 @@ class Site(SiteCompatibilityLayer):
         
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
-        try:
-            return resources_dict[src_url].final_url
-        except KeyError:
-            #raise Exception('Resource does not exist: {0}'.format(src_url))
-            logger.warn('Resource does not exist: {0}'.format(src_url))
-            return src_url
+        print resources_dict
+
+        for url_key in [
+            src_url,
+            "/static/" + src_url,
+            "/static" + src_url,
+            "static/" + src_url,
+            ]:
+            
+            print "trying", url_key
+
+            if resources_dict.has_key(url_key):
+                return resources_dict[url_key].final_url
+
+        logger.warn('Resource does not exist: {0}'.format(src_url))
+        
+        return src_url
 
     def get_url_for_static(self, src_path):
         return self._get_url(src_path, self.static())
@@ -386,7 +400,7 @@ class Site(SiteCompatibilityLayer):
             # We need to "clear out" the list of static first. Otherwise, processors will not run again
             # They run on __init__ to run before fingerprinting, and the "built" static files themselves,
             # which are in a temporary folder, have been deleted already!
-            self._static = None
+            # self._static = None
             self.build()
 
         except Exception, e:
