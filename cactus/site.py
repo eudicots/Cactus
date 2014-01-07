@@ -303,16 +303,12 @@ class Site(SiteCompatibilityLayer):
         
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
-        print resources_dict
-
         for url_key in [
             src_url,
             "/static/" + src_url,
             "/static" + src_url,
             "static/" + src_url,
             ]:
-            
-            print "trying", url_key
 
             if resources_dict.has_key(url_key):
                 return resources_dict[url_key].final_url
