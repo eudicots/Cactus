@@ -404,6 +404,7 @@ class Site(SiteCompatibilityLayer):
             traceback.print_exc(file=sys.stdout)
 
         changed_file_extension = set(map(lambda x: os.path.splitext(x)[1], changes["changed"]))
+        reload_css_file_extenstions = set([".css", ".sass", ".scss", ".styl"])
 
         # When we have changes, we want to refresh the browser tabs with the updates.
         # Mostly we just refresh the browser except when there are just css changes,
@@ -415,7 +416,7 @@ class Site(SiteCompatibilityLayer):
             "http://0.0.0.0:%s" % self._port
         ]
 
-        if len(changes["added"]) == 0 and len(changes["deleted"]) == 0 and changed_file_extension== set([".css"]):
+        if len(changes["added"]) == 0 and len(changes["deleted"]) == 0 and changed_file_extension.issubset(reload_css_file_extenstions):
             browserReloadCSS(local_hosts)
         else:
             browserReload(local_hosts)
