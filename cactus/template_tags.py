@@ -69,8 +69,7 @@ def markdown(value, arg=''):
     try:
         import markdown2
     except ImportError:
-        if settings.DEBUG:
-            raise template.TemplateSyntaxError, "Error in {% markdown %} filter: The python-markdown2 library isn't installed."
+        logging.warning("Markdown package not installed.")
         return force_unicode(value)
     else:
         def parse_extra(extra):
