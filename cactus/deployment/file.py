@@ -25,7 +25,7 @@ class BaseFile(object):
         self.force_refresh = False
         self._is_compressed = None
 
-        self.total_bytes = 0
+        self.total_bytes = len(self.payload())
         self.total_bytes_uploaded = 0
 
     def prepare(self):
@@ -124,8 +124,6 @@ class BaseFile(object):
         self.engine.site.plugin_manager.preDeployFile(self)
 
         remote_changed = self.remote_changed()
-        
-        self.total_bytes = len(self.payload())
 
         if remote_changed:
             self.do_upload()
@@ -134,6 +132,8 @@ class BaseFile(object):
         
         op1 = '+' if remote_changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.is_compressed else ''
+
+        # logger.warning("deploy.progress %s", self.engine.progress())
 
         ipc.signal("deploy.progress", {
             "progress": self.engine.progress(),

@@ -30,6 +30,7 @@ class S3File(BaseFile):
     def remote_url(self):
         return 'http://%s/%s' % (self.engine.site.config.get('aws-bucket-website'), self.url)
 
+    @retry((S3ResponseError, socket.error, socket.timeout), tries=5, delay=1, backoff=2)
     def remote_changed(self):
         remote_headers = dict((k, v.strip('"')) for k, v in getURLHeaders(self.remote_url()).items())
         local_headers = self.get_headers()
@@ -41,8 +42,10 @@ class S3File(BaseFile):
 
     @retry((S3ResponseError, socket.error, socket.timeout), tries=5, delay=1, backoff=2)
     def do_upload(self):
-                
-        progressCallbackCount = len(self.payload()) / (1024 * 10) # Every byte
+        
+        kbConstant = (1024 * 100)
+
+        progressCallbackCount = len(self.payload()) / kbConstant
 
         def progressCallback(current, total):
 
@@ -54,11 +57,16 @@ class S3File(BaseFile):
             logger.info('+ %s upload progress %.1f%%', 
                 self.url, float(current) / float(total) * 100)
 
+            # logger.warning("deploy.progress %s", self.engine.progress())
+
             ipc.signal("deploy.progress", {
                 "progress": self.engine.progress(),
                 "fileName": self.path
             })
 
+        if len(self.payload()) < kbConstant:
+            progressCallback = None
+            progressCallbackCount = None
 
         key = self.engine.bucket.new_key(self.url)
         
