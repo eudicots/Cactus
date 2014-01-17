@@ -56,7 +56,7 @@ class File(object):
 		return getURLHeaders(self.remoteURL()).get('etag', '').strip('"')
 		
 	def remoteURL(self):
-		return 'http://%s/%s' % (self.site.config.get('aws-bucket-website'), self.path)
+		return 'http://{}/{}'.format(self.site.config.get('aws-bucket-website'), self.path)
 	
 	def extension(self):
 		return os.path.splitext(self.path)[1].strip('.').lower()
