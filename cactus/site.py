@@ -15,6 +15,7 @@ import zipfile
 import urllib
 
 import boto
+from boto.s3.connection import Location
 
 from .config import Config
 from .utils import *
@@ -24,6 +25,17 @@ from .file import File
 from .server import Server, RequestHandler
 from .browser import browserReload, browserReloadCSS
 
+
+locations =  {
+	'ap-northeast-1': Location.APNortheast,
+	'ap-southeast-1': Location.APSoutheast,
+	'ap-southeast-2': Location.APSoutheast2,
+	# 'EU': Location.EU, # bug https://github.com/boto/boto/pull/1777
+	'eu-west-1': 'eu-west-1', # fix for boto bug for now
+	'sa-east-1': Location.SAEast,
+	'us-west-1': Location.USWest,
+	'us-west-2': Location.USWest2,
+}
 
 class Site(object):
 	
@@ -305,9 +317,20 @@ class Site(object):
 		if awsBucketName not in [b.name for b in buckets]:
 			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
 				
+				location_name = raw_input(
+					'Desired location({})[skip for default]: '.format(', '.join(locations.keys()))
+				).strip()
+
+				location = Location.DEFAULT
+
+				if location_name in locations.keys():
+					location = locations[location_name]
+				else:
+					logging.info('Wrong location, setting to default.')
+
 				logging.debug('Start create_bucket')
 				try:
-					self.bucket = connection.create_bucket(awsBucketName, policy='public-read')
+					self.bucket = connection.create_bucket(awsBucketName, policy='public-read', location=location)
 				except boto.exception.S3CreateError, e:
 					logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
 					return
