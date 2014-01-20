@@ -50,6 +50,9 @@ class StaticHandler(tornado.web.StaticFileHandler):
 
         return super(StaticHandler, self).write_error(status_code, **kwargs)
 
+    def log_request(self, handler):
+        pass
+
 class StaticSingleFileHandler(tornado.web.RequestHandler):
 
     def get(self):
@@ -68,6 +71,23 @@ class WebServer(object):
             (r'/_cactus/cactus.js', StaticSingleFileHandler),
             (r'/(.*)', StaticHandler, {'path': self.path, "default_filename": "index.html"}),
         ], template_path=self.path)
+
+        self.application.log_request = lambda x: self._log_request(x)
+
+    def _log_request(self, handler):
+
+        if not isinstance(handler, StaticHandler):
+            return
+            
+        if handler.get_status() < 400:
+            log_method = logging.info
+        elif handler.get_status() < 500:
+            log_method = logging.warning
+        else:
+            log_method = logging.error
+
+        log_method("%d %s %s", handler.get_status(), handler.request.method, handler.request.uri)
+
 
     def start(self):
 
