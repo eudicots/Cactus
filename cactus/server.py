@@ -1,125 +1,173 @@
 import os
 import sys
 import logging
-import errno
-
-import SimpleHTTPServer
-import SocketServer
-
+import threading
 import mime
 
 logger = logging.getLogger(__name__)
 
-# See: https://github.com/koenbok/Cactus/issues/8
-# class Server(SocketServer.ForkingMixIn, SocketServer.TCPServer):
-#	allow_reuse_address = True
+import tornado.httpserver
+import tornado.websocket
+import tornado.websocket
+import tornado.ioloop
+import tornado.web
 
-class Server(SocketServer.ThreadingMixIn, SocketServer.TCPServer, object):
+TEMPLATES = {}
+
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
     
-    allow_reuse_address = True
+    def open(self):
+        if self not in self.application._socketHandlers:
+            self.application._socketHandlers.append(self)
 
-    def handle_error(self, request, client_address):
+    def on_close(self):
+        if self in self.application._socketHandlers:
+            self.application._socketHandlers.remove(self)
 
-        exc_type, exc_obj, exc_tb = sys.exc_info()
+    def on_message(self, msg):
+        pass
+
+class StaticHandler(tornado.web.StaticFileHandler):
+    
+    def get(self, *args, **kwargs):
+
+        super(StaticHandler, self).get(*args, **kwargs)
+
+        if self.get_content_type() == "text/html":
+            self.finish(TEMPLATES["script"])
+
+    # Always be not caching
+    def should_return_304(self):
+        return False
+
+    def get_content_type(self):
+        return mime.guess(self.absolute_path)
+
+    def write_error(self, status_code, **kwargs):
+
+        if status_code == 404:
+            return self.render("error.html")
+
+        return super(StaticHandler, self).write_error(status_code, **kwargs)
+
+class StaticSingleFileHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        self.set_header("Content-Type", mime.guess("file.js"))
+        self.finish(TEMPLATES["js"])
+
+class WebServer(object):
+
+    def __init__(self, path, port=8080):
         
-        # Don't complain about agressive browsers all the time
-        if "Broken pipe" in exc_obj:
-            return
+        self.path = path
+        self.port = port
 
-        logger.info("handle_error", request, exc_obj);
-        
-        return super(Server, self).handle_error(request, client_address)
+        self.application = tornado.web.Application([
+            (r'/_cactus/ws', WebSocketHandler),
+            (r'/_cactus/cactus.js', StaticSingleFileHandler),
+            (r'/(.*)', StaticHandler, {'path': self.path, "default_filename": "index.html"}),
+        ], template_path=self.path)
 
-class RequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
-    def send_head(self):
-        """Common code for GET and HEAD commands.
+    def start(self):
 
-        This sends the response code and MIME headers.
+        self.application._socketHandlers = []
 
-        Return value is either a file object (which has to be copied
-        to the outputfile by the caller unless the command was HEAD,
-        and must be closed by the caller under all circumstances), or
-        None, in which case the caller has nothing further to do.
+        self._server = tornado.httpserver.HTTPServer(self.application)
+        self._server.listen(self.port)
 
-        """
+        tornado.ioloop.IOLoop.instance().start()
 
-        path = self.translate_path(self.path)
+    def stop(self):
+        pass
 
-        if os.path.isdir(path):
-            if not self.path.endswith('/'):
-                # redirect browser - doing basically what apache does
-                self.send_response(301)
-                self.send_header("Location", self.path + "/")
-                self.end_headers()
-                return None
-            for index in "index.html", "index.htm":
-                index = os.path.join(path, index)
-                if os.path.exists(index):
-                    path = index
-                    break
-                    # else:
-                    # 	return self.list_directory(path)
+    def publish(self, message):
+        for ws in self.application._socketHandlers:
+            ws.write_message(message)
 
-        try:
-            # Always read in binary mode. Opening files in text mode may cause
-            # newline translations, making the actual size of the content
-            # transmitted *less* than the content-length!
-            f = open(path, 'rb')
+    def reloadPage(self):
+        self.publish("reloadPage")
 
-        except IOError:
+    def reloadCSS(self):
+        self.publish("reloadCSS")
 
-            errorPagePath = self.translate_path('/error.html')
+TEMPLATES["script"] = """
 
-            if os.path.exists(errorPagePath):
-                return self.send_content(404,
-                    {"Content-type": "text/html"}, 
-                    open(errorPagePath, 'rb'))
-            else:
-                self.send_error(404, "File not found")
-            return None
+<!-- Automatically inserted by Cactus. Needed for auto refresh. This will be gone when you deploy -->
+<script src="/_cactus/cactus.js"></script>
+"""
 
-        fs = os.fstat(f.fileno())
-        tp = self.guess_type(path)
+TEMPLATES["js"] = """
+(function() {
 
-        headers = {
-            "Content-type": tp,
-            "Content-Length": str(fs[6]),
-            "Cache-Control": "no-cache, must-revalidate",
-        }
-        
-        # It would be great if this worked reliably, but for now we use no caching
-        # Last-Modified", self.date_time_string(fs.st_mtime)
+function reloadPage() {
+    window.location.reload()
+}
 
-        return self.send_content(200, headers, f)
+function reloadCSS() {
+    function updateQueryStringParameter(uri, key, value) {
 
-    def send_content(self, code, headers, fileHandler):
+        var re = new RegExp("([?|&])" + key + "=.*?(&|$)", "i");
+        separator = uri.indexOf("?") !== -1 ? "&" : "?";
 
-        self.send_response(code)
+        if (uri.match(re)) {
+            return uri.replace(re, "$1" + separator + key + "=" + value + "$2");
+        } else {
+            return uri + separator + key + "=" + value;
+        };
+    };
 
-        for key, value in headers.iteritems():
-            self.send_header(key, value)
+    var links = document.getElementsByTagName("link");
 
-        self.end_headers()
+    for (var i = 0; i < links.length;i++) {
 
-        return fileHandler
+        var link = links[i];
 
-    def log_message(self, fmt, *args):
-        
-        # Be less noisy
-        if "timed out" in fmt:
-            return
-        
-        logger.info(fmt, *args)
+        if (link.rel === "stylesheet") {
 
-    def log_request(self, code = '', size = ''):
-        
-        action = self.requestline.split(' ')[0]
-        path = self.requestline.split(' ')[1]
-        
-        if code in [200, 301]:
-            logger.info('%s %s %s', str(code), action, path)
-        else:
-            logger.warning('%s %s %s', str(code), action, path)
+            // Don"t reload external urls, they likely did not change
+            if (
+                link.href.indexOf("127.0.0.1") == -1 && 
+                link.href.indexOf("localhost") == -1 &&
+                link.href.indexOf("0.0.0.0") == -1 &&
+                link.href.indexOf(window.location.host) == -1
+                ) {
+                continue;
+            }
 
-    def guess_type(self, path):
-        return mime.guess(path)
+            var updatedLink = updateQueryStringParameter(link.href, "cactus.reload", new Date().getTime());
+
+            if (updatedLink.indexOf("?") == -1) {
+                updatedLink = updatedLink.replace("&", "?");
+            };
+
+            link.href = updatedLink;
+        };
+    };
+};
+
+function startSocket() {
+
+    var MessageActions = {
+        reloadPage: reloadPage,
+        reloadCSS: reloadCSS
+    };
+
+    var socketUrl = "ws://" + window.location.host + "/_cactus/ws"
+    var socket = new WebSocket(socketUrl);
+
+    socket.onmessage = function(e) {
+        var key = e.data;
+
+        if (MessageActions.hasOwnProperty(key)) {
+            MessageActions[key]()
+        };
+    };
+};
+
+startSocket();
+
+})()
+"""
+
+

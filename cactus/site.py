@@ -30,7 +30,8 @@ from cactus.utils.url import is_external
 from cactus.page import Page
 from cactus.static import Static
 from cactus.listener import Listener
-from cactus.server import Server, RequestHandler
+# from cactus.server import Server, RequestHandler
+from cactus.server import WebServer
 from cactus.browser import browserReload, browserReloadCSS
 from cactus.utils import ipc
 
@@ -417,9 +418,11 @@ class Site(SiteCompatibilityLayer):
         ]
 
         if len(changes["added"]) == 0 and len(changes["deleted"]) == 0 and changed_file_extension.issubset(reload_css_file_extenstions):
-            browserReloadCSS(local_hosts)
+            # browserReloadCSS(local_hosts)
+            self.server.reloadCSS()
         else:
-            browserReload(local_hosts)
+            # browserReload(local_hosts)
+            self.server.reloadPage()
 
         self.listener.resume()
     
@@ -442,24 +445,17 @@ class Site(SiteCompatibilityLayer):
         self.listener = Listener(self.path, self._rebuild, ignore=self._rebuild_should_ignore)
         self.listener.run()
 
+        self.server = WebServer(self.build_path, port=port)
+        
         try:
-            httpd = Server(("", port), RequestHandler)
-        except socket.error:
-            logger.info('Could not start webserver, port is in use. To use another port:')
-            logger.info('  cactus serve %s' % (int(port) + 1))
-            return
+            self.server.start()
 
-        if browser is True:
-            webbrowser.open('http://127.0.0.1:%s' % port)
+            # if browser is True:
+            #     webbrowser.open('http://127.0.0.1:%s' % port)
 
-        try:
-            httpd.serve_forever()
         except (KeyboardInterrupt, SystemExit):
-            httpd.server_close()
-
-        logger.info('See you!')
-
-
+            self.server.stop()
+            logger.info("Bye")
 
     def upload(self):
         
