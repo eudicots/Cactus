@@ -6,7 +6,7 @@ import shutil
 
 from cactus.compat.paths import StaticCompatibilityLayer
 from cactus.utils.file import calculate_file_checksum, file_changed_hash
-from cactus.utils.filesystem import alt_file
+from cactus.utils.filesystem import alt_file, mkdtemp
 from cactus.utils.url import ResourceURLHelperMixin
 
 
@@ -130,13 +130,13 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         """
         Does file pre-processing if required
         """
-        self.pre_dir = tempfile.mkdtemp()
+        self.pre_dir = mkdtemp()
         pre_path = os.path.join(self.pre_dir, self.src_filename)
 
         shutil.copy(self.full_source_path, pre_path)
 
         # Pre-process
-        logger.debug('Pre-processing: %s' % self.src_name)
+        logger.debug('Pre-processing: %s %s', self.src_name, self.pre_dir)
 
         # Run processors (those might change the extension)
         self.final_extension = self.run_externals(self.src_extension, pre_path, self.site.external_manager.processors)

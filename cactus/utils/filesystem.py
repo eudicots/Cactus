@@ -1,7 +1,11 @@
 from contextlib import contextmanager
 import os
 import shutil
+import tempfile
 
+
+def mkdtemp():
+    return tempfile.mkdtemp(dir=os.environ.get("TEMPDIR"))
 
 def fileList(paths, relative=False, folders=False):
     """
