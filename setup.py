@@ -119,12 +119,13 @@ setup(
         ],
     },
     install_requires=[
-        'Django',
+        'Django==1.5.5',
         'markdown2',
         'argparse',
         'keyring',
         'boto>=2.4.1',
         'tornado',
+        'colorlog',
     ],
     extras_require={
         'GCS Deployment': ['google-api-python-client'],
@@ -134,5 +135,17 @@ setup(
     zip_safe=False,
     setup_requires=['nose'],
     tests_require=['nose', 'mock', 'tox', 'unittest2'],
-    classifiers=[],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 2 :: Only",
+        "Topic :: Internet :: WWW/HTTP",
+    ],
 )

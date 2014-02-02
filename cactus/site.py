@@ -56,6 +56,7 @@ class Site(SiteCompatibilityLayer):
 
         # Load site-specific config values
         self.prettify_urls = self.config.get('prettify', False)
+        self.compress_extensions = self.config.get('compress', ['html', 'css', 'js', 'txt', 'xml'])
         self.fingerprint_extensions = self.config.get('fingerprint', [])
         self.locale = self.config.get("locale", None)
 
@@ -164,7 +165,7 @@ class Site(SiteCompatibilityLayer):
 
         for p in required_subfolders:
             if not os.path.isdir(os.path.join(self.path, p)):
-                logger.info('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
+                logger.error('This does not look like a (complete) cactus project (missing "%s" subfolder)', p)
                 sys.exit(1)
 
     @memoize
@@ -293,8 +294,8 @@ class Site(SiteCompatibilityLayer):
 
         return self._static
 
-    def _get_url(self, src_url, resources):
-        
+    def _get_resource(self, src_url, resources):
+
         if is_external(src_url):
             return src_url
         
@@ -317,6 +318,10 @@ class Site(SiteCompatibilityLayer):
         logger.warn('Resource does not exist: {0}'.format(src_url))
         
         return src_url
+
+
+    def _get_url(self, src_url, resources):
+        return self._get_resource(src_url, resources)
 
     def get_url_for_static(self, src_path):
         return self._get_url(src_path, self.static())

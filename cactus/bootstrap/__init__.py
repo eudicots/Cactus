@@ -1,7 +1,11 @@
 #coding:utf-8
 import logging
+
 from cactus.bootstrap.archive import bootstrap_from_archive
 from cactus.bootstrap.package import bootstrap_from_package
+
+
+logger = logging.getLogger(__name__)
 
 
 def bootstrap(path, skeleton=None):
@@ -17,4 +21,4 @@ def bootstrap(path, skeleton=None):
     else:
         bootstrap_from_archive(path, skeleton)
 
-    logging.info('New project generated at %s', path)
+    logger.info('New project generated at %s', path)
