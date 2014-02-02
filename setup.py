@@ -7,7 +7,7 @@ from distutils.sysconfig import get_python_lib
 from setuptools import setup
 
 
-VERSION = "2.5.0"
+VERSION = "3.0.0"
 SKELETON_FOLDERS = ['pages', 'plugins', 'static/css', 'static/images', 'static/js', 'templates', 'locale']
 SKELETON_GLOB = ['skeleton/{0}/*'.format(folder) for folder in SKELETON_FOLDERS]
 
@@ -124,10 +124,12 @@ setup(
         'argparse',
         'keyring',
         'boto>=2.4.1',
+        'tornado',
     ],
     extras_require={
         'GCS Deployment': ['google-api-python-client'],
         'Cloud Files Deployment': ['pyrax'],
+        'Mac Native FSEvents': ['macfsevents'],
     },
     zip_safe=False,
     setup_requires=['nose'],

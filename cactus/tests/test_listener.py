@@ -4,14 +4,19 @@ import unittest
 import threading
 import time
 
-from cactus.listener import FSEventsListener, PollingListener
+from cactus.listener import PollingListener
+
+try:
+	from cactus.listener import FSEventsListener
+except ImportError:
+	FSEventsListener = None
 
 def sleep(s):
 	# time.sleep(s)
 	event = threading.Event()
 	event.wait(timeout=s)
 
-class FSEventsListenerTest(unittest.TestCase):
+class PollingListenerTest(unittest.TestCase):
 
 	def setUp(self):
 		self._callbacks = []
@@ -48,7 +53,7 @@ class FSEventsListenerTest(unittest.TestCase):
 			time_total += time_increment
 
 	def create_listener(self, path):
-		return FSEventsListener(path, self._callback)
+		return PollingListener(path, self._callback)
 
 	def testSymlinkFolder(self):
 
@@ -162,7 +167,11 @@ class FSEventsListenerTest(unittest.TestCase):
 		self.assertEqual(len(self.callbacks), 2)
 		self.assertEqual(self.callbacks[0]["changed"], [file_link])
 
-class PollingListenerTest(FSEventsListenerTest):
+if FSEventsListener:
 
-	def create_listener(self, path):
-		return PollingListener(path, self._callback)
+	class FSEventsListenerTest(PollingListener):
+
+		def create_listener(self, path):
+			return FSEventsListener(path, self._callback)
+
+
