@@ -1,6 +1,14 @@
 Cactus
 ======
 
+News
+--------------
+
+Cactus 3 is out!
+
+We're happy to announce Cactus 3. It brings a set of great new features like asset fingerpringting, an asset pipeline, pretty urls, native Mac filesystem events, automatic nameserver configuration, support for multiple deployment backends (Google Sites) and more. Large parts of the code have been rewritten, accompanied by an extensive suite of unit tests. Many thanks to Thomas Orozco and other contributors.
+
+
 What is Cactus
 --------------
 
@@ -25,9 +33,12 @@ You can find more discussion about static site generators in this [Hacker News d
 
 ### Examples
 
+  + http://www.cactusformac.com -  Cactus app site
   + http://www.madebysofa.com -  Sofa website
   + http://docs.enstore.com - Enstore documentation website
   + http://www.scalr.com - Scalr website
+  + http://www.framerjs.com - Framer website
+
 
 There is also an example blog project included.
 
@@ -43,8 +54,7 @@ If you saw no errors, you can now generate a new project
 
     cactus create ~/www.mysite.com
 
-To start editing and previewing your site type the following. Cactus will start a small webserver that rebuilds your
-site as soon as you edit a file. You can stop the server with control-c.
+To start editing and previewing your site type the following. Then point your browser to localhost:8000 and start editing. Cactus will automatically rebuild your project and refresh your browser on changes.
 
     cd ~/www.mysite.com
     cactus serve
@@ -101,7 +111,7 @@ assets to it so it becomes a self contained website. You can build your site lik
     cactus build
 
 Your rendered website can now be found in the (hidden) [path]/.build folder. Cactus can also run a small webserver to
-preview your site and update it when you make any changes. This is really handy when developing.
+preview your site and update it when you make any changes. This is really handy when developing to get live visual feedback.
 
 You can run it like this:
 
@@ -139,9 +149,7 @@ securely in the Keychain or similar services on other OSs.
 
     cactus deploy
 
-After deploying you can visit the website directly. You can find a deploy log at [site url]/versions.txt.
-
-Cactus also makes sure all your text files are compressed and adds caching headers.
+After deploying you can visit the website directly. Cactus also makes sure all your text files are compressed and adds caching headers.
 
 
 ### Extras
@@ -162,7 +170,7 @@ Modify `config.json`, and add the extensions you want to be fingerprinting:
         "css"
     ],
 
-This lets you enable caching with long expiration dates. When a file change, its name will reflect the change.
+This lets you enable caching with long expiration dates. When a file changes, its name will reflect the change. Great for when you use a CDN.
 
 
 ##### Optimization
@@ -198,6 +206,18 @@ to not hurt your search rankings:
 
     <link rel="canonical" href="{{ CURRENT_PAGE.absolute_final_url }}" />
 
+#### Nameserver configuration
+
+To set up a hosted zone and generate the correct nameserver records for your domain, make sure your bucket is a valid domain name, and run:
+
+    cactus domain:setup
+
+Cactus will return with a set of nameservers that you can then enter with your registrar. To see the list again run:
+
+    cactus domain:list
+
+If your domain is 'naked' (eg. without www), Cactus will add create an extra bucket that redirects the www variant of your domain to your naked domain (so www.cactus.com to cactus.com). All the above is Amazon only for now.
+
 
 #### Extra files
 
@@ -218,4 +238,4 @@ This will help bots to index your pages for Google and Bing for example.
   [4]: http://news.ycombinator.com/item?id=2233620
   [5]: https://payments.amazon.com/sdui/sdui/helpTab/Checkout-by-Amazon/Advanced-Integration-Help/Using-Your-Access-Key
   [6]: http://www.hongkiat.com/blog/amazon-s3-the-beginners-guide/#Gettting_an_Amazon_S3_Account
-  [7]:  https://docs.djangoproject.com/en/dev/topics/templates/
+  [7]: https://docs.djangoproject.com/en/dev/topics/templates/
