@@ -1,3 +1,8 @@
+## News
+
+- Cactus now has a Mac Desktop app: [cactusformac.com](http://cactusformac.com)
+- Cactus v3 beta is out, test it [here](https://github.com/koenbok/Cactus/tree/v3)
+
 ## What is Cactus
 
 Cactus is a simple but powerful [static website generator](http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html) using Python and the [Django template system](http://docs.djangoproject.com/en/dev/topics/templates/). Cactus also makes it easy to develop locally and deploy your site to S3 directly. It works great for company, portfolio, personal, support websites and blogs.
