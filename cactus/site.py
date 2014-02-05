@@ -254,7 +254,6 @@ class Site(object):
 			httpd.server_close() 
 
 		logging.info('See you!')
-
 	
 	def upload(self):
 		"""
@@ -267,70 +266,65 @@ class Site(object):
 			return
 
 		logging.debug('Start upload')
-		
+
 		self.clean()
 		self.build()
-		
+
 		logging.debug('Start preDeploy')
 		self.pluginMethod('preDeploy', self)
 		logging.debug('End preDeploy')
-		
+
+		# Get bucket name form the config or the user
+		awsBucketName = self.config.get('aws-bucket-name') or \
+			raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
+
 		# Get access information from the config or the user
 		awsAccessKey = self.config.get('aws-access-key') or \
 			raw_input('Amazon access key (http://bit.ly/Agl7A9): ').strip()
 		awsSecretKey = getpassword('aws', awsAccessKey) or \
 			getpass._raw_input('Amazon secret access key (will be saved in keychain): ').strip()
-		
+
 		# Try to fetch the buckets with the given credentials
 		connection = boto.connect_s3(awsAccessKey.strip(), awsSecretKey.strip())
-		
-		logging.debug('Start get_all_buckets')
+
+		logging.debug('Start get_bucket')
 		# Exit if the information was not correct
 		try:
-			buckets = connection.get_all_buckets()
-		except:
-			logging.info('Invalid login credentials, please try again...')
-			return
-		logging.debug('end get_all_buckets')
+			self.bucket = connection.get_bucket(awsBucketName)
+		except boto.exception.S3ResponseError, e:
+			if e.code == 'AccessDenied':
+				logging.info('Invalid login credentials, please try again...')
+				return
+			elif e.code == 'NoSuchBucket':
+				if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
+					logging.debug('Start create_bucket')
+					try:
+						self.bucket = connection.create_bucket(awsBucketName, policy='public-read')
+					except boto.exception.S3CreateError, e:
+						logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
+						return
+					except boto.exception.S3ResponseError, e:
+						logging.info('Invalid login credentials, please try again...')
+						return
+					logging.debug('end create_bucket')
+					# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
+					self.bucket.configure_website('index.html', 'error.html')
+	
+					self.config.set('aws-bucket-website', self.bucket.get_website_endpoint())
+					self.config.set('aws-bucket-name', awsBucketName)
+					self.config.write()
+	
+					logging.info('Bucket %s was selected with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
+					logging.info('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
+				else: return
+
+		logging.debug('end get_bucket')
 		
 		# If it was correct, save it for the future
 		self.config.set('aws-access-key', awsAccessKey)
 		self.config.write()
 	
 		setpassword('aws', awsAccessKey, awsSecretKey)
-	
-		awsBucketName = self.config.get('aws-bucket-name') or \
-			raw_input('S3 bucket name (www.yoursite.com): ').strip().lower()
-	
-		if awsBucketName not in [b.name for b in buckets]:
-			if raw_input('Bucket does not exist, create it? (y/n): ') == 'y':
-				
-				logging.debug('Start create_bucket')
-				try:
-					self.bucket = connection.create_bucket(awsBucketName, policy='public-read')
-				except boto.exception.S3CreateError, e:
-					logging.info('Bucket with name %s already is used by someone else, please try again with another name' % awsBucketName)
-					return
-				logging.debug('end create_bucket')
-				
-				# Configure S3 to use the index.html and error.html files for indexes and 404/500s.
-				self.bucket.configure_website('index.html', 'error.html')
-
-				self.config.set('aws-bucket-website', self.bucket.get_website_endpoint())
-				self.config.set('aws-bucket-name', awsBucketName)
-				self.config.write()
-
-				logging.info('Bucket %s was selected with website endpoint %s' % (self.config.get('aws-bucket-name'), self.config.get('aws-bucket-website')))
-				logging.info('You can learn more about s3 (like pointing to your own domain) here: https://github.com/koenbok/Cactus')
-
-
-			else: return
-		else:
-			
-			# Grab a reference to the existing bucket
-			for b in buckets:
-				if b.name == awsBucketName:
-					self.bucket = b
 
 		self.config.set('aws-bucket-website', self.bucket.get_website_endpoint())
 		self.config.set('aws-bucket-name', awsBucketName)
