@@ -55,7 +55,7 @@ def setup_logging():
             }
         )
 
-        handler.setFormatter(logging.Formatter(fmt=formatter))
+        handler.setFormatter(formatter)
 
     logger.setLevel(log_level)
 
