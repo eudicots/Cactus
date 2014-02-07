@@ -11,6 +11,7 @@ MIMETYPE_MAP = {
     '.eot':  'application/vnd.ms-fontobject',
     '.ttf':  'application/x-font-truetype',
     '.otf':  'application/x-font-opentype',
+    '.svg':  'image/svg+xml',
 }
 
 
