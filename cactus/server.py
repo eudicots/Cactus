@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 import tornado.httpserver
 import tornado.websocket
-import tornado.websocket
 import tornado.ioloop
 import tornado.web
 
