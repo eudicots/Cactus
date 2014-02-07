@@ -6,38 +6,10 @@ import logging
 import time
 import argparse
 
-from colorlog import ColoredFormatter
-
 import cactus
 
 from cactus.bootstrap import bootstrap
-
-
-def setup_logging():
-    if os.environ.get('DEBUG'):
-        logging.basicConfig(
-            format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s',
-            level = logging.DEBUG
-        )
-    else:
-        formatter = ColoredFormatter(
-            "%(log_color)s%(message)s",
-            datefmt=None,
-            reset=True,
-            log_colors={
-                    'DEBUG':    'white',
-                    'INFO':     'white',
-                    'WARNING':  'bold_yellow',
-                    'ERROR':    'bold_red',
-                    'CRITICAL': 'bold_red',
-            }
-        )
-
-        handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-
-        logging.getLogger().setLevel(logging.INFO)
-        logging.getLogger().addHandler(handler)
+from cactus.logger import setup_logging
 
 def create(path, skeleton=None):
     """

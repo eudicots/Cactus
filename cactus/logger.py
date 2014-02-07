@@ -3,6 +3,8 @@ import logging
 import types
 import json
 
+
+
 class JsonFormatter(logging.Formatter):
 
     def format(self, record):
@@ -21,31 +23,41 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(data)
 
 
+# log_format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s'
+
 def setup_logging():
 
     logger = logging.getLogger()
     handler = logging.StreamHandler()
 
-    if os.environ.get('DEBUG'):
-        log_level = logging.DEBUG
-        log_format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s'
-
-        handler.setFormatter(logging.Formatter(fmt=log_format))
-
-    elif os.environ.get('DESKTOPAPP'):
+    if os.environ.get('DESKTOPAPP'):
         log_level = logging.INFO
         log_format = '%(message)s'
 
         handler.setFormatter(JsonFormatter())
 
     else:
-        log_level = logging.INFO
-        log_format = '%(message)s'
 
-        handler.setFormatter(logging.Formatter(fmt=log_format))
+        from colorlog import ColoredFormatter
+        
+        log_level = logging.INFO
+        
+        formatter = ColoredFormatter(
+            "%(log_color)s%(message)s",
+            datefmt=None,
+            reset=True,
+            log_colors={
+                    'DEBUG':    'white',
+                    'INFO':     'white',
+                    'WARNING':  'bold_yellow',
+                    'ERROR':    'bold_red',
+                    'CRITICAL': 'bold_red',
+            }
+        )
+
+        handler.setFormatter(logging.Formatter(fmt=formatter))
 
     logger.setLevel(log_level)
 
     logger.handlers = []
     logger.addHandler(handler)
-    
