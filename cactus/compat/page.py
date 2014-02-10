@@ -16,6 +16,8 @@ class PageContextCompatibilityPlugin(object):
     def preBuildPage(self, page, context, data):
         prefix = os.path.relpath(".", os.path.dirname(page.build_path))
 
+        logger.warn("%s:", page.path)
+
         def static_url():
             logger.warn("{{ STATIC_URL }} is deprecated, use {% static '/static/path/to/file' %} instead.")
             return path_to_url(os.path.join(prefix, 'static'))

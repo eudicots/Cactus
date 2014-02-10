@@ -124,13 +124,7 @@ class TestStaticLookup(SiteTestCase):
             self.assertEqual(f.read(), "/notexists.js")
 
 
-
-
-
 class TestMarkdown(SiteTestCase):
-
-    def setUp(self):
-        super(TestMarkdown, self).setUp()
 
     def test_tags(self):
 
@@ -145,3 +139,30 @@ class TestMarkdown(SiteTestCase):
 
             with open(os.path.join(self.site.build_path, "test.html")) as f:
                 self.assertEqual(f.read(), "<h%s>Hello</h%s>\n" % (level, level))
+
+class TestConfig(SiteTestCase):
+
+    def setUp(self):
+        super(TestConfig, self).setUp()
+
+        self.site.config.set("test-value", "yep")
+
+    def test_config_value(self):
+
+        with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
+            f.write("{% config 'test-value' %}")
+
+        self.site.build()
+
+        with open(os.path.join(self.site.build_path, "test.html")) as f:
+            self.assertEqual(f.read(), "yep")
+
+    def test_no_config_value(self):
+
+        with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
+            f.write("{% config 'unknown' %}")
+
+        self.site.build()
+
+        with open(os.path.join(self.site.build_path, "test.html")) as f:
+            self.assertEqual(f.read(), "")

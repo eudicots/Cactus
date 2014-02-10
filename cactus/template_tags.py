@@ -29,6 +29,18 @@ def url(context, link_url):
 
     return url
 
+def config(context, key):
+    """
+    Get a value from the config by key
+    """
+    site = context['__CACTUS_SITE__']
+    result = site.config.get(key)
+
+    if result:
+        return result
+
+    return ""
+
 
 def current_page(context):
     """
@@ -92,5 +104,6 @@ def markdown(value, arg=''):
 
 register.simple_tag(takes_context=True)(static)
 register.simple_tag(takes_context=True)(url)
+register.simple_tag(takes_context=True)(config)
 register.simple_tag(takes_context=True)(current_page)
 register.simple_tag(takes_context=True)(if_current_page)
