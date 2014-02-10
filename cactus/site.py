@@ -174,9 +174,16 @@ class Site(SiteCompatibilityLayer):
         Base context for the site: all the html pages.
         """
         ctx = {
-            'CACTUS': {'pages': [p for p in self.pages() if p.is_html()]},
+            'CACTUS': {
+                'pages':  [p for p in self.pages() if p.is_html()],
+                'static': [p for p in self.static()]
+            },
             '__CACTUS_SITE__': self,
         }
+
+        # Also make lowercase work
+        ctx['cactus'] = ctx['CACTUS']
+
         return ctx
 
     def make_messages(self):
