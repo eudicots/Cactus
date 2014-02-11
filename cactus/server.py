@@ -62,8 +62,14 @@ class WebServer(object):
 
     def __init__(self, path, port=8080):
         
-        self.path = path
+        self.path = path.decode("utf-8")
         self.port = port
+
+        # print type(self.path)
+        # print self.path
+        # print repr(self.path)
+        # print repr(self.path.decode('unicode-escape'))
+        # print self.path.decode('utf-8')
 
         self.application = tornado.web.Application([
             (r'/_cactus/ws', WebSocketHandler),
