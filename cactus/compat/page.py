@@ -16,17 +16,18 @@ class PageContextCompatibilityPlugin(object):
     def preBuildPage(self, page, context, data):
         prefix = os.path.relpath(".", os.path.dirname(page.build_path))
 
-        logger.warn("%s:", page.path)
-
         def static_url():
+            logger.warn("%s:", page.path)
             logger.warn("{{ STATIC_URL }} is deprecated, use {% static '/static/path/to/file' %} instead.")
             return path_to_url(os.path.join(prefix, 'static'))
 
         def root_url():
+            logger.warn("%s:", page.path)
             logger.warn("{{ ROOT_URL }} is deprecated, use {% url '/page.html' %} instead.")
             return path_to_url(prefix)
 
         def page_url():
+            logger.warn("%s:", page.path)
             logger.warn("{{ PAGE_URL }} is deprecated, use {% current_page %} instead")
             return page.final_url[1:]  # We don't want the leading slash (backwards compatibility)
 
