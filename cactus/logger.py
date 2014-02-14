@@ -3,8 +3,6 @@ import logging
 import types
 import json
 
-
-
 class JsonFormatter(logging.Formatter):
 
     def format(self, record):
@@ -21,9 +19,6 @@ class JsonFormatter(logging.Formatter):
                 data[k] = v
 
         return json.dumps(data)
-
-
-# log_format = '%(name)s:%(lineno)s / %(levelname)s -> %(message)s'
 
 def setup_logging():
 
