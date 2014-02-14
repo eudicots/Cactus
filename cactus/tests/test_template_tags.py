@@ -123,6 +123,42 @@ class TestStaticLookup(SiteTestCase):
         with(open(os.path.join(self.site.build_path, "test.html"))) as f:
             self.assertEqual(f.read(), "/notexists.js")
 
+class TestStaticRelative(SiteTestCase):
+
+    def doit(self, static_subdir, page_subdir, page_contents, output):
+        
+        full_static_subdir = os.path.join(self.site.static_path, static_subdir)
+        full_page_subdir = os.path.join(self.site.page_path, page_subdir)
+
+        try: os.makedirs(full_static_subdir)
+        except: pass
+
+        try: os.makedirs(full_page_subdir)
+        except: pass
+        
+        # Write the static file
+        with open(os.path.join(full_static_subdir, "test.js"), "w") as f:
+            f.write("hello")
+
+        # Write the page with contents
+        with open(os.path.join(full_page_subdir, "test.html"), "w") as f:
+            f.write(page_contents)
+
+        self.site.build()
+
+        with(open(os.path.join(self.site.build_path, page_subdir, "test.html"))) as f:
+            self.assertEqual(f.read(), output)
+
+    def test_simple(self):
+        self.doit("", "", "{% static 'static/test.js' %}", "static/test.js")
+
+    # I'm not sure if we should do this at all
+
+    # def test_relative(self):
+    #     self.doit("", "docs", "{% static 'static/test.js' %}", "../static/test.js")
+
+
+
 
 class TestMarkdown(SiteTestCase):
 

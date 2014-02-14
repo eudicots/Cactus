@@ -312,19 +312,10 @@ class Site(SiteCompatibilityLayer):
         
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
-        for url_key in [
-            src_url,
-            "/static/" + src_url,
-            "/static" + src_url,
-            "static/" + src_url,
-            ]:
+        if resources_dict.has_key(src_url):
+            return resources_dict[src_url].final_url
 
-            if resources_dict.has_key(url_key):
-                return resources_dict[url_key].final_url
-
-        logger.warn('Resource does not exist: {0}'.format(src_url))
-        
-        return src_url
+        return None
 
 
     def _get_url(self, src_url, resources):
