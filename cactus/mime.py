@@ -14,16 +14,21 @@ MIMETYPE_MAP = {
     '.svg':  'image/svg+xml',
 }
 
+MIMETYPE_DEFAULT = 'application/octet-stream'
 
 def guess(path):
+    
+    if not path:
+        return MIMETYPE_DEFAULT
+
     base, ext = os.path.splitext(path)
 
     if ext.lower() in MIMETYPE_MAP:
         return MIMETYPE_MAP[ext.lower()]
 
-    type, encoding = mimetypes.guess_type(path)
+    mime_type, encoding = mimetypes.guess_type(path)
 
-    if type:
-        return type
+    if mime_type:
+        return mime_type
 
-    return 'application/octet-stream'
+    return MIMETYPE_DEFAULT
