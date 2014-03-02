@@ -110,7 +110,10 @@ def browserReloadCSS(url):
 	_insertJavascript(url, s4)
 
 def appsRunning(l):
-	psdata = subprocess.check_output(['ps aux'], shell=True)
+	if platform.system() == "Windows":
+		psdata = subprocess.check_output(['tasklist'], shell=True)
+	else:
+		psdata = subprocess.check_output(['ps aux'], shell=True)
 	retval = {}
 	for app in l: retval[app] = app in psdata
 	return retval
