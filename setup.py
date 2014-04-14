@@ -124,7 +124,7 @@ setup(
         'argparse',
         'keyring',
         'boto>=2.4.1',
-        'tornado',
+        'tornado>=3.2',
         'colorlog',
     ],
     extras_require={
