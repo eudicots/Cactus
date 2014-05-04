@@ -46,6 +46,9 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
     def is_html(self):
         return urlparse.urlparse(self.source_path).path.endswith('.html')
 
+    def is_markdown(self):
+        return urlparse.urlparse(self.source_path).path.endswith('.md')
+
     def is_index(self):
         return urlparse.urlparse(self.source_path).path.endswith('index.html')
 
@@ -135,7 +138,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         will be converted in a dict: {'name': 'koen', 'age': '29'}
         """
 
-        if not self.is_html():
+        if not self.is_html() and not self.is_markdown():
             return {}, data
 
         values = {}
