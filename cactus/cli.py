@@ -48,9 +48,9 @@ def make_messages(path, config):
     site.make_messages()
 
 
-def serve(path, config, port, browser):
+def serve(path, config, port, browser, no_debug):
     """Serve the project and watch changes"""
-    site = cactus.Site(path, config)
+    site = cactus.Site(path, config, debug=not no_debug)
     site.serve(port=port, browser=browser)
 
 def domain_setup(path, config):
@@ -85,6 +85,7 @@ def main():
     parser_serve.add_argument('-p', '--port', default = 8000, type = int, help = 'The port on which to serve the site.')
     parser_serve.add_argument('-b', '--browser', action = 'store_true',
                               help = 'Whether to open a browser for the site.')
+    parser_serve.add_argument('--no-debug', default = False, action = 'store_true', help = 'Disable debug mode.')
 
     parser_make_messages = subparsers.add_parser('messages:make', help='Create translation files for the current project')
     parser_make_messages.set_defaults(target=make_messages)
