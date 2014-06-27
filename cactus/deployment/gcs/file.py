@@ -16,7 +16,7 @@ class GCSFile(BaseFile):
         Note: we don't set the etag, since the GCS API does not accept what we set
         """
         metadata = {
-            "acl": {"entity": "allUsers", "role": "READER",},
+            "acl": [{"entity": "allUsers", "role": "READER"},],
             "md5Hash": base64.b64encode(self.payload_checksum.decode('hex')),
             "contentType": self.content_type,  # Given twice...
             "cacheControl": unicode(self.cache_control)  # That's what GCS will return
