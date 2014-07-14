@@ -8,7 +8,6 @@ from cactus.utils.helpers import CaseInsensitiveDict
 class CloudFilesFile(BaseFile):
     def remote_changed(self):
         try:
-            import ipdb; ipdb.set_trace()
             obj = self.engine.bucket.get_object(self.url)
             #TODO: Headers
             return obj.etag != self.payload_checksum
