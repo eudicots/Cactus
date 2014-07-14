@@ -16,7 +16,7 @@ class CloudFilesDeploymentEngine(BaseDeploymentEngine):
 
     def _create_connection(self):
         username, api_key = self.credentials_manager.get_credentials()
-        region = self.site.config.get('cloudfiles-region')
+        region = self.site.config.get('cloudfiles-region', default='DFW')
         pyrax.set_setting("identity_type", "rackspace")
         pyrax.set_setting("region", region)
         pyrax.set_credentials(username, api_key)
