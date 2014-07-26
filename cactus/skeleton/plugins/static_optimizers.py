@@ -24,4 +24,4 @@ def preBuild(site):
         # Same thing for CSS.
         site.external_manager.register_optimizer(YUICSSOptimizer)
 
-    # Ass your own types here!
+    # Add your own types here!
