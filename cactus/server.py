@@ -3,6 +3,8 @@ import sys
 import logging
 import threading
 import mime
+import mimetypes
+import itertools
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +30,23 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
 class StaticHandler(tornado.web.StaticFileHandler):
     
-    def get(self, *args, **kwargs):
+    @classmethod
+    def get_append(cls, abspath):
+        
+        mime_type, encoding = mimetypes.guess_type(abspath)
 
-        super(StaticHandler, self).get(*args, **kwargs)
+        if mime_type == "text/html":
+            return TEMPLATES["script"]
+        
+        return ""
 
-        if self.get_content_type() == "text/html":
-            self.finish(TEMPLATES["script"])
+    @classmethod
+    def get_content(cls, abspath, start=None, end=None):
+        data = super(StaticHandler, cls).get_content(abspath, start=start, end=end)
+        return itertools.chain(data, [cls.get_append(abspath)])
+
+    def get_content_size(self):
+        return super(StaticHandler, self).get_content_size() + len(self.get_append(self.absolute_path))
 
     # Always be not caching
     def should_return_304(self):
