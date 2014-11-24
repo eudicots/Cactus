@@ -3,6 +3,7 @@ import os
 import cStringIO
 import gzip
 import hashlib
+import subprocess
 
 from cactus.utils.helpers import checksum
 
@@ -38,8 +39,11 @@ def calculate_file_checksum(path):
     """
     Calculate the MD5 sum for a file (needs to fit in memory)
     """
-    with open(path, 'rb') as f:
-        return checksum(f.read())
+    # with open(path, 'rb') as f:
+    #     return checksum(f.read())
+    output = subprocess.check_output(["md5", path])
+    md5 = output.split(" = ")[1].strip()
+    return md5
 
 def file_changed_hash(path):
     info = os.stat(path)
