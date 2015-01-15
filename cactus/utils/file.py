@@ -34,16 +34,17 @@ def fileSize(num):
             return "%.0f%s" % (num, x)
         num /= 1024.0
 
-
 def calculate_file_checksum(path):
     """
-    Calculate the MD5 sum for a file (needs to fit in memory)
+    Calculate the MD5 sum for a file:
+    Read chunks of a file and update the hasher.
+    Returns the hex digest of the md5 hash.
     """
-    # with open(path, 'rb') as f:
-    #     return checksum(f.read())
-    output = subprocess.check_output(["md5", path])
-    md5 = output.split(" = ")[1].strip()
-    return md5
+    hasher = hashlib.md5()
+    with open(path, 'rb') as fp:
+        for buf in fp.read(65536):
+            hasher.update(buf)
+    return hasher.hexdigest()
 
 def file_changed_hash(path):
     info = os.stat(path)
