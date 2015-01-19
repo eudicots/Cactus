@@ -23,7 +23,7 @@ from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
-from cactus.utils.helpers import memoize
+from cactus.utils.helpers import memoize, map_apply
 from cactus.utils.network import internetWorking
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED, PARALLEL_CONSERVATIVE, PARALLEL_AGGRESSIVE
 from cactus.utils.url import is_external
@@ -268,10 +268,7 @@ class Site(SiteCompatibilityLayer):
                     os.remove(path)
 
         # Render the pages to their output files
-        mapper = map
-        if self._parallel >= PARALLEL_AGGRESSIVE:
-            mapper = multiMap
-
+        mapper = multiMap if self._parallel >= PARALLEL_AGGRESSIVE else map_apply
         mapper(lambda p: p.build(), self.pages())
 
         self.plugin_manager.postBuild(self)
@@ -331,10 +328,7 @@ class Site(SiteCompatibilityLayer):
         """
         Build static files (pre-process, copy to static folder)
         """
-        mapper = multiMap
-        if self._parallel <= PARALLEL_DISABLED:
-            mapper = map
-
+        mapper = multiMap if self._parallel > PARALLEL_DISABLED else map_apply
         mapper(lambda s: s.build(), self.static())
 
     def pages(self):

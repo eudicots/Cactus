@@ -1,5 +1,7 @@
-from functools import partial
 import hashlib
+from functools import partial
+
+import six
 
 
 class CaseInsensitiveDict(dict):
@@ -55,6 +57,13 @@ class memoize(object):
         except KeyError:
             res = cache[key] = self.func(*args, **kw)
         return res
+
+
+if six.PY3:
+    def map_apply(fn, iterable):
+        return list(map(fn, iterable))
+else:
+    map_apply = map
 
 
 def checksum(s):
