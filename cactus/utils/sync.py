@@ -1,6 +1,7 @@
 #! /usr/bin/python
 # Dispatch - synchronize two folders
- 
+from __future__ import print_function
+
 import os
 import filecmp
 import shutil
@@ -26,7 +27,7 @@ class Dispatch:
             # If the list has another item after it, compare them
             if self.node_list.index(node) < len(self.node_list) - 1: 
                 node2 = self.node_list[self.node_list.index(node) + 1]
-                print '\nComparing Node ' + str(self.node_list.index(node)) + ' and Node ' + str(self.node_list.index(node) + 1) + ':'
+                print('\nComparing Node ' + str(self.node_list.index(node)) + ' and Node ' + str(self.node_list.index(node) + 1) + ':')
                 # Passes the two root directories of the nodes to the recursive _compare_directories.
                 self._compare_directories(node.root_path, node2.root_path)
     
@@ -63,13 +64,13 @@ class Dispatch:
             if os.path.isdir(srcpath):
                 shutil.copytree(srcpath, os.path.join(dest, os.path.basename(f)))
                 self.folder_copied_count = self.folder_copied_count + 1
-                print 'Copied directory \"' + os.path.basename(srcpath) + '\" from \"' + os.path.dirname(srcpath) + '\" to \"' + dest + '\"'
+                print('Copied directory \"' + os.path.basename(srcpath) + '\" from \"' + os.path.dirname(srcpath) + '\" to \"' + dest + '\"')
             else:
                 shutil.copy2(srcpath, dest)
                 self.file_copied_count = self.file_copied_count + 1
-                print 'Copied \"' + os.path.basename(srcpath) + '\" from \"' + os.path.dirname(srcpath) + '\" to \"' + dest + '\"'
- 
- 
+                print('Copied \"' + os.path.basename(srcpath) + '\" from \"' + os.path.dirname(srcpath) + '\" to \"' + dest + '\"')
+
+
 class Node:
     ''' This class represents a node in a dispatch synchronization '''  
     def __init__(self, path, name=''):

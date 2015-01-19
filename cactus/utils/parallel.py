@@ -1,7 +1,9 @@
 #coding:utf-8
+from __future__ import print_function
 import sys
 import logging
 import multiprocessing.pool
+
 
 PARALLEL_AGGRESSIVE = 2
 PARALLEL_CONSERVATIVE = 1
@@ -18,7 +20,7 @@ def multiMap(f, items, workers = 8):
             return f(*args, **kwargs)
         except Exception as e:
             import traceback
-            print traceback.format_exc()
+            print(traceback.format_exc())
             pool.join()
             sys.exit()
 

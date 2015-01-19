@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 INFO = {
@@ -50,7 +51,7 @@ def preDeploy(site):
 		try:
 			data = urllib2.urlopen('http://%s/versions.txt' % url, timeout=8.0).read() + u'\n'
 		except:
-			print "Could not fetch the previous versions.txt, skipping..."
+			print("Could not fetch the previous versions.txt, skipping...")
 			return
 	
 	data += u'\t'.join([datetime.datetime.now().isoformat(), platform.node(), getpass.getuser()])

@@ -1,4 +1,5 @@
 #coding:utf-8
+from __future__ import print_function
 import logging
 
 from boto import s3
@@ -129,7 +130,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         try:
             domain_list = domain.nameServers()
         except DNSServerError as e:
-            print e
+            print(e)
             ipc.signal("domain.list.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
             logger.error(e)
