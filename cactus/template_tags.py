@@ -4,7 +4,7 @@ import logging
 
 from django.template.base import Library
 from django.conf import settings
-from django.utils.encoding import smart_str, force_unicode
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ def static(context, link_url):
         ]
 
         for helper_key in helper_keys:
-            
+
             url_helper_key = site.get_url_for_static(helper_key)
 
             if url_helper_key is not None:
@@ -123,7 +123,7 @@ def markdown(value, arg=''):
         import markdown2
     except ImportError:
         logging.warning("Markdown package not installed.")
-        return force_unicode(value)
+        return force_text(value)
     else:
         def parse_extra(extra):
             if ':' not in extra:
@@ -141,7 +141,7 @@ def markdown(value, arg=''):
         else:
             safe_mode = False
 
-        return mark_safe(markdown2.markdown(force_unicode(value), extras=extras, safe_mode=safe_mode))
+        return mark_safe(markdown2.markdown(force_text(value), extras=extras, safe_mode=safe_mode))
 
 register.simple_tag(takes_context=True)(static)
 register.simple_tag(takes_context=True)(url)
