@@ -1,8 +1,11 @@
 #coding:utf-8
+import six
 import inspect
 
-
 # Adapted from: http://kbyanc.blogspot.com/2007/07/python-more-generic-getargspec.html
+
+
+FUNC_OBJ_ATTR = "__func__" if six.PY3 else "im_func"
 
 
 def getargspec(obj):
@@ -31,7 +34,7 @@ def getargspec(obj):
     try:
         if inspect.isfunction(obj):
             return inspect.getargspec(obj)
-        elif hasattr(obj, 'im_func'):
+        elif hasattr(obj, FUNC_OBJ_ATTR):
             # For methods or classmethods drop the first
             # argument from the returned list because
             # python supplies that automatically for us.
@@ -39,7 +42,7 @@ def getargspec(obj):
             # inspect.getargspec() returns for methods.
             # NB: We use im_func so we work with
             #     instancemethod objects also.
-            spec = inspect.getargspec(obj.im_func)
+            spec = inspect.getargspec(getattr(obj, FUNC_OBJ_ATTR))
             return inspect.ArgSpec(spec.args[:1], spec.varargs, spec.keywords, spec.defaults)
         elif inspect.isclass(obj):
             return getargspec(obj.__init__)
