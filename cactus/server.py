@@ -2,16 +2,17 @@ import os
 import sys
 import logging
 import threading
-import mime
 import mimetypes
 import itertools
-
-logger = logging.getLogger(__name__)
 
 import tornado.httpserver
 import tornado.websocket
 import tornado.ioloop
 import tornado.web
+
+logger = logging.getLogger(__name__)
+
+from cactus import mime
 
 TEMPLATES = {}
 

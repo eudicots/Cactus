@@ -1,5 +1,4 @@
-
-from polling import PollingListener
+from cactus.listener.polling import PollingListener
 
 Listener = PollingListener
 
