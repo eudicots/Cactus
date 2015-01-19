@@ -42,7 +42,10 @@ def calculate_file_checksum(path):
     """
     hasher = hashlib.md5()
     with open(path, 'rb') as fp:
-        for buf in fp.read(65536):
+        while True:
+            buf = fp.read(65536)
+            if not buf:
+                break
             hasher.update(buf)
     return hasher.hexdigest()
 
