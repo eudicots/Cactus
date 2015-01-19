@@ -1,5 +1,6 @@
 #coding:utf-8
 import os
+import io
 import logging
 
 from cactus import mime
@@ -45,7 +46,7 @@ class BaseFile(object):
 
     @memoize
     def data(self):
-        with open(os.path.join(self.engine.site.build_path, self.path), 'rb') as f:
+        with io.FileIO(os.path.join(self.engine.site.build_path, self.path), 'r') as f:
             return f.read()
 
     def payload(self):

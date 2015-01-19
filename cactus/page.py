@@ -1,4 +1,5 @@
 import os
+import io
 import logging
 
 from six.moves import urllib
@@ -66,7 +67,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         return os.path.join(self.site.build_path, self.build_path)
 
     def data(self):
-        with open(self.full_source_path, 'rU') as f:
+        with io.FileIO(self.full_source_path, 'r') as f:
             try:
                 return f.read().decode('utf-8')
             except:
@@ -121,7 +122,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             except OSError:
                 pass
 
-            with open(self.full_build_path, 'w') as f:
+            with io.FileIO(self.full_build_path, 'w') as f:
                 f.write(data.encode('utf-8'))
 
             self.site.plugin_manager.postBuildPage(self)

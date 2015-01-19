@@ -1,4 +1,6 @@
 #coding:utf-8
+from __future__ import unicode_literals
+
 import os
 import shutil
 import tempfile
@@ -64,7 +66,7 @@ class TestDeployFile(unittest.TestCase):
         """
         # Test a fingerprinted file
         content = 'abc'
-        h = hashlib.md5(content).hexdigest()
+        h = hashlib.md5(content.encode('utf-8')).hexdigest()
         filename = "file.{0}.data".format(h)
 
         with open(os.path.join(self.build_path,  filename), "w") as f:

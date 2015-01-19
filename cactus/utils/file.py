@@ -1,10 +1,11 @@
 #coding:utf-8
 import os
 import gzip
+import io
 import hashlib
 import subprocess
 
-from six import BytesIO
+from six import text_type, BytesIO
 
 from cactus.utils.helpers import checksum
 
@@ -42,7 +43,7 @@ def calculate_file_checksum(path):
     Returns the hex digest of the md5 hash.
     """
     hasher = hashlib.md5()
-    with open(path, 'rb') as fp:
+    with io.FileIO(path, 'r') as fp:
         while True:
             buf = fp.read(65536)
             if not buf:
@@ -52,5 +53,5 @@ def calculate_file_checksum(path):
 
 def file_changed_hash(path):
     info = os.stat(path)
-    hashKey = str(info.st_mtime) + str(info.st_size)
-    return checksum(hashKey)
+    hashKey = text_type(info.st_mtime) + text_type(info.st_size)
+    return checksum(hashKey.encode('utf-8'))
