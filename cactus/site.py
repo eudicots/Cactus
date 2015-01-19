@@ -403,7 +403,7 @@ class Site(SiteCompatibilityLayer):
             # self._static = None
             self.build()
 
-        except Exception, e:
+        except Exception as e:
             logger.info('*** Error while building\n%s', e)
             traceback.print_exc(file=sys.stdout)
 

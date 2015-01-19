@@ -20,9 +20,9 @@ sudo pip install glue
 """
 
 try:
-	import glue
-except Exception, e:
-	sys.exit('Could not use glue: %s\nMaybe install: sudo easy_install glue' % e)
+    import glue
+except Exception as e:
+    sys.exit('Could not use glue: %s\nMaybe install: sudo easy_install glue' % e)
 
 
 IMG_PATH = 'static/img/sprites'

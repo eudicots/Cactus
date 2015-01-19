@@ -97,7 +97,7 @@ def applescript(input):
             stdout=subprocess.PIPE, 
             stderr=subprocess.PIPE, 
             shell=True)
-    except Exception, e:
+    except Exception as e:
         pass
 
     # return subprocess.check_output(command, shell=True)

@@ -24,7 +24,7 @@ sudo pip install glue
 
 try:
 	import glue
-except Exception, e:
+except Exception as e:
 	sys.exit('Could not use glue: %s\nMaybe install: sudo easy_install glue' % e)
 
 

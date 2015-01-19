@@ -14,12 +14,12 @@ def multiMap(f, items, workers = 8):
 
     # Simple wrapper to provide decent tracebacks
     def wrapper(*args, **kwargs):
-    	try:
-    		return f(*args, **kwargs)
-    	except Exception, e:
-    		import traceback
-    		print traceback.format_exc()
-    		pool.join()
-    		sys.exit()
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            import traceback
+            print traceback.format_exc()
+            pool.join()
+            sys.exit()
 
     return pool.map(wrapper, items)

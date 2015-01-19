@@ -6,5 +6,5 @@ Listener = PollingListener
 try:
     from mac import FSEventsListener
     Listener = FSEventsListener
-except ImportError, e:
-	pass
+except ImportError:
+    pass

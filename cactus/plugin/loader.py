@@ -109,7 +109,7 @@ class CustomPluginsLoader(BasePluginsLoader):
 
         try:
             return imp.load_source(module_name, plugin_path)
-        except Exception, e:
+        except Exception as e:
             logger.warning('Could not load plugin at path %s: %s' % (plugin_path, e))
             return None
 
