@@ -30,7 +30,7 @@ def getargspec(obj):
     functions or methods.
     """
     if not callable(obj):
-        raise TypeError, "%s is not callable" % type(obj)
+        raise TypeError("%s is not callable" % type(obj))
     try:
         if inspect.isfunction(obj):
             return inspect.getargspec(obj)
@@ -60,6 +60,5 @@ def getargspec(obj):
         # care what aspect(s) of that object we actually
         # examined).
         pass
-    raise NotImplementedError, \
-          "do not know how to get argument list for %s" % \
-          type(obj)
+    raise NotImplementedError("do not know how to get argument list for %s" % type(obj))
+
