@@ -312,7 +312,7 @@ class Site(SiteCompatibilityLayer):
         
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
-        if resources_dict.has_key(src_url):
+        if src_url in resources_dict:
             return resources_dict[src_url].final_url
 
         return None
@@ -348,11 +348,12 @@ class Site(SiteCompatibilityLayer):
         pages = []
 
         for path in fileList(self.page_path, relative=True):
-            
+
             if path.endswith("~"):
                 continue
 
-            if not self._page_cache.has_key(path):
+            if path not in self._page_cache:
+                logger.debug("Found page: %s", path)
                 self._page_cache[path] = Page(self, path)
 
             pages.append(self._page_cache[path])

@@ -128,7 +128,7 @@ class AWSDomain(object):
         self.connection.create_hosted_zone(self.fullDomain)
     
     def hostedZone(self):
-        if not self._cache.has_key("hostedZone"):
+        if not "hostedZone" in self._cache:
             hostedZone = self.connection.get_hosted_zone_by_name(self.fullDomain)
             if not hostedZone:
                 return
