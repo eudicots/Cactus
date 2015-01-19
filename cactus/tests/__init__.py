@@ -34,7 +34,12 @@ class BaseTestCase(unittest.TestCase):
         try:
             open(path)
         except IOError:
-            self.fail("File does not exist: {0}".format(path))
+            path_dir = os.path.dirname(path)
+            msg = [
+                "File does not exist: {0}".format(path),
+                "The following files *did* exist in {0}: {1}".format(path_dir, os.listdir(path_dir))
+            ]
+            self.fail("\n".join(msg))
 
     def assertFileDoesNotExist(self, path):
         """
