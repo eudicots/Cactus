@@ -3,6 +3,9 @@ import logging
 import types
 import json
 
+import six
+
+
 class JsonFormatter(logging.Formatter):
 
     def format(self, record):
@@ -15,7 +18,7 @@ class JsonFormatter(logging.Formatter):
         # data["location"] = "%s/%s:%s" % (record.pathname, record.filename, record.lineno)
 
         if type(record.args) is types.DictType:
-            for k, v in record.args.iteritems():
+            for k, v in six.iteritems(record.args):
                 data[k] = v
 
         return json.dumps(data)
