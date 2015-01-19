@@ -302,11 +302,11 @@ class Site(SiteCompatibilityLayer):
 
         if is_external(src_url):
             return src_url
-        
+
         for split_char in ["#", "?"]:
             if split_char in src_url:
                 src_url = src_url.split(split_char)[0]
-        
+
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
         if src_url in resources_dict:
@@ -355,7 +355,7 @@ class Site(SiteCompatibilityLayer):
         return pages
 
     def _rebuild_should_ignore(self, file_path):
-        
+
         file_relative_path = os.path.relpath(file_path, self.path)
 
         # Ignore anything in a hidden folder like .git
@@ -423,7 +423,7 @@ class Site(SiteCompatibilityLayer):
             self.server.reloadPage()
 
         self.listener.resume()
-    
+
     def serve(self, browser=True, port=8000):
         """
         Start a http server and rebuild on changes.
@@ -439,12 +439,12 @@ class Site(SiteCompatibilityLayer):
         logger.info('Type control-c to exit')
 
         os.chdir(self.build_path)
- 
+
         self.listener = Listener(self.path, self._rebuild, ignore=self._rebuild_should_ignore)
         self.listener.run()
 
         self.server = WebServer(self.build_path, port=port)
-        
+
         try:
             self.server.start()
 
@@ -456,19 +456,19 @@ class Site(SiteCompatibilityLayer):
             logger.info("Bye")
 
     def upload(self):
-        
+
         # Make sure we have internet
         if not internetWorking():
             logger.info('There does not seem to be internet here, check your connection')
             return
 
         logger.debug('Start upload')
-        
+
         self.build_path = self.deploy_path
 
         self.clean()
-        self.build() 
-        
+        self.build()
+
         self.plugin_manager.preDeploy(self)
 
         totalFiles = self.deployment_engine.deploy()
@@ -485,17 +485,17 @@ class Site(SiteCompatibilityLayer):
                      (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
         logger.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix
-    
-    
+
+
     def domain_setup(self):
-        
+
         # Make sure we have internet
         if not internetWorking():
             logger.info('There does not seem to be internet here, check your connection')
             return
-        
+
         self.deployment_engine.domain_setup()
         self.domain_list()
-    
+
     def domain_list(self):
         self.deployment_engine.domain_list()

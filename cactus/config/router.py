@@ -73,7 +73,7 @@ class ConfigRouter(object):
 
         for config in self.configs:
             if config.has_key(key):
-               write_to = config
+                write_to = config
         if write_to is None:
             write_to = self.configs[0]
 

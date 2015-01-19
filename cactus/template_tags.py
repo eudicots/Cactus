@@ -37,9 +37,9 @@ def static(context, link_url):
 
             if url_helper_key is not None:
                 return url_helper_key
-                
+
         logger.warn('%s: static resource does not exist: %s', page.link_url, link_url)
-        
+
         url = link_url
 
     return url
@@ -62,7 +62,7 @@ def url(context, link_url):
 
         if url_link_url_index is None:
             logger.warn('%s: page resource does not exist: %s', page.link_url, link_url)
-        
+
         url = link_url
 
     if site.prettify_urls:

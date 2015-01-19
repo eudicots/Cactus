@@ -7,171 +7,169 @@ import time
 from cactus.listener import PollingListener
 
 try:
-	from cactus.listener import FSEventsListener
+    from cactus.listener import FSEventsListener
 except ImportError:
-	FSEventsListener = None
+    FSEventsListener = None
 
 def sleep(s):
-	# time.sleep(s)
-	event = threading.Event()
-	event.wait(timeout=s)
+    # time.sleep(s)
+    event = threading.Event()
+    event.wait(timeout=s)
 
 class PollingListenerTest(unittest.TestCase):
 
-	def setUp(self):
-		self._callbacks = []
-		self._callback_count = 0
-		self.lock = threading.Lock()
+    def setUp(self):
+        self._callbacks = []
+        self._callback_count = 0
+        self.lock = threading.Lock()
 
 
-	def _callback(self, event):
-		with self.lock:
-			self._callbacks.append(event)
+    def _callback(self, event):
+        with self.lock:
+            self._callbacks.append(event)
 
-	@property
-	def callbacks(self):
-		with self.lock:
-			return self._callbacks
+    @property
+    def callbacks(self):
+        with self.lock:
+            return self._callbacks
 
-	def wait(self):
+    def wait(self):
 
-		time_total = 0
-		time_increment = 0.03
-		time_max = 3.0
+        time_total = 0
+        time_increment = 0.03
+        time_max = 3.0
 
-		while True:
-			
-			# print time_total
+        while True:
 
-			self.assertEqual(time_total < time_max, True, "Timeout")
+            # print time_total
 
-			if len(self.callbacks) == self._callback_count + 1:
-				self._callback_count += 1
-				return
+            self.assertEqual(time_total < time_max, True, "Timeout")
 
-			sleep(time_increment)
-			time_total += time_increment
+            if len(self.callbacks) == self._callback_count + 1:
+                self._callback_count += 1
+                return
 
-	def create_listener(self, path):
-		return PollingListener(path, self._callback)
+            sleep(time_increment)
+            time_total += time_increment
 
-	def testSymlinkFolder(self):
+    def create_listener(self, path):
+        return PollingListener(path, self._callback)
 
-		path1 = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
-		path2 = os.path.realpath(os.path.join(tempfile.mkdtemp(), "linked"))
+    def testSymlinkFolder(self):
 
-		os.mkdir(path1)
-		os.mkdir(path2)
+        path1 = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
+        path2 = os.path.realpath(os.path.join(tempfile.mkdtemp(), "linked"))
 
-		path_link = os.path.join(path1, "path2")
-		path_link_file = os.path.join(path2, "file.js")
-		path_link_file_original = os.path.join(path_link, "file.js")
+        os.mkdir(path1)
+        os.mkdir(path2)
 
-		os.symlink(path2, path_link)
+        path_link = os.path.join(path1, "path2")
+        path_link_file = os.path.join(path2, "file.js")
+        path_link_file_original = os.path.join(path_link, "file.js")
 
-		with open(path_link_file, "w") as f:
-			f.write("hello1")
+        os.symlink(path2, path_link)
 
-		self.listener = self.create_listener(path1)
-		self.listener.run()
+        with open(path_link_file, "w") as f:
+            f.write("hello1")
 
-		sleep(1)
+        self.listener = self.create_listener(path1)
+        self.listener.run()
 
-		with open(path_link_file, "w") as f:
-			f.write("hello2")
+        sleep(1)
 
-		self.wait()
+        with open(path_link_file, "w") as f:
+            f.write("hello2")
 
-		self.assertEqual(len(self.callbacks), 1)
-		self.assertEqual(self.callbacks[0]["changed"], [path_link_file_original])
+        self.wait()
 
-	def testSimpleFile(self):
+        self.assertEqual(len(self.callbacks), 1)
+        self.assertEqual(self.callbacks[0]["changed"], [path_link_file_original])
 
-		path_watch = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
-		path_file = os.path.join(path_watch, "file.js")
+    def testSimpleFile(self):
 
-		os.mkdir(path_watch)
+        path_watch = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
+        path_file = os.path.join(path_watch, "file.js")
 
-		self.listener = self.create_listener(path_watch)
-		self.listener.run()
+        os.mkdir(path_watch)
 
-		sleep(1)
+        self.listener = self.create_listener(path_watch)
+        self.listener.run()
 
-		with open(path_file, "w") as f:
-			f.write("hello1")
+        sleep(1)
 
-		self.wait()
+        with open(path_file, "w") as f:
+            f.write("hello1")
 
-		self.assertEqual(len(self.callbacks), 1)
-		self.assertEqual(self.callbacks[0]["added"], [path_file])
+        self.wait()
 
-		os.remove(path_file)
+        self.assertEqual(len(self.callbacks), 1)
+        self.assertEqual(self.callbacks[0]["added"], [path_file])
 
-		self.wait()
+        os.remove(path_file)
 
-		self.assertEqual(len(self.callbacks), 2)
-		self.assertEqual(self.callbacks[1]["deleted"], [path_file])
+        self.wait()
 
-
-	def testSymlinkFile(self):
+        self.assertEqual(len(self.callbacks), 2)
+        self.assertEqual(self.callbacks[1]["deleted"], [path_file])
 
 
-		path_watch = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
-		path_linked = os.path.realpath(os.path.join(tempfile.mkdtemp(), "linked"))
+    def testSymlinkFile(self):
 
-		os.mkdir(path_watch)
-		os.mkdir(path_linked)
 
-		file_actual1 = os.path.join(path_linked, "framer.js")
-		file_actual2 = os.path.join(path_linked, "framer.js")
-		file_link = os.path.join(path_watch, "framer.js")
+        path_watch = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
+        path_linked = os.path.realpath(os.path.join(tempfile.mkdtemp(), "linked"))
 
-		with open(file_actual1, "w") as f:
-			f.write("hello1")
+        os.mkdir(path_watch)
+        os.mkdir(path_linked)
 
-		with open(file_actual2, "w") as f:
-			f.write("hello2")
+        file_actual1 = os.path.join(path_linked, "framer.js")
+        file_actual2 = os.path.join(path_linked, "framer.js")
+        file_link = os.path.join(path_watch, "framer.js")
 
-		os.symlink(file_actual1, file_link)
+        with open(file_actual1, "w") as f:
+            f.write("hello1")
 
-		self.listener = self.create_listener(path_watch)
-		self.listener.run()
+        with open(file_actual2, "w") as f:
+            f.write("hello2")
 
-		if hasattr(self.listener, "streamed_folders"):
-			self.assertEqual(len(self.listener.streamed_folders), 2)
+        os.symlink(file_actual1, file_link)
 
-		sleep(1)
+        self.listener = self.create_listener(path_watch)
+        self.listener.run()
 
-		# Change the linked file
-		with open(file_actual1, "w") as f:
-			f.write("hello1")
+        if hasattr(self.listener, "streamed_folders"):
+            self.assertEqual(len(self.listener.streamed_folders), 2)
 
-		self.wait()
+        sleep(1)
 
-		self.assertEqual(len(self.callbacks), 1)
-		self.assertEqual(self.callbacks[0]["changed"], [file_link])
+        # Change the linked file
+        with open(file_actual1, "w") as f:
+            f.write("hello1")
 
-		# sleep(1)
+        self.wait()
 
-		# Now change a file in the same dir as the link, this should not do anything
-		with open(file_actual2, "w") as f:
-			f.write("hello333")
+        self.assertEqual(len(self.callbacks), 1)
+        self.assertEqual(self.callbacks[0]["changed"], [file_link])
 
-		sleep(1)
+        # sleep(1)
 
-		with open(file_actual1, "w") as f:
-			f.write("hello3223")
+        # Now change a file in the same dir as the link, this should not do anything
+        with open(file_actual2, "w") as f:
+            f.write("hello333")
 
-		self.wait()
+        sleep(1)
 
-		self.assertEqual(len(self.callbacks), 2)
-		self.assertEqual(self.callbacks[0]["changed"], [file_link])
+        with open(file_actual1, "w") as f:
+            f.write("hello3223")
+
+        self.wait()
+
+        self.assertEqual(len(self.callbacks), 2)
+        self.assertEqual(self.callbacks[0]["changed"], [file_link])
 
 if FSEventsListener:
 
-	class FSEventsListenerTest(PollingListener):
+    class FSEventsListenerTest(PollingListener):
 
-		def create_listener(self, path):
-			return FSEventsListener(path, self._callback)
-
-
+        def create_listener(self, path):
+            return FSEventsListener(path, self._callback)

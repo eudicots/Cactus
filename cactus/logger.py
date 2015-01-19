@@ -35,23 +35,22 @@ def setup_logging():
         handler.setFormatter(JsonFormatter())
 
     else:
-
         from colorlog import ColoredFormatter
-        
+
         log_level = logging.INFO
-        
+
         formatter = ColoredFormatter(
-            "%(log_color)s%(message)s",
-            datefmt=None,
-            reset=True,
-            log_colors={
+                "%(log_color)s%(message)s",
+                datefmt=None,
+                reset=True,
+                log_colors={
                     'DEBUG':    'white',
                     'INFO':     'white',
                     'WARNING':  'bold_yellow',
                     'ERROR':    'bold_red',
                     'CRITICAL': 'bold_red',
-            }
-        )
+                    }
+                )
 
         handler.setFormatter(formatter)
 

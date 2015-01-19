@@ -127,9 +127,9 @@ class BaseFile(object):
 
         if remote_changed:
             self.do_upload()
-        
+
         self.total_bytes_uploaded = self.total_bytes
-        
+
         op1 = '+' if remote_changed else '-'
         op2 = ' (%s compressed)' % (fileSize(len(self.payload()))) if self.is_compressed else ''
 

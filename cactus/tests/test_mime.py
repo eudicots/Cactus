@@ -13,4 +13,3 @@ class MimeTestCase(unittest.TestCase):
         # Make sure we never return a None mime type!
         path = "test/format.thisisnomime"
         self.assertFalse(guess(path) is None)
-

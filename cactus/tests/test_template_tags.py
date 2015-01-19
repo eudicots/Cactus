@@ -126,7 +126,7 @@ class TestStaticLookup(SiteTestCase):
 class TestStaticRelative(SiteTestCase):
 
     def doit(self, static_subdir, page_subdir, page_contents, output):
-        
+
         full_static_subdir = os.path.join(self.site.static_path, static_subdir)
         full_page_subdir = os.path.join(self.site.page_path, page_subdir)
 
@@ -135,7 +135,7 @@ class TestStaticRelative(SiteTestCase):
 
         try: os.makedirs(full_page_subdir)
         except: pass
-        
+
         # Write the static file
         with open(os.path.join(full_static_subdir, "test.js"), "w") as f:
             f.write("hello")

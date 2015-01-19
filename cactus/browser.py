@@ -28,7 +28,7 @@ tell application "Safari"
                     if currentHost is in currTab's URL then
                         tell currTab to do JavaScript "%s"
                     end if
-                end repeat 
+                end repeat
             end repeat
         end repeat
     end if
@@ -90,12 +90,12 @@ def applescript(input):
         return
 
     command = "osascript<<END%sEND" % input
-    
+
     try:
-        return subprocess.check_call(command, 
-            stdin=subprocess.PIPE, 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE, 
+        return subprocess.check_call(command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             shell=True)
     except Exception as e:
         pass

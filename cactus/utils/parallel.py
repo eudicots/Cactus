@@ -12,7 +12,7 @@ PARALLEL_DISABLED = 0
 def multiMap(f, items, workers = 8):
 
     # Code in GCS engine +/- depends on this being threads
-    pool = multiprocessing.pool.ThreadPool(workers)  
+    pool = multiprocessing.pool.ThreadPool(workers)
 
     # Simple wrapper to provide decent tracebacks
     def wrapper(*args, **kwargs):

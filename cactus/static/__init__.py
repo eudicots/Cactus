@@ -34,14 +34,14 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         # Actual source file
         self.src_dir = os.path.join('static', _static_path)
         self.src_filename = filename
-        
+
         try:
             self.src_name, self.src_extension = filename.rsplit('.', 1)
         except ValueError:
             self.src_name = filename
             self.src_extension = ""
-            
-        # Useless we'll crash before.
+
+        # Useless, we'll crash before.
         # # TODO
         # assert self.src_extension, "No extension for file?! {0}".format(self.src_name)
 
@@ -61,7 +61,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         self.link_url = '/' + os.path.join(self.src_dir, '{0}.{1}'.format(self.src_name, self.final_extension))
 
         self.final_name = "{0}.{1}".format(new_name, self.final_extension)
-        
+
         if not hasattr(self.site, "_static_file_cache"):
             self.site._static_file_cache = {}
 
@@ -158,18 +158,18 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         # See if we can maybe skip this if the file did not change
         curr_hash = file_changed_hash(self.full_source_path)
         prev_hash = self.site._static_file_cache.get(self.full_source_path)
-        
+
         if os.path.exists(self.full_build_path):
             if curr_hash == prev_hash:
                 logger.debug("skip building (unchanged) %s %s", self.src_name, self.final_url)
                 return
-                        
+
         self.site._static_file_cache[self.full_source_path] = curr_hash
-        
+
         self.site.plugin_manager.preBuildStatic(self)
-        
+
         if self.discarded:
-            return        
+            return
 
         logger.debug('Building {0} --> {1}'.format(self.src_name, self.full_build_path))
 
@@ -177,7 +177,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
             os.makedirs(os.path.dirname(self.full_build_path))
         except OSError:
             pass
-        
+
         shutil.copy(self._preprocessing_path, self.full_build_path)
 
         # self.site.plugin_manager.postBuildStatic(self)

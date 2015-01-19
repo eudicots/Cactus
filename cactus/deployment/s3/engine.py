@@ -88,8 +88,8 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             )
         except S3CreateError:
             logger.info(
-                'Bucket with name %s already is used by someone else, '
-                'please try again with another name', self.bucket_name)
+                    'Bucket with name %s already is used by someone else, '
+                    'please try again with another name', self.bucket_name)
             return  #TODO: These should be exceptions
 
         # Configure S3 to use the index.html and error.html files for indexes and 404/500s.
@@ -102,6 +102,8 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
     def domain_setup(self):
         bucket_name = self.site.config.get(self.config_bucket_name)
+        bucket_name = self.site.config.get(self.config_bucket_name)
+
         if not bucket_name:
             logger.warning("No bucket name")
             return

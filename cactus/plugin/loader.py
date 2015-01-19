@@ -79,7 +79,7 @@ class CustomPluginsLoader(BasePluginsLoader):
         # Load user plugins
         for plugin_path in fileList(self.plugin_path):
             if self._is_plugin_path(plugin_path):
-                custom_plugin = self._load_plugin_path(plugin_path)                
+                custom_plugin = self._load_plugin_path(plugin_path)
                 if custom_plugin:
                     self._initialize_plugin(custom_plugin)
                     plugins.append(custom_plugin)
@@ -114,5 +114,3 @@ class CustomPluginsLoader(BasePluginsLoader):
             return None
 
             # sys.exit()
-
-        

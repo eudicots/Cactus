@@ -17,7 +17,7 @@ from cactus import mime
 TEMPLATES = {}
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
-    
+
     def open(self):
         if self not in self.application._socketHandlers:
             self.application._socketHandlers.append(self)
@@ -30,15 +30,15 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         pass
 
 class StaticHandler(tornado.web.StaticFileHandler):
-    
+
     @classmethod
     def get_append(cls, abspath):
-        
+
         mime_type, encoding = mimetypes.guess_type(abspath)
 
         if mime_type == "text/html":
             return TEMPLATES["script"]
-        
+
         return ""
 
     @classmethod
@@ -81,7 +81,7 @@ class StaticSingleFileHandler(tornado.web.RequestHandler):
 class WebServer(object):
 
     def __init__(self, path, port=8080):
-        
+
         self.path = path.decode("utf-8")
         self.port = port
 
@@ -95,7 +95,7 @@ class WebServer(object):
             (r'/_cactus/ws', WebSocketHandler),
             (r'/_cactus/cactus.js', StaticSingleFileHandler),
             (r'/(.*)', StaticHandler, {'path': self.path, "default_filename": "index.html"}),
-        ], template_path=self.path)
+            ], template_path=self.path)
 
         self.application.log_request = lambda x: self._log_request(x)
 
@@ -103,7 +103,7 @@ class WebServer(object):
 
         if not isinstance(handler, StaticHandler):
             return
-            
+
         if handler.get_status() < 400:
             log_method = logging.info
         elif handler.get_status() < 500:
@@ -135,6 +135,7 @@ class WebServer(object):
 
     def reloadCSS(self):
         self.publish("reloadCSS")
+
 
 TEMPLATES["script"] = """
 
@@ -172,7 +173,7 @@ function reloadCSS() {
 
             // Don"t reload external urls, they likely did not change
             if (
-                link.href.indexOf("127.0.0.1") == -1 && 
+                link.href.indexOf("127.0.0.1") == -1 &&
                 link.href.indexOf("localhost") == -1 &&
                 link.href.indexOf("0.0.0.0") == -1 &&
                 link.href.indexOf(window.location.host) == -1
@@ -214,5 +215,3 @@ startSocket();
 
 })()
 """
-
-

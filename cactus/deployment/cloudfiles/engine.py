@@ -37,4 +37,3 @@ class CloudFilesDeploymentEngine(BaseDeploymentEngine):
 
     def get_website_endpoint(self):
         return self.bucket.cdn_uri
-

@@ -1,7 +1,7 @@
 #coding:utf-8
+import os
 import tempfile
 import shutil
-import os
 import unittest2 as unittest
 
 import django.conf

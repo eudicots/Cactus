@@ -61,4 +61,3 @@ def getargspec(obj):
         # examined).
         pass
     raise NotImplementedError("do not know how to get argument list for %s" % type(obj))
-

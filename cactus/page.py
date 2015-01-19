@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
-    
+
     discarded = False
 
     def __init__(self, site, source_path):
@@ -71,7 +71,8 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             try:
                 return f.read().decode('utf-8')
             except:
-                logger.warning("Template engine could not process page: %s", self.path)
+                logger.warning("Template engine could not process page: %s", self.path, exc_info=True)
+                return u""
 
     def context(self, data=None, extra=None):
         """
@@ -81,7 +82,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             extra = {}
 
         context = {'__CACTUS_CURRENT_PAGE__': self,}
-        
+
         page_context, data = self.parse_context(data or self.data())
 
         context.update(self.site.context())
