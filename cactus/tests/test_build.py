@@ -81,8 +81,7 @@ class TestBuild(SiteTestCase):
         self.assertEqual(True, self.site._rebuild_should_ignore(
             os.path.join(self.site.path, "pages", ".DS_Store")))
         self.assertEqual(True, self.site._rebuild_should_ignore(
-            os.path.join(self.site.path, "pages", ".hidden", "a.htmk")))
-
+            os.path.join(self.site.path, "pages", ".hidden", "a.html")))
 
 
     def test_symlink_ignore(self):
