@@ -1,9 +1,10 @@
 #coding:utf-8
 import os
 import shutil
-import urllib
 import tarfile
 import zipfile
+
+from six.moves import urllib
 
 
 class Folder(object):
@@ -39,7 +40,7 @@ def bootstrap_from_archive(path, skeleton):
         skeleton_file = skeleton
     else:
         # Assume it's an URL
-        skeleton_file, headers = urllib.urlretrieve(skeleton)
+        skeleton_file, headers = urllib.request.urlretrieve(skeleton)
 
     for opener, test in SUPPORTED_ARCHIVES:
         try:

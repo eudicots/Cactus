@@ -1,8 +1,7 @@
 #coding:utf-8
-import httplib
 import os
 import shutil
-import urlparse
+from six.moves import http_client, urllib
 
 from cactus.site import Site
 from cactus.plugin.manager import PluginManager
@@ -146,15 +145,15 @@ class TestHTTPRequest(object):
         self.body = body
         self.headers = CaseInsensitiveDict(headers)
 
-        u = urlparse.urlparse(url)
+        u = urllib.parse.urlparse(url)
         self.path = u.path
-        self.params = urlparse.parse_qs(u.query, keep_blank_values=True)
+        self.params = urllib.parse.parse_qs(u.query, keep_blank_values=True)
 
 
 class TestHTTPResponse(object):
     def __init__(self, status, reason=None, headers=None, body=''):
         if reason is None:
-            reason = httplib.responses[status]
+            reason = http_client.responses[status]
         if headers is None:
             headers = {}
 

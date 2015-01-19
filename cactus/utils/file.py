@@ -1,9 +1,10 @@
 #coding:utf-8
 import os
-import cStringIO
 import gzip
 import hashlib
 import subprocess
+
+from six import BytesIO
 
 from cactus.utils.helpers import checksum
 
@@ -21,7 +22,7 @@ def compressString(s):
 
     gzip.time = FakeTime()
 
-    zbuf = cStringIO.StringIO()
+    zbuf = BytesIO()
     zfile = gzip.GzipFile(mode='wb', compresslevel=9, fileobj=zbuf)
     zfile.write(s)
     zfile.close()

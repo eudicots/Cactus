@@ -1,6 +1,7 @@
 import os
 import logging
-import urlparse
+
+from six.moves import urllib
 
 from django.template import Template, Context
 from cactus.compat.paths import PageCompatibilityLayer
@@ -44,17 +45,17 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             self.build_path = self.source_path
 
     def is_html(self):
-        return urlparse.urlparse(self.source_path).path.endswith('.html')
+        return urllib.parse.urlparse(self.source_path).path.endswith('.html')
 
     def is_index(self):
-        return urlparse.urlparse(self.source_path).path.endswith('index.html')
+        return urllib.parse.urlparse(self.source_path).path.endswith('index.html')
 
     @property
     def absolute_final_url(self):
         """
         Return the absolute URL for this page in the final build
         """
-        return urlparse.urljoin(self.site.url, self.final_url)
+        return urllib.parse.urljoin(self.site.url, self.final_url)
 
     @property
     def full_source_path(self):
