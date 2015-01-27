@@ -23,7 +23,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
     config_bucket_name = "aws-bucket-name"
     config_bucket_website = "aws-bucket-website"
 
-    _s3_api_endpoint = 's3.amazonaws.com'
+    #_s3_api_endpoint = 's3.amazonaws.com'
     _s3_port = 443
     _s3_is_secure = True
     _s3_https_connection_factory = None
@@ -48,7 +48,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
 
         return boto.connect_s3(aws_access_key.strip(), aws_secret_key.strip(),
-                               host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
+                               is_secure=self._s3_is_secure, port=self._s3_port,
                                https_connection_factory=self._s3_https_connection_factory)
 
     def get_bucket(self):
