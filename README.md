@@ -35,6 +35,7 @@ You can find more discussion about static site generators in this [Hacker News d
   + http://docs.enstore.com - Enstore documentation website
   + http://www.scalr.com - Scalr website
   + http://www.framerjs.com - Framer website
+  + https://crate.io - Crate, Distributed Database for Docker (source: https://github.com/crate/crate-web)
 
 
 There is also an example blog project included.
