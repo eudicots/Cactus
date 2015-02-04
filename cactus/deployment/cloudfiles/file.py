@@ -1,14 +1,18 @@
 #coding:utf-8
 
+from pyrax.exceptions import NoSuchObject
 from cactus.deployment.file import BaseFile
 from cactus.utils.helpers import CaseInsensitiveDict
 
 
 class CloudFilesFile(BaseFile):
     def remote_changed(self):
-        obj = self.engine.bucket.get_object(self.url)
-        #TODO: Headers
-        return obj.etag != self.payload_checksum
+        try:
+            obj = self.engine.bucket.get_object(self.url)
+            #TODO: Headers
+            return obj.etag != self.payload_checksum
+        except (NoSuchObject, KeyError):
+            return True
 
     def get_headers(self):
         headers = CaseInsensitiveDict()
