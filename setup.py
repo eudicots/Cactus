@@ -7,7 +7,7 @@ from distutils.sysconfig import get_python_lib
 from setuptools import setup
 
 
-VERSION = "3.0.0"
+VERSION = "3.0.1"
 SKELETON_FOLDERS = ['pages', 'plugins', 'static/css', 'static/images', 'static/js', 'templates', 'locale']
 SKELETON_GLOB = ['skeleton/{0}/*'.format(folder) for folder in SKELETON_FOLDERS]
 
@@ -107,7 +107,6 @@ setup(
     description="Static site generation and deployment.",
     long_description=open('README.md').read(),
     url='http://github.com/koenbok/Cactus',
-    download_url='https://github.com/koenbok/Cactus/tarball/v%s#egg=Cactus-%s' % (VERSION, VERSION),
     author='Koen Bok',
     author_email='koen@madebysofa.com',
     license='BSD',
