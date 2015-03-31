@@ -189,6 +189,18 @@ Check out `plugins/static_optimizes.py` in your project to understand how this w
 optimizers!
 
 
+#### Site URL
+
+If you would like for your sitemap to have absolute paths you need to
+add a site-url key to your config.json
+
+You can enable this by adding modifying your configuration and adding:
+
+    "site-url": "http://yoursite.com",
+
+Note that you need to do this if you want your sitemap to be valid for Google Webmaster Tools.
+
+
 #### "Pretty" URLs
 
 If you would like to not have ".html" in your URLs, Cactus can rewrite those for you, and make "/my-page.html" look
@@ -202,6 +214,7 @@ Note that if you're going to use this, you should definitely set your "Meta cano
 to not hurt your search rankings:
 
     <link rel="canonical" href="{{ CURRENT_PAGE.absolute_final_url }}" />
+
 
 #### Nameserver configuration
 
