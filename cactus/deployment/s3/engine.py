@@ -1,8 +1,8 @@
 #coding:utf-8
 import logging
 
-import boto
-from boto.exception import S3ResponseError
+from boto import s3
+from boto.exception import S3ResponseError, S3CreateError
 from boto.route53.exception import DNSServerError
 
 from cactus.deployment.engine import BaseDeploymentEngine
@@ -22,8 +22,9 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
     config_bucket_name = "aws-bucket-name"
     config_bucket_website = "aws-bucket-website"
+    config_bucket_region = "aws-bucket-region"
 
-    _s3_api_endpoint = 's3.amazonaws.com'
+    _s3_default_region = "us-east-1"
     _s3_port = 443
     _s3_is_secure = True
     _s3_https_connection_factory = None
@@ -41,15 +42,21 @@ class S3DeploymentEngine(BaseDeploymentEngine):
                 raise InvalidCredentials()
             raise
 
+    def _get_bucket_region(self):
+        return self.site.config.get(self.config_bucket_region, self._s3_default_region)
+
     def _create_connection(self):
         """
         Create a new S3 Connection
         """
         aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
 
-        return boto.connect_s3(aws_access_key.strip(), aws_secret_key.strip(),
-                               host=self._s3_api_endpoint, is_secure=self._s3_is_secure, port=self._s3_port,
-                               https_connection_factory=self._s3_https_connection_factory)
+        return s3.connect_to_region(self._get_bucket_region(),
+                aws_access_key_id=aws_access_key.strip(),
+                aws_secret_access_key=aws_secret_key.strip(),
+                is_secure=self._s3_is_secure, port=self._s3_port,
+                https_connection_factory=self._s3_https_connection_factory
+        )
 
     def get_bucket(self):
         """
@@ -65,8 +72,10 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         :returns: The newly created bucket
         """
         try:
-            bucket = self.get_connection().create_bucket(self.bucket_name, policy='public-read')
-        except boto.exception.S3CreateError:
+            bucket = self.get_connection().create_bucket(self.bucket_name,
+                policy='public-read', location=self._get_bucket_region()
+            )
+        except S3CreateError:
             logger.info(
                 'Bucket with name %s already is used by someone else, '
                 'please try again with another name', self.bucket_name)
@@ -78,18 +87,15 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         return bucket
 
     def get_website_endpoint(self):
-       return self.bucket.get_website_endpoint()
-    
+        return self.bucket.get_website_endpoint()
+
     def domain_setup(self):
-        
         bucket_name = self.site.config.get(self.config_bucket_name)
-        
         if not bucket_name:
             logger.warning("No bucket name")
             return
-        
+
         aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
-        
         domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
 
         try:
@@ -102,13 +108,12 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
     def domain_list(self):
         bucket_name = self.site.config.get(self.config_bucket_name)
-        
+
         if not bucket_name:
             logger.warning("No bucket name")
             return
-        
+
         aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
-        
         domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
 
         try:
