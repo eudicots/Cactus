@@ -7,7 +7,6 @@ import traceback
 import socket
 
 import django.conf
-from django.template.loader import add_to_builtins
 
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
@@ -153,6 +152,10 @@ class Site(SiteCompatibilityLayer):
 
         django.conf.settings.configure(**settings)
 
+        # - Importing here instead of the top-level makes it work on Python 3.x (!)
+        # - loading add_to_builtins from loader implictly loads the loader_tags built-in
+        # - Injecting our tags using add_to_builtins ensures that Cactus tags don't require an import
+        from django.template.loader import add_to_builtins
         add_to_builtins('cactus.template_tags')
 
     def verify_path(self):
