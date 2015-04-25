@@ -33,8 +33,9 @@ class ConfigFile(object):
         except IOError:
             logger.warning('No configuration file found at {0}'.format(self.path))
             self._data = {}
-        except Exception: #TODO: Specify
+        except Exception, e:
             logger.error('Unable to load configuration at {0}'.format(self.path))
+            logger.error('Error message: {}'.format(e))
             self._data = {}
 
     def write(self):
