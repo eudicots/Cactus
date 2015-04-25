@@ -35,7 +35,7 @@ class ConfigFile(object):
             self._data = {}
         except Exception, e:
             logger.error('Unable to load configuration at {0}'.format(self.path))
-            logger.error('Error message: {}'.format(e))
+            logger.error('Error message: {0}'.format(e))
             self._data = {}
 
     def write(self):
