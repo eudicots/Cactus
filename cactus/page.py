@@ -64,7 +64,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
     def full_build_path(self):
         return os.path.join(self.site.build_path, self.build_path)
 
-    def data(self):
+    def read_data(self):
         with open(self.full_source_path, 'rU') as f:
             try:
                 return f.read().decode('utf-8')
@@ -80,7 +80,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
 
         context = {'__CACTUS_CURRENT_PAGE__': self,}
         
-        page_context, data = self.parse_context(data or self.data())
+        page_context, data = self.parse_context(data or self.read_data())
 
         context.update(self.site.context())
         context.update(extra)
@@ -93,7 +93,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         Takes the template data with context and renders it to the final output file.
         """
 
-        data = self.data()
+        data = self.read_data()
         context = self.context(data=data)
 
         # This is not very nice, but we already used the header context in the
