@@ -149,8 +149,8 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
                 continue
 
             elif splitChar in line:
-                line = line.split(splitChar)
-                values[line[0].strip()] = (splitChar.join(line[1:])).strip()
+                line = line.split(splitChar, 1)
+                values[line[0].strip()] = line[1].strip()
 
             else:
                 break
