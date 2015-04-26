@@ -10,7 +10,7 @@ class ConfigFile(object):
     """
     A single config file, as present on the filesystem.
     """
-    _dirty = None
+    _unsaved = None
 
     def __init__(self, path):
         self.path = path
@@ -21,25 +21,24 @@ class ConfigFile(object):
 
     def set(self, key, value):
         self._data[key] = value
-        self._dirty = True
+        self._unsaved = True
 
     def has_key(self, key):
         return key in self._data
 
     def load(self):
+        self._data = {}
         try:
             self._data = json.load(open(self.path, 'rU'))
-            self._dirty = False
+            self._unsaved = False
         except IOError:
             logger.warning('No configuration file found at {0}'.format(self.path))
-            self._data = {}
-        except Exception, e:
-            logger.error('Unable to load configuration at {0}'.format(self.path))
-            logger.error('Error message: {0}'.format(e))
-            self._data = {}
+        except ValueError, e:
+            logger.error('Unable to load configuration at %s', self.path)
+            logger.error('Error message: %s', e)
 
     def write(self):
-        if self._dirty:
+        if self._unsaved:
             json.dump(self._data, open(self.path, 'w'), sort_keys=True, indent=4, separators=(',', ': '))
-            self._dirty = False
+            self._unsaved = False
         logger.debug('Saved configuration at {0}'.format(self.path))
