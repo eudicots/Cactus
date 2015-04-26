@@ -175,7 +175,7 @@ class Site(SiteCompatibilityLayer):
         """
         ctx = {
             'CACTUS': {
-                'pages':  [p for p in self.pages() if p.is_html()],
+                'pages':  [p for p in self.pages() if p.is_html],
                 'static': [p for p in self.static()]
             },
             '__CACTUS_SITE__': self,
