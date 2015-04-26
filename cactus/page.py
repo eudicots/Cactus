@@ -46,6 +46,8 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             self.final_url = self.link_url
             self.build_path = self.source_path
 
+        self.data = self.read_data()
+
     @property
     def absolute_final_url(self):
         """
@@ -68,7 +70,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             except:
                 logger.warning("Template engine could not process page: %s", self.path)
 
-    def context(self, data=None, extra=None):
+    def context(self, extra=None):
         """
         The page context.
         """
@@ -76,8 +78,8 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             extra = {}
 
         context = {'__CACTUS_CURRENT_PAGE__': self,}
-        
-        page_context, data = self.parse_context(data or self.read_data())
+
+        page_context = self.parse_context()
 
         context.update(self.site.context())
         context.update(extra)
@@ -90,15 +92,10 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         Takes the template data with context and renders it to the final output file.
         """
 
-        data = self.read_data()
-        context = self.context(data=data)
-
-        # This is not very nice, but we already used the header context in the
-        # page context, so we don't need it anymore.
-        page_context, data = self.parse_context(data)
+        context = self.context()
 
         context, data = self.site.plugin_manager.preBuildPage(
-            self.site, self, context, data)
+            self.site, self, context, self.data)
 
         return Template(data).render(context)
 
@@ -122,23 +119,27 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
 
             self.site.plugin_manager.postBuildPage(self)
 
-    def parse_context(self, data, splitChar=':'):
+    def parse_context(self, splitChar=':'):
         """
         Values like
 
         name: koen
         age: 29
 
-        will be converted in a dict: {'name': 'koen', 'age': '29'}
+        from the top of the input file will be converted into a dict:
+
+        {'name': 'koen', 'age': '29'}
+
+        and these lines are deleted from 'self.data'
         """
 
         if not self.is_html:
             return {}
 
         values = {}
-        lines = data.splitlines()
+        lines = self.data.splitlines()
         if not lines:
-            return {}, ''
+            return {}
 
         for i, line in enumerate(lines):
 
@@ -152,7 +153,8 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             else:
                 break
 
-        return values, '\n'.join(lines[i:])
+        self.data = '\n'.join(lines[i:])
+        return values
 
     def __repr__(self):
         return '<Page: {0}>'.format(self.source_path)
