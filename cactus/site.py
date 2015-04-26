@@ -267,6 +267,9 @@ class Site(SiteCompatibilityLayer):
                 else:
                     os.remove(path)
 
+        # read pages for each built
+        self._read_pages()
+
         # Render the pages to their output files
         mapper = map
         if self._parallel >= PARALLEL_AGGRESSIVE:
@@ -344,15 +347,19 @@ class Site(SiteCompatibilityLayer):
         but builds the page list only once
         """
         if not hasattr(self, "_page_cache"):
-            self._page_cache = {}
-
-            for path in fileList(self.page_path, relative=True):
-                # ignore backup files
-                if path.endswith("~"):
-                    continue
-                self._page_cache[path] = Page(self, path)
-
+            self._read_pages()
         return self._page_cache.values()
+
+    def _read_pages(self):
+        """
+        Read the pages into self._page_cache
+        """
+        self._page_cache = {}
+        for path in fileList(self.page_path, relative=True):
+            # ignore backup files
+            if path.endswith("~"):
+                continue
+            self._page_cache[path] = Page(self, path)
 
     def _rebuild_should_ignore(self, file_path):
         
