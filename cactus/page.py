@@ -82,13 +82,10 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         """
         The page context.
         """
-        if extra is None:
-            extra = {}
-
         context = {'__CACTUS_CURRENT_PAGE__': self,}
 
         context.update(self.site.context())
-        context.update(extra)
+        context.update(extra or {})
         context.update(self.parse_context())
 
         return Context(context)
@@ -155,8 +152,8 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
                 continue
 
             elif splitChar in line:
-                line = line.split(splitChar)
-                values[line[0].strip()] = (splitChar.join(line[1:])).strip()
+                key, value = line.split(splitChar, 1)
+                values[key.strip()] = value.strip()
 
             else:
                 break
