@@ -341,23 +341,18 @@ class Site(SiteCompatibilityLayer):
         """
         List of pages.
         """
+        if not hasattr(self, "_pages"):
+            self._read_pages()
+        return self._pages
 
-        if not hasattr(self, "_page_cache"):
-            self._page_cache = {}
-
-        pages = []
-
-        for path in fileList(self.page_path, relative=True):
-            
-            if path.endswith("~"):
-                continue
-
-            if not self._page_cache.has_key(path):
-                self._page_cache[path] = Page(self, path)
-
-            pages.append(self._page_cache[path])
-
-        return pages
+    def _read_pages(self):
+        """
+        Read the pages from disk
+        """
+        self._pages = [
+            Page(self, path)
+            for path in fileList(self.page_path, relative=True)
+            if not path.endswith("~")]
 
     def _rebuild_should_ignore(self, file_path):
         
