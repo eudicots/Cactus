@@ -65,11 +65,17 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         return os.path.join(self.site.build_path, self.build_path)
 
     def data(self):
+        if not hasattr(self, "_data"):
+            self._read_data()
+        return self._data
+
+    def _read_data(self):
         with open(self.full_source_path, 'rU') as f:
             try:
-                return f.read().decode('utf-8')
+                self._data = f.read().decode('utf-8')
             except:
-                logger.warning("Template engine could not process page: %s", self.path)
+                logger.warning("Page file could not be read: %s", self.path)
+                self._data = ''
 
     def context(self, data=None, extra=None):
         """

@@ -267,6 +267,10 @@ class Site(SiteCompatibilityLayer):
                 else:
                     os.remove(path)
 
+        # One test / use case depends on
+        # the pages being read from disk for every built
+        self._build_page_list()
+
         # Render the pages to their output files
         mapper = map
         if self._parallel >= PARALLEL_AGGRESSIVE:
@@ -342,12 +346,12 @@ class Site(SiteCompatibilityLayer):
         List of pages.
         """
         if not hasattr(self, "_pages"):
-            self._read_pages()
+            self._build_page_list()
         return self._pages
 
-    def _read_pages(self):
+    def _build_page_list(self):
         """
-        Read the pages from disk
+        Build the page list from the files found on disk
         """
         self._pages = [
             Page(self, path)
