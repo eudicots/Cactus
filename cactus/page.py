@@ -147,16 +147,16 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             return {}
 
         for i, line in enumerate(lines):
-
-            if not line:
-                continue
-
-            elif splitChar in line:
-                key, value = line.split(splitChar, 1)
-                values[key.strip()] = value.strip()
-
-            else:
+            # Context lines start at the top of the file.
+            # The text start after the first empty line
+            # or at the first line without a colon
+            if not splitChar in line:
+                if not line:
+                    i += 1
                 break
+
+            key, value = line.split(splitChar, 1)
+            values[key.strip()] = value.strip()
 
         self._data = '\n'.join(lines[i:])
         self._page_context = values
