@@ -42,6 +42,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         else:
             self.final_url = self.link_url
             self.build_path = self.source_path
+        self._read_data()
 
     def is_html(self):
         return urlparse.urlparse(self.source_path).path.endswith('.html')
@@ -77,7 +78,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
                 logger.warning("Page file could not be read: %s", self.path)
                 self._data = ''
 
-    def context(self, data=None, extra=None):
+    def context(self, extra=None):
         """
         The page context.
         """
@@ -85,12 +86,10 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             extra = {}
 
         context = {'__CACTUS_CURRENT_PAGE__': self,}
-        
-        page_context, data = self.parse_context(data or self.data())
 
         context.update(self.site.context())
         context.update(extra)
-        context.update(page_context)
+        context.update(self.parse_context())
 
         return Context(context)
 
@@ -99,17 +98,10 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         Takes the template data with context and renders it to the final output file.
         """
 
-        data = self.data()
-        context = self.context(data=data)
+        context, self._data = self.site.plugin_manager.preBuildPage(
+            self.site, self, self.context(), self._data)
 
-        # This is not very nice, but we already used the header context in the
-        # page context, so we don't need it anymore.
-        page_context, data = self.parse_context(data)
-
-        context, data = self.site.plugin_manager.preBuildPage(
-            self.site, self, context, data)
-
-        return Template(data).render(context)
+        return Template(self._data).render(context)
 
     def build(self):
         """
@@ -131,23 +123,31 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
 
             self.site.plugin_manager.postBuildPage(self)
 
-    def parse_context(self, data, splitChar=':'):
+    def parse_context(self, splitChar=':'):
         """
         Values like
 
         name: koen
         age: 29
 
-        will be converted in a dict: {'name': 'koen', 'age': '29'}
+        will be converted in a dict:
+
+        {'name': 'koen', 'age': '29'}
+
+        and these lines are deleted from 'self.data'
         """
 
+        # make sure that the page context is only calculated once
+        if hasattr(self, "_page_context"):
+            return self._page_context
+
         if not self.is_html():
-            return {}, data
+            return {}
 
         values = {}
-        lines = data.splitlines()
+        lines = self._data.splitlines()
         if not lines:
-            return {}, ''
+            return {}
 
         for i, line in enumerate(lines):
 
@@ -161,7 +161,9 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             else:
                 break
 
-        return values, '\n'.join(lines[i:])
+        self._data = '\n'.join(lines[i:])
+        self._page_context = values
+        return values
 
     def __repr__(self):
         return '<Page: {0}>'.format(self.source_path)
