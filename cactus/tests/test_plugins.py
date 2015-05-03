@@ -1,11 +1,16 @@
 #coding:utf-8
 import os
 import shutil
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+from testfixtures import LogCapture
 
 from cactus.plugin.loader import CustomPluginsLoader
 from cactus.plugin.manager import PluginManager
 from cactus.tests import SiteTestCase
-
+from cactus.plugin.builtin.pagecontext import PageContextPlugin
 
 class TestPluginLoader(SiteTestCase):
     def setUp(self):
@@ -72,3 +77,142 @@ class TestPluginLoader(SiteTestCase):
         #postBuild
         self.assertEqual(1, len(plugin.postBuild.calls))
         self.assertEqual((self.site,), plugin.postBuild.calls[0]['args'])
+
+
+class TestPagecontextPlugin(unittest.TestCase):
+
+    def test_jekyll_style(self):
+        testdata = [
+            (['---',  # fenced
+              'Author : Me',
+              'Content: Awesome',
+              '---',
+              'Here comes the content'],
+             {'Author': 'Me', 'Content': 'Awesome'},
+             ['Here comes the content']),
+
+            (['Author : Me',  # no start of metadata
+              '---',
+              'Here comes the content'],
+             {},
+             ['Author : Me',
+              '---',
+              'Here comes the content']),
+
+            (['',  # file starts with a blank line
+              '---',
+              'Todays motto: whatever'],
+             {},  # no context data
+             ['', '---', 'Todays motto: whatever']),  # everything preserved
+
+            (['This file has',
+              'no metadata whatsoever'],
+             {},
+             ['This file has', 'no metadata whatsoever']),
+
+        ]
+        plugin = PageContextPlugin()
+
+        for i, (lines, context, data) in enumerate(testdata):
+            self.assertEqual((context, data), 
+                             plugin.jekyll_style(lines),
+                             'Test Data No. %d failed' % i)
+
+        lines = ['---',
+                 'Author : Me',  # no end of metadata
+                 'Here comes the content']
+        with LogCapture() as l:
+            context, data = plugin.jekyll_style(lines)
+        self.assertEqual(len(l.records), 1)
+        self.assertEqual(l.records[0].levelname, 'WARNING')
+        self.assertEqual(l.records[0].msg, 'Page context data seem to end in line %d')
+
+    def test_simple_style(self):
+        testdata = [
+            (['Author : Me',
+              'Content: Awesome',
+              '',
+              'Here comes the content'],
+             {'Author': 'Me', 'Content': 'Awesome'},
+             ['', 'Here comes the content']),
+
+            (['',  # file starts with a blank line
+              'Todays motto: whatever'],
+             {},  # no context data
+             ['', 'Todays motto: whatever']),  # blank line preserved
+
+            (['This file has',
+              'no metadata whatsoever'],
+             {},
+             ['This file has', 'no metadata whatsoever']),
+        ]
+        plugin = PageContextPlugin()
+
+        for i, (lines, context, data) in enumerate(testdata):
+            self.assertEqual((context, data),
+                             plugin.simple_style(lines),
+                             'Test Data No. %d failed' % i)
+
+    def test_multimarkdown_style(self):
+        testdata = [
+            (['Author : Me',
+              'Content: Awesome',
+              '',
+              'Here comes the content'],
+             {'author': 'Me', 'content': 'Awesome'},
+             ['Here comes the content']),
+
+            (['---',  # fenced
+              'Author : Me',
+              'Content: Awesome',
+              '---',
+              'Here comes the content'],
+             {'author': 'Me', 'content': 'Awesome'},
+             ['Here comes the content']),
+
+            (['Multiline: in two',
+              ' lines',
+              '',
+              'Here comes the content'],
+             {'multiline': 'in two lines'},
+             ['Here comes the content']),
+
+            (['Multiline: in two',
+              'lines',  # not indented
+              '',
+              'Here comes the content'],
+             {'multiline': 'in two lines'},
+             ['Here comes the content']),
+
+            (['Multiline: in',
+              '           three',
+              '           lines',
+              '',
+              'Here comes the content'],
+             {'multiline': 'in three lines'},
+             ['Here comes the content']),
+
+            (['Multiline: in two lines',
+              '           with: colon',
+              '',
+              'Here comes the content'],
+             {'multiline': 'in two lines with: colon'},
+             ['Here comes the content']),
+
+            (['',  # file starts with a blank line
+              'Todays motto: whatever'],
+             {},  # no context data
+             ['', 'Todays motto: whatever']),  # blank line preserved
+
+            (['This file has',
+              'no metadata whatsoever'],
+             {},
+             ['This file has', 'no metadata whatsoever']),
+        ]
+        plugin = PageContextPlugin()
+
+        for i, (lines, context, data) in enumerate(testdata):
+            self.assertEqual((context, data),
+                             plugin.multimarkdown_style(lines),
+                             'Test Data No. %d failed' % i)
+
