@@ -46,21 +46,61 @@ class TestCustomPageContext(SiteTestCase):
 
     Includes the built-in site context ('CACTUS'), and custom context.
     """
-    def setUp(self):
-        super(TestCustomPageContext, self).setUp()
-
-        page = "a: 1\n\tb: Monkey\n{{ a }}\n{{ b }}"
-        with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
-            f.write(page)
-
-        self.site.build()
 
     def test_custom_context(self):
         """
         Test that custom context is provided
         """
-        with open(os.path.join(self.site.build_path, "test.html")) as f:
-            a, b = f.read().split("\n")
+        test_data = [
+            ("a: 1\n"
+             "\tb: Monkey\n"
+             "{{ a }}\n"
+             "{{ b }}",
 
-        self.assertEqual(a, "1")
-        self.assertEqual(b, "Monkey")
+             "1\n"
+             "Monkey"),
+
+            ("a: 1\n"
+             "\n"      # blank line inserted
+             "\tb: Monkey\n"
+             "{{ a }}",
+
+             "\n"
+             "\tb: Monkey\n"
+             "1"),
+
+            ("---\n"    # fenced
+             " a: 1\n"
+             "b: Monkey\n"
+             "---\n"
+             "{{ a }}\n"
+             "{{ b }}",
+
+             "1\n"
+             "Monkey"),
+
+            ("---\n"    # double fenced
+             " a: 1\n"
+             "b: Monkey\n"
+             "---\n"
+             "---\n"
+             "c: 1\n"
+             "---\n"
+             "{{ a }}\n"
+             "{{ b }}",
+
+             "---\n"
+             "c: 1\n"
+             "---\n"
+             "1\n"
+             "Monkey"),
+
+        ]
+        for page, expected in test_data:
+            with open(os.path.join(self.site.page_path, "test.html"), "w") as f:
+                f.write(page)
+
+            self.site.build()
+
+            with open(os.path.join(self.site.build_path, "test.html")) as f:
+                self.assertEqual(f.read(), expected)
