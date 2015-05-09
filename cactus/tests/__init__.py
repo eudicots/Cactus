@@ -2,11 +2,7 @@
 import tempfile
 import shutil
 import os
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest2 as unittest
 
 import django.conf
 

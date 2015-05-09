@@ -3,15 +3,10 @@ import os
 import shutil
 import tempfile
 import hashlib
-
+import unittest2 as unittest
 import mock
+
 from cactus.deployment.engine import BaseDeploymentEngine
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from cactus.config.router import ConfigRouter
 from cactus.deployment.file import BaseFile
 from cactus.plugin.builtin.cache import CacheDurationPlugin

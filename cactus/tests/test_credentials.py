@@ -4,13 +4,9 @@ import shutil
 import tempfile
 import keyring
 import keyring.backend
+import unittest2 as unittest
+
 from cactus.deployment.s3.auth import AWSCredentialsManager
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from cactus.config.file import ConfigFile
 
 

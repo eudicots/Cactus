@@ -2,10 +2,7 @@
 import os
 import shutil
 import tempfile
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest2 as unittest
 
 from cactus.config.file import ConfigFile
 from cactus.config.router import ConfigRouter

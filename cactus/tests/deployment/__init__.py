@@ -1,14 +1,10 @@
 #coding:utf-8
 import shutil
 import tempfile
+import unittest2 as unittest
+
 from cactus.plugin.manager import PluginManager
 from cactus.utils.parallel import PARALLEL_DISABLED
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
-
 from cactus.config.fallback import ConfigFallback
 from cactus.deployment.engine import BaseDeploymentEngine
 from cactus.deployment.file import BaseFile

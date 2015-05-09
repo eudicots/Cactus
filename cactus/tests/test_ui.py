@@ -1,12 +1,9 @@
 #coding:utf-8
-from cactus.tests import BaseTestCase
-
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest2 as unittest
 
 from cactus import ui, Site
+
+from cactus.tests import BaseTestCase
 
 
 class UITestCase(unittest.TestCase):

@@ -1,10 +1,11 @@
 #coding:utf-8
 import os
-from cactus.deployment.s3.engine import S3DeploymentEngine
 
-from cactus.tests.integration import IntegrationTestCase, DebugHTTPSConnectionFactory
-from cactus.tests.integration.http import BaseTestHTTPConnection, TestHTTPResponse
+from cactus.deployment.s3.engine import S3DeploymentEngine
 from cactus.utils.helpers import checksum
+
+from cactus.tests.integration import IntegrationTestCase, DebugHTTPSConnectionFactory, BaseTestHTTPConnection, \
+    TestHTTPResponse
 
 
 class DummyAWSCredentialsManager(object):
