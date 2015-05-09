@@ -1,5 +1,6 @@
 #coding:utf-8
 import os
+import re
 
 from cactus.deployment.s3.engine import S3DeploymentEngine
 from cactus.utils.helpers import checksum
@@ -23,9 +24,12 @@ class S3TestHTTPConnection(BaseTestHTTPConnection):
 
     def handle_request(self, request):
         if request.method == "GET":
+            # List buckets
             if request.path == "/":
                 if request.params == {}:
                     return self.list_buckets()
+            # Request for just one bucket (like /bucket/ - regex is not perfect but should do for here)
+            if re.match(r"/[a-z1-9\-.]+/", request.path):
                 if "location" in request.params:
                     return self.location()
 

@@ -35,20 +35,20 @@ class WorkflowTestCase(S3IntegrationTestCase):
 
         # Check that we retrieved the list and created a bucket
         self.assertEqual(4, len(self.connection_factory.requests))
-        list_buckets, create_bucket, website, location = self.connection_factory.requests
+        list_buckets, create_bucket, enable_website, retrieve_location = self.connection_factory.requests
 
         self.assertEqual("/", list_buckets.url)
         self.assertEqual("GET", list_buckets.method)
 
-        self.assertEqual("/", create_bucket.url)
-        self.assertEqual("{0}.s3.amazonaws.com".format(bucket_name), create_bucket.connection.host)
+        self.assertEqual("/{0}/".format(bucket_name), create_bucket.url)
+        self.assertEqual("s3.amazonaws.com".format(bucket_name), create_bucket.connection.host)
         self.assertEqual("PUT", create_bucket.method)
 
-        self.assertEqual("/?website", website.url)
-        self.assertEqual("PUT", website.method)
+        self.assertEqual("/{0}/?website".format(bucket_name), enable_website.url)
+        self.assertEqual("PUT", enable_website.method)
 
-        self.assertEqual("/?location", location.url)
-        self.assertEqual("GET", location.method)
+        self.assertEqual("/{0}/?location".format(bucket_name), retrieve_location.url)
+        self.assertEqual("GET", retrieve_location.method)
 
         # Check that we updated our config
         self.assertEqual("{0}.s3-website-us-east-1.amazonaws.com".format(bucket_name),
