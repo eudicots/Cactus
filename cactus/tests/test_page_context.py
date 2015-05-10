@@ -7,7 +7,7 @@ except ImportError:
     import unittest
 from testfixtures import LogCapture
 
-from cactus.plugin.builtin.pagecontext import PageContextPlugin
+from cactus.plugin.builtin.page_context import PageContextPlugin
 from cactus.tests import SiteTestCase
 from cactus.page import Page
 
