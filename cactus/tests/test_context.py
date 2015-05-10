@@ -42,7 +42,7 @@ class TestSiteContext(SiteTestCase):
 
 class TestCustomPageContext(SiteTestCase):
     """
-    Test that custom context in the header of pages is feeded to a page
+    Test that custom context in the header of pages is fed to a page
 
     Includes the built-in site context ('CACTUS'), and custom context.
     """

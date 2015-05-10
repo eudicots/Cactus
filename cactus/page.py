@@ -71,16 +71,12 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             except:
                 logger.warning("Template engine could not process page: %s", self.path)
 
-    def context(self, data=None, extra=None):
+    def context(self):
         """
         The page context.
         """
         context = {'__CACTUS_CURRENT_PAGE__': self,}
-
         context.update(self.site.context())
-        if extra:
-            context.update(extra)
-
         return Context(context)
 
     def render(self):
@@ -89,7 +85,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         """
 
         context, data = self.site.plugin_manager.preBuildPage(
-            self.site, self, self.context(data=self.data()), self.data())
+            self.site, self, self.context(), self.data())
 
         return Template(data).render(context)
 

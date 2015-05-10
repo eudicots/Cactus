@@ -1,7 +1,7 @@
 #coding:utf-8
+from __future__ import unicode_literals
 import logging
 import re
-
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,7 @@ class PageContextPlugin(object):
     - read style of metadata from config
     - read splitChar from config
     """
+    ORDER = 0
 
     def preBuildPage(self, page, context, data):
         """
@@ -27,22 +28,28 @@ class PageContextPlugin(object):
 
         # Look into the file to decide on the style of metadata
         # TODO: make that configurable
-        if lines[0].strip() == u'---':
-            page_context, lines = self.jekyll_style(lines)
+        if lines[0].strip() == '---':
+            page_context, lines = self.jekyll_style(lines, page)
         else:
             page_context, lines = self.simple_style(lines)
         context.update(page_context)
 
         return context, '\n'.join(lines)
 
-    def jekyll_style(self, lines):
-        if not lines or lines[0].strip() != u'---':  # no metadata
+    def jekyll_style(self, lines, page):
+        """
+        metadata as defined in http://jekyllrb.com/docs/frontmatter/
+
+        `lines` should not be empty
+        `page` is required only for the error message
+        """
+        if lines[0].strip() != '---':  # no metadata
             return {}, lines
 
         context = {}
         splitChar = ':'
         for i, line in enumerate(lines[1:]):
-            if line.strip() == u'---':  # end of metadata
+            if line.strip() == '---':  # end of metadata
                 i += 1
                 break
 
@@ -50,7 +57,8 @@ class PageContextPlugin(object):
                 key, value = line.split(splitChar, 1)
             except ValueError:
                 # splitChar not in line
-                logger.warning('Page context data seem to end in line %d', i)
+                logger.warning('Page context data in file %s seem to end in line %d',
+                        page.source_path, i)
                 break
 
             context[key.strip()] = value.strip()
@@ -61,6 +69,8 @@ class PageContextPlugin(object):
         """
         Only lines at the top of the file with a colon are metadata.
         No multiline metadata
+
+        `lines` should not be empty
         """
         context = {}
         splitChar = ':'
@@ -78,18 +88,21 @@ class PageContextPlugin(object):
     def multimarkdown_style(self, lines):
         """
         metadata as defined in http://fletcher.github.io/MultiMarkdown-4/metadata
+
+        `lines` should not be empty
         """
         context = {}
         splitChar = ':'
         fenced = False
         key = None
+        whitespace = re.compile(r'\s')
 
-        if splitChar not in lines[0] and lines[0].strip() != u'---':
+        if splitChar not in lines[0] and lines[0].strip() != '---':
             return {}, lines  # no metadata
 
         for i, line in enumerate(lines):
             # fencing is allowed but not required in multimarkdown
-            if line.strip() == u'---':
+            if line.strip() == '---':
                 if i == 0:
                     fenced = True
                     continue
@@ -106,7 +119,7 @@ class PageContextPlugin(object):
 
             # indented lines are the continuation of the previous value
             # but multiline values don't have to be indented
-            if key and (re.match(r'\s', line) or not splitChar in line):
+            if key and (whitespace.match(line) or not splitChar in line):
                 context[key] = ' '.join(
                     (context[key], line.lstrip()))
                 continue
