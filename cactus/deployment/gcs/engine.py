@@ -38,7 +38,7 @@ class GCSDeploymentEngine(BaseDeploymentEngine):
             credentials = self.credentials_manager.get_credentials()
             http_client = self._HTTPClass()
             credentials.authorize(http_client)
-            service = apiclient.discovery.build('storage', 'v1beta2', http=http_client)
+            service = apiclient.discovery.build('storage', 'v1', http=http_client)
             self._service_pool[ident] = service
 
         return service
