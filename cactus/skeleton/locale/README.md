@@ -1,14 +1,14 @@
-Internalization
-===============
+Internationalization
+====================
 
-Using internalization with Cactus
----------------------------------
+Using internationalization with Cactus
+--------------------------------------
 
-To enable internalization for your project:
+To enable internationalization for your project:
 
   1. Add a `locale` key to (one of your) configuration file(s)
   2. Mark strings for translation in your site (using `{% trans %}`)
-  3. Run `cactus makemessages`
+  3. Run `cactus messages:make`
   4. Edit the .po file that was created with translations.
 
 
