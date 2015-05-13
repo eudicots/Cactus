@@ -5,6 +5,7 @@ import shutil
 from cactus.tests import SiteTestCase
 from cactus.utils.filesystem import fileList
 from cactus.utils.url import path_to_url
+from cactus.page import Page
 
 
 class TestSite(SiteTestCase):
@@ -48,7 +49,7 @@ class TestSite(SiteTestCase):
 
     def testPageContext(self):
         """
-        Test that page context is parsed and uses in the pages.
+        Test that page context is parsed and used in the pages.
         """
 
         shutil.copy(
@@ -114,3 +115,29 @@ class TestSite(SiteTestCase):
 
         with open(os.path.join(self.path, '.build', other), 'rU') as f:
             self.assertEqual('False', f.read())
+
+
+class TestPage(SiteTestCase):
+
+    def testPageContext(self):
+        """
+        Test parsing of page context is parsed and used in the pages.
+        """
+
+        shutil.copy(
+            os.path.join('cactus', 'tests', 'data', "koenpage-in.html"),
+            os.path.join(self.path, 'pages', 'koenpage.html')
+        )
+        page = Page(self.site, 'koenpage.html')
+        self.assertEqual(page.parse_context(),
+                         {'name': 'Koen Bok', 'age': '29'})
+
+        shutil.copy(
+            os.path.join('cactus', 'tests', 'data', 'colon-in-first-line.html'),
+            os.path.join(self.path, 'pages', 'test.html')
+        )
+        page = Page(self.site, 'test.html')
+        self.assertEqual(page.parse_context(),
+                         {u'Author': u'Me', u'Title': u'Big Thing'})
+        self.assertEqual(page._data,
+            "Let's have one thing very clear: whatever.\n\nNext Paragraph")

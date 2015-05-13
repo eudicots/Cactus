@@ -267,6 +267,10 @@ class Site(SiteCompatibilityLayer):
                 else:
                     os.remove(path)
 
+        # One test / use case depends on
+        # the pages being read from disk for every built
+        self._build_page_list()
+
         # Render the pages to their output files
         mapper = map
         if self._parallel >= PARALLEL_AGGRESSIVE:
@@ -341,23 +345,18 @@ class Site(SiteCompatibilityLayer):
         """
         List of pages.
         """
+        if not hasattr(self, "_pages"):
+            self._build_page_list()
+        return self._pages
 
-        if not hasattr(self, "_page_cache"):
-            self._page_cache = {}
-
-        pages = []
-
-        for path in fileList(self.page_path, relative=True):
-            
-            if path.endswith("~"):
-                continue
-
-            if not self._page_cache.has_key(path):
-                self._page_cache[path] = Page(self, path)
-
-            pages.append(self._page_cache[path])
-
-        return pages
+    def _build_page_list(self):
+        """
+        Build the page list from the files found on disk
+        """
+        self._pages = [
+            Page(self, path)
+            for path in fileList(self.page_path, relative=True)
+            if not path.endswith("~")]
 
     def _rebuild_should_ignore(self, file_path):
         

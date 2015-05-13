@@ -42,6 +42,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         else:
             self.final_url = self.link_url
             self.build_path = self.source_path
+        self._read_data()
 
     def is_html(self):
         return urlparse.urlparse(self.source_path).path.endswith('.html')
@@ -65,26 +66,27 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         return os.path.join(self.site.build_path, self.build_path)
 
     def data(self):
+        if not hasattr(self, "_data"):
+            self._read_data()
+        return self._data
+
+    def _read_data(self):
         with open(self.full_source_path, 'rU') as f:
             try:
-                return f.read().decode('utf-8')
+                self._data = f.read().decode('utf-8')
             except:
-                logger.warning("Template engine could not process page: %s", self.path)
+                logger.warning("Page file could not be read: %s", self.path)
+                self._data = ''
 
-    def context(self, data=None, extra=None):
+    def context(self, extra=None):
         """
         The page context.
         """
-        if extra is None:
-            extra = {}
-
         context = {'__CACTUS_CURRENT_PAGE__': self,}
-        
-        page_context, data = self.parse_context(data or self.data())
 
         context.update(self.site.context())
-        context.update(extra)
-        context.update(page_context)
+        context.update(extra or {})
+        context.update(self.parse_context())
 
         return Context(context)
 
@@ -93,17 +95,10 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         Takes the template data with context and renders it to the final output file.
         """
 
-        data = self.data()
-        context = self.context(data=data)
+        context, self._data = self.site.plugin_manager.preBuildPage(
+            self.site, self, self.context(), self._data)
 
-        # This is not very nice, but we already used the header context in the
-        # page context, so we don't need it anymore.
-        page_context, data = self.parse_context(data)
-
-        context, data = self.site.plugin_manager.preBuildPage(
-            self.site, self, context, data)
-
-        return Template(data).render(context)
+        return Template(self._data).render(context)
 
     def build(self):
         """
@@ -125,37 +120,47 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
 
             self.site.plugin_manager.postBuildPage(self)
 
-    def parse_context(self, data, splitChar=':'):
+    def parse_context(self, splitChar=':'):
         """
         Values like
 
         name: koen
         age: 29
 
-        will be converted in a dict: {'name': 'koen', 'age': '29'}
+        will be converted in a dict:
+
+        {'name': 'koen', 'age': '29'}
+
+        and these lines are deleted from 'self.data'
         """
 
+        # make sure that the page context is only calculated once
+        if hasattr(self, "_page_context"):
+            return self._page_context
+
         if not self.is_html():
-            return {}, data
+            return {}
 
         values = {}
-        lines = data.splitlines()
+        lines = self._data.splitlines()
         if not lines:
-            return {}, ''
+            return {}
 
         for i, line in enumerate(lines):
-
-            if not line:
-                continue
-
-            elif splitChar in line:
-                line = line.split(splitChar)
-                values[line[0].strip()] = (splitChar.join(line[1:])).strip()
-
-            else:
+            # Context lines start at the top of the file.
+            # The text start after the first empty line
+            # or at the first line without a colon
+            if not splitChar in line:
+                if not line:
+                    i += 1
                 break
 
-        return values, '\n'.join(lines[i:])
+            key, value = line.split(splitChar, 1)
+            values[key.strip()] = value.strip()
+
+        self._data = '\n'.join(lines[i:])
+        self._page_context = values
+        return values
 
     def __repr__(self):
         return '<Page: {0}>'.format(self.source_path)
