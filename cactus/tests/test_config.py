@@ -6,6 +6,7 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
+from testfixtures import LogCapture
 
 from cactus.config.file import ConfigFile
 from cactus.config.router import ConfigRouter
@@ -126,3 +127,26 @@ class TestConfigRouter(unittest.TestCase):
 
         with open(self.path1) as f:
             self.assertEqual("canary", f.read())
+
+    def test_load_exception(self):
+        """
+        Test if broken or non-existent files raise an exception
+        """
+        broken = os.path.join(self.path, "broken.json")
+        with open(broken, "w") as f:
+            f.write('{"a": 3,}')
+
+        with LogCapture() as l:
+            ConfigFile(broken)
+        self.assertEqual(len(l.records), 2)
+        self.assertEqual(l.records[0].levelname, 'ERROR')
+        self.assertEqual(l.records[0].msg, 'Unable to load configuration at %s')
+        self.assertEqual(l.records[1].levelname, 'ERROR')
+        self.assertEqual(l.records[1].msg, 'Error message: %s')
+
+        nonexistent = os.path.join(self.path, "nonexistent.json")
+        with LogCapture() as l:
+            ConfigFile(nonexistent)
+        self.assertEqual(len(l.records), 1)
+        self.assertEqual(l.records[0].levelname, 'WARNING')
+        self.assertEqual(l.records[0].msg, 'No configuration file found at %s')

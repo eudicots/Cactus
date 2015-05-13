@@ -27,15 +27,15 @@ class ConfigFile(object):
         return key in self._data
 
     def load(self):
+        self._data = {}
         try:
             self._data = json.load(open(self.path, 'rU'))
             self._dirty = False
         except IOError:
-            logger.warning('No configuration file found at {0}'.format(self.path))
-            self._data = {}
-        except Exception: #TODO: Specify
-            logger.error('Unable to load configuration at {0}'.format(self.path))
-            self._data = {}
+            logger.warning('No configuration file found at %s', self.path)
+        except ValueError as e:
+            logger.error('Unable to load configuration at %s', self.path)
+            logger.error('Error message: %s', e)
 
     def write(self):
         if self._dirty:
