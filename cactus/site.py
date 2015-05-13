@@ -16,6 +16,7 @@ from cactus.i18n.commands import MessageMaker, MessageCompiler
 from cactus.plugin.builtin.cache import CacheDurationPlugin
 from cactus.plugin.builtin.context import ContextPlugin
 from cactus.plugin.builtin.ignore import IgnorePatternsPlugin
+from cactus.plugin.builtin.page_context import PageContextPlugin
 from cactus.plugin.loader import CustomPluginsLoader, ObjectsPluginLoader
 from cactus.plugin.manager import PluginManager
 from cactus.static.external.manager import ExternalManager
@@ -75,8 +76,11 @@ class Site(SiteCompatibilityLayer):
             [
                 CustomPluginsLoader(self.plugin_path),  # User plugins
                 ObjectsPluginLoader([   # Builtin plugins
-                    ContextPlugin(), CacheDurationPlugin(),
-                    IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
+                    ContextPlugin(),
+                    PageContextPlugin(),
+                    CacheDurationPlugin(),
+                    IgnorePatternsPlugin(),
+                    PageContextCompatibilityPlugin(),
                 ])
             ]
         )

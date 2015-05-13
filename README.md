@@ -124,6 +124,24 @@ Cactus makes it easy to relatively link to pages and static assets inside your p
 
 Just use the URL you would normally use: don't forget the leading slash.
 
+You can add extra context to your pages. Just insert it on the top of the file like this:
+
+    name: koen
+    age: 29
+    {% extends "base.html" %}
+    …
+
+which will be converted to a dict: `{'name': 'koen', 'age': '29'}` and added to the context. 
+If the first line of your document should contain a colon, 
+you can use the more explicit style of metadata [as used in Jekyll](http://jekyllrb.com/docs/frontmatter/):
+
+    ---
+    Author: Me
+    Style:  Great
+    ---
+    Todays motto: whatever
+
+Always use `---` (three dashes) to fence the metadata.
 
 ### Templates
 

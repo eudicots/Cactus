@@ -28,7 +28,7 @@ class TestPluginLoader(SiteTestCase):
         self._load_test_plugin('test.py', 'test.py')
 
         plugins = self.site.plugin_manager.plugins
-        self.assertEqual(1, len(plugins ))
+        self.assertEqual(1, len(plugins))
         self.assertEqual('plugin_test', plugins[0].plugin_name)
         self.assertEqual(2, plugins[0].ORDER)
 
@@ -72,3 +72,5 @@ class TestPluginLoader(SiteTestCase):
         #postBuild
         self.assertEqual(1, len(plugin.postBuild.calls))
         self.assertEqual((self.site,), plugin.postBuild.calls[0]['args'])
+
+

@@ -133,7 +133,7 @@ setup(
     },
     zip_safe=False,
     setup_requires=['nose'],
-    tests_require=['nose', 'mock', 'tox', 'unittest2'],
+    tests_require=['nose', 'mock', 'tox', 'unittest2', 'testfixtures'],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
