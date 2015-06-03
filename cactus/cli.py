@@ -5,11 +5,13 @@ import sys
 import logging
 import time
 import argparse
+import colorama
 
 import cactus
 
 from cactus.bootstrap import bootstrap
 from cactus.logger import setup_logging
+
 
 def create(path, skeleton=None):
     """
@@ -64,6 +66,8 @@ def domain_list(path, config):
 
 
 def main():
+    colorama.init()
+
     parser = argparse.ArgumentParser(description = "Build and deploy static websites using Django templates.")
 
     subparsers = parser.add_subparsers(title = 'subcommands', description = 'Valid subcommands',

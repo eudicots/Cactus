@@ -5,3 +5,4 @@ keyring
 boto>=2.4.1
 tornado>=3.2
 colorlog
+colorama
