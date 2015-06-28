@@ -13,9 +13,6 @@ Install:
 (Only if you want to sprite jpg too)
 brew install libjpeg
 
-(Only if you want to optimize pngs with optipng)
-brew install optipng
-
 sudo easy_install pip
 sudo pip uninstall pil
 sudo pip install pil
@@ -50,6 +47,6 @@ def preBuild(site):
 		shutil.rmtree(CSS_PATH)
 	
 	os.mkdir(CSS_PATH)
-	os.system('glue --cachebuster --crop --optipng "%s" "%s" --project' % (IMG_PATH, CSS_PATH))
+	os.system('glue --cachebuster --crop "%s" "%s" --project' % (IMG_PATH, CSS_PATH))
 	
 	setattr(site, KEY, currChecksum)
