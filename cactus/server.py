@@ -56,9 +56,15 @@ class StaticHandler(tornado.web.StaticFileHandler):
         return mime.guess(self.absolute_path)
 
     def write_error(self, status_code, **kwargs):
-
+        # Special case handling for 404: try to find one of the error pages,
+        # which might be in error.html or error/index.html depending on
+        # whether prettifying was enabled.
         if status_code == 404:
-            return self.render("error.html")
+            for path in ["error.html", "error/index.html"]:
+                try:
+                    return self.render(path)
+                except IOError:
+                    continue
 
         return super(StaticHandler, self).write_error(status_code, **kwargs)
 
