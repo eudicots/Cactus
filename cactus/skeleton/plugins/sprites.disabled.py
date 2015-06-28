@@ -35,6 +35,8 @@ def checksum(path):
 	return subprocess.check_output(command, shell=True)
 
 def preBuild(site):
+	if not os.path.isdir(IMG_PATH):
+		return
 	
 	currChecksum = checksum(IMG_PATH)
 	prevChecksum = getattr(site, KEY, None)
