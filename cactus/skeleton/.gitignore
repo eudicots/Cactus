@@ -1,0 +1,5 @@
+.build
+.deploy
+*.pyc
+*.disabled.py
+
