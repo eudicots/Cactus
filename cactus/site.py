@@ -175,7 +175,7 @@ class Site(SiteCompatibilityLayer):
         """
         ctx = {
             'CACTUS': {
-                'pages':  [p for p in self.pages() if p.is_html()],
+                'pages':  [p for p in self.pages() if p.is_html],
                 'static': [p for p in self.static()]
             },
             '__CACTUS_SITE__': self,
@@ -267,6 +267,9 @@ class Site(SiteCompatibilityLayer):
                 else:
                     os.remove(path)
 
+        # read pages for each built
+        self._read_pages()
+
         # Render the pages to their output files
         mapper = map
         if self._parallel >= PARALLEL_AGGRESSIVE:
@@ -340,24 +343,23 @@ class Site(SiteCompatibilityLayer):
     def pages(self):
         """
         List of pages.
+        This routine is called from different places,
+        but builds the page list only once
         """
-
         if not hasattr(self, "_page_cache"):
-            self._page_cache = {}
+            self._read_pages()
+        return self._page_cache.values()
 
-        pages = []
-
+    def _read_pages(self):
+        """
+        Read the pages into self._page_cache
+        """
+        self._page_cache = {}
         for path in fileList(self.page_path, relative=True):
-            
+            # ignore backup files
             if path.endswith("~"):
                 continue
-
-            if not self._page_cache.has_key(path):
-                self._page_cache[path] = Page(self, path)
-
-            pages.append(self._page_cache[path])
-
-        return pages
+            self._page_cache[path] = Page(self, path)
 
     def _rebuild_should_ignore(self, file_path):
         
