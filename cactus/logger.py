@@ -20,23 +20,20 @@ class JsonFormatter(logging.Formatter):
 
         return json.dumps(data)
 
-def setup_logging():
+def setup_logging(level='INFO'):
 
     logger = logging.getLogger()
     handler = logging.StreamHandler()
+    log_level = logging.getLevelName(level)
 
     if os.environ.get('DESKTOPAPP'):
-        log_level = logging.INFO
         log_format = '%(message)s'
 
         handler.setFormatter(JsonFormatter())
 
     else:
-
         from colorlog import ColoredFormatter
-        
-        log_level = logging.INFO
-        
+
         formatter = ColoredFormatter(
             "%(log_color)s%(message)s",
             datefmt=None,
