@@ -20,10 +20,13 @@ class JsonFormatter(logging.Formatter):
 
         return json.dumps(data)
 
-def setup_logging(level='INFO'):
+def setup_logging(level):
 
     logger = logging.getLogger()
     handler = logging.StreamHandler()
+
+    if not level:
+        level = 'INFO'
     log_level = logging.getLevelName(level)
 
     if os.environ.get('DESKTOPAPP'):
