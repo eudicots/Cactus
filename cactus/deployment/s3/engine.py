@@ -71,9 +71,13 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         """
         :returns: The newly created bucket
         """
+        # S3 does not accept "us-east-1" must use "" instead
+        location = self._get_bucket_region()
+        if location == "us-east-1":
+            location = ""
         try:
             bucket = self.get_connection().create_bucket(self.bucket_name,
-                policy='public-read', location=self._get_bucket_region()
+                policy='public-read', location=location
             )
         except S3CreateError:
             logger.info(
