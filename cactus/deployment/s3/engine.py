@@ -72,8 +72,17 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         :returns: The newly created bucket
         """
         try:
+
+            # When creating a bucket, the region cannot be "us-east-1" but needs
+            # to be an empty string, so we do that for now.
+            # https://github.com/boto/boto3/issues/125#issuecomment-109408790
+            if self._get_bucket_region() == "us-east-1":
+                region = ""
+            else:
+                region = self._get_bucket_region()
+
             bucket = self.get_connection().create_bucket(self.bucket_name,
-                policy='public-read', location=self._get_bucket_region()
+                policy='public-read', location=region
             )
         except S3CreateError:
             logger.info(
