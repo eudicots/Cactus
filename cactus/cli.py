@@ -2,7 +2,6 @@
 # encoding: utf-8
 import os
 import sys
-import logging
 import time
 import argparse
 import colorama
@@ -104,6 +103,9 @@ def main():
         subparser.add_argument('-c', '--config', action="append",
                                help='Add a config file you want to use')
 
+        subparser.add_argument('--log-level', dest='loglevel',
+                               help='Set log level')
+
         subparser.set_defaults(path = os.getcwd())
 
     args = parser.parse_args()
@@ -113,9 +115,9 @@ def main():
     if hasattr(args, 'config') and args.config is None:  # We don't need config for create
         args.config = ["config.json"]
 
-    setup_logging()
+    setup_logging(getattr(args, 'loglevel'))
 
-    args.target(**{k: v for k, v in vars(args).items() if k != 'target'})
+    args.target(**{k: v for k, v in vars(args).items() if k not in ['target', 'loglevel']})
 
 
 if __name__ == "__main__":
