@@ -1,6 +1,8 @@
 import os
+import re
 import logging
 import urlparse
+import yaml
 
 from django.template import Template, Context
 from cactus.compat.paths import PageCompatibilityLayer
@@ -10,6 +12,7 @@ from cactus.utils.helpers import memoize
 
 logger = logging.getLogger(__name__)
 
+frontmatter_re = re.compile(r"^---\n((?:.|\n)+?)\n---", re.MULTILINE)
 
 class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
     
@@ -125,16 +128,34 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
 
             self.site.plugin_manager.postBuildPage(self)
 
-    def parse_context(self, data, splitChar=':'):
+    def parse_context(self, data):
         """
         Values like
 
         name: koen
         age: 29
 
-        will be converted in a dict: {'name': 'koen', 'age': '29'}
+        will be converted in a dict: {'name': 'koen', 'age': '29'}.
+        
+        For complex structures, use YAML frontmatter:
+        ---
+        object: bicycle
+        parts:
+        - wheels
+        - pedals
+        ---
+        
+        If you use frontmatter, page must start with three dashes, without extra spaces or newlines.
         """
 
+        match = frontmatter_re.match(data)
+        if match:
+            frontmatter = match.group(1)
+            values = yaml.load(frontmatter)
+            return values, data[match.end():]
+
+        # fallback to plain key: value pairs
+        splitChar=':'
         if not self.is_html():
             return {}, data
 
