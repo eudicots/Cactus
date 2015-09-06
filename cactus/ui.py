@@ -1,5 +1,7 @@
 #coding:utf-8
-import urlparse
+from __future__ import print_function
+from six.moves import urllib
+from six.moves import input
 
 
 class InvalidInput(Exception):
@@ -12,7 +14,7 @@ class InvalidInput(Exception):
         self.reason = reason
 
 
-def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again", prompt_fn=raw_input):
+def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again", prompt_fn=input):
     """
     :param q: The prompt to display to the user
     :param coerce_fn: A function to coerce, and validate, the user input.
@@ -29,7 +31,7 @@ def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again", promp
         try:
             return coerce_fn(r)
         except InvalidInput as e:
-            print e.reason or error_msg
+            print(e.reason or error_msg)
 
 
 _yes_no_mapping = {"y":True, "n":False}
@@ -70,7 +72,7 @@ def _url_coerce_fn(r):
     """
     :rtype: str
     """
-    p = urlparse.urlparse(r)
+    p = urllib.parse.urlparse(r)
     if not p.scheme:
         raise InvalidInput("Specify an URL scheme (e.g. http://)")
     if not p.netloc:

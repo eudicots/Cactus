@@ -28,4 +28,4 @@ class ConfigFallback(object):
 
     def write(self):
         if self.cnf:
-            logger.warn("Using config fallback, discarding config values: [%s]", ', '.join(self.cnf.keys()))
+            logger.warning("Using config fallback, discarding config values: [%s]", ', '.join(self.cnf.keys()))

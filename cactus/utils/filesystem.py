@@ -1,7 +1,9 @@
-from contextlib import contextmanager
 import os
 import shutil
 import tempfile
+from contextlib import contextmanager
+
+from cactus.utils.helpers import map_apply
 
 
 def mkdtemp():
@@ -33,7 +35,7 @@ def fileList(paths, relative=False, folders=False):
                 files.append(filePath)
 
         if relative:
-            files = map(lambda x: x[len(path) + 1:], files)
+            files = map_apply(lambda x: x[len(path) + 1:], files)
 
     return files
 

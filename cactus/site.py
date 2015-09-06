@@ -7,7 +7,6 @@ import traceback
 import socket
 
 import django.conf
-from django.template.loader import add_to_builtins
 
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
@@ -23,7 +22,7 @@ from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
 from cactus.utils.filesystem import fileList
-from cactus.utils.helpers import memoize
+from cactus.utils.helpers import memoize, map_apply
 from cactus.utils.network import internetWorking
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED, PARALLEL_CONSERVATIVE, PARALLEL_AGGRESSIVE
 from cactus.utils.url import is_external
@@ -153,6 +152,10 @@ class Site(SiteCompatibilityLayer):
 
         django.conf.settings.configure(**settings)
 
+        # - Importing here instead of the top-level makes it work on Python 3.x (!)
+        # - loading add_to_builtins from loader implictly loads the loader_tags built-in
+        # - Injecting our tags using add_to_builtins ensures that Cactus tags don't require an import
+        from django.template.loader import add_to_builtins
         add_to_builtins('cactus.template_tags')
 
     def verify_path(self):
@@ -268,10 +271,7 @@ class Site(SiteCompatibilityLayer):
                     os.remove(path)
 
         # Render the pages to their output files
-        mapper = map
-        if self._parallel >= PARALLEL_AGGRESSIVE:
-            mapper = multiMap
-
+        mapper = multiMap if self._parallel >= PARALLEL_AGGRESSIVE else map_apply
         mapper(lambda p: p.build(), self.pages())
 
         self.plugin_manager.postBuild(self)
@@ -305,14 +305,14 @@ class Site(SiteCompatibilityLayer):
 
         if is_external(src_url):
             return src_url
-        
+
         for split_char in ["#", "?"]:
             if split_char in src_url:
                 src_url = src_url.split(split_char)[0]
-        
+
         resources_dict = dict((resource.link_url, resource) for resource in resources)
 
-        if resources_dict.has_key(src_url):
+        if src_url in resources_dict:
             return resources_dict[src_url].final_url
 
         return None
@@ -331,10 +331,7 @@ class Site(SiteCompatibilityLayer):
         """
         Build static files (pre-process, copy to static folder)
         """
-        mapper = multiMap
-        if self._parallel <= PARALLEL_DISABLED:
-            mapper = map
-
+        mapper = multiMap if self._parallel > PARALLEL_DISABLED else map_apply
         mapper(lambda s: s.build(), self.static())
 
     def pages(self):
@@ -348,11 +345,12 @@ class Site(SiteCompatibilityLayer):
         pages = []
 
         for path in fileList(self.page_path, relative=True):
-            
+
             if path.endswith("~"):
                 continue
 
-            if not self._page_cache.has_key(path):
+            if path not in self._page_cache:
+                logger.debug("Found page: %s", path)
                 self._page_cache[path] = Page(self, path)
 
             pages.append(self._page_cache[path])
@@ -360,7 +358,7 @@ class Site(SiteCompatibilityLayer):
         return pages
 
     def _rebuild_should_ignore(self, file_path):
-        
+
         file_relative_path = os.path.relpath(file_path, self.path)
 
         # Ignore anything in a hidden folder like .git
@@ -403,7 +401,7 @@ class Site(SiteCompatibilityLayer):
             # self._static = None
             self.build()
 
-        except Exception, e:
+        except Exception as e:
             logger.info('*** Error while building\n%s', e)
             traceback.print_exc(file=sys.stdout)
 
@@ -428,7 +426,7 @@ class Site(SiteCompatibilityLayer):
             self.server.reloadPage()
 
         self.listener.resume()
-    
+
     def serve(self, browser=True, port=8000):
         """
         Start a http server and rebuild on changes.
@@ -444,12 +442,12 @@ class Site(SiteCompatibilityLayer):
         logger.info('Type control-c to exit')
 
         os.chdir(self.build_path)
- 
+
         self.listener = Listener(self.path, self._rebuild, ignore=self._rebuild_should_ignore)
         self.listener.run()
 
         self.server = WebServer(self.build_path, port=port)
-        
+
         try:
             self.server.start()
 
@@ -461,19 +459,19 @@ class Site(SiteCompatibilityLayer):
             logger.info("Bye")
 
     def upload(self):
-        
+
         # Make sure we have internet
         if not internetWorking():
             logger.info('There does not seem to be internet here, check your connection')
             return
 
         logger.debug('Start upload')
-        
+
         self.build_path = self.deploy_path
 
         self.clean()
-        self.build() 
-        
+        self.build()
+
         self.plugin_manager.preDeploy(self)
 
         totalFiles = self.deployment_engine.deploy()
@@ -490,17 +488,17 @@ class Site(SiteCompatibilityLayer):
                      (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
         logger.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix
-    
-    
+
+
     def domain_setup(self):
-        
+
         # Make sure we have internet
         if not internetWorking():
             logger.info('There does not seem to be internet here, check your connection')
             return
-        
+
         self.deployment_engine.domain_setup()
         self.domain_list()
-    
+
     def domain_list(self):
         self.deployment_engine.domain_list()

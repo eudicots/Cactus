@@ -1,4 +1,5 @@
 #coding:utf-8
+from __future__ import print_function
 import logging
 
 from boto import s3
@@ -87,8 +88,8 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             )
         except S3CreateError:
             logger.info(
-                'Bucket with name %s already is used by someone else, '
-                'please try again with another name', self.bucket_name)
+                    'Bucket with name %s already is used by someone else, '
+                    'please try again with another name', self.bucket_name)
             return  #TODO: These should be exceptions
 
         # Configure S3 to use the index.html and error.html files for indexes and 404/500s.
@@ -101,6 +102,8 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
     def domain_setup(self):
         bucket_name = self.site.config.get(self.config_bucket_name)
+        bucket_name = self.site.config.get(self.config_bucket_name)
+
         if not bucket_name:
             logger.warning("No bucket name")
             return
@@ -110,7 +113,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
         try:
             domain.setup()
-        except DNSServerError, e:
+        except DNSServerError as e:
             logger.debug(e)
             ipc.signal("domain.setup.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
@@ -128,8 +131,8 @@ class S3DeploymentEngine(BaseDeploymentEngine):
 
         try:
             domain_list = domain.nameServers()
-        except DNSServerError, e:
-            print e
+        except DNSServerError as e:
+            print(e)
             ipc.signal("domain.list.error", {"errorKey": "AccountDisabled"})
             logger.error("Account cannot use route 53")
             logger.error(e)

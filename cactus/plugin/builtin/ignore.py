@@ -12,9 +12,9 @@ class IgnorePatternsPlugin(object):
         self.ignore_patterns = site.config.get('ignore', [])
 
     def preBuildPage(self, page, context, data):
-       if not self.accept_path(page.source_path):
-           page.discarded = True
-       return context, data
+        if not self.accept_path(page.source_path):
+            page.discarded = True
+        return context, data
 
 
     def preBuildStatic(self, static):

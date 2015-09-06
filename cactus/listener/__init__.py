@@ -1,10 +1,9 @@
-
-from polling import PollingListener
+from cactus.listener.polling import PollingListener
 
 Listener = PollingListener
 
 try:
     from mac import FSEventsListener
     Listener = FSEventsListener
-except ImportError, e:
-	pass
+except ImportError:
+    pass

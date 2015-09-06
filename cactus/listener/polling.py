@@ -4,6 +4,8 @@ import time
 import threading
 import logging
 
+import six
+
 from cactus.utils.filesystem import fileList
 from cactus.utils.network import retry
 
@@ -65,13 +67,13 @@ class PollingListener(object):
                 'changed': [],
             }
 
-            for k, v in oldChecksums.iteritems():
+            for k, v in six.iteritems(oldChecksums):
                 if k not in newChecksums:
                     result['deleted'].append(k)
                 elif v != newChecksums[k]:
                     result['changed'].append(k)
 
-            for k, v in newChecksums.iteritems():
+            for k, v in six.iteritems(newChecksums):
                 if k not in oldChecksums:
                     result['added'].append(k)
 

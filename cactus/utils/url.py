@@ -1,7 +1,6 @@
-import httplib
-import urllib
-import urlparse
 import os
+
+from six.moves import urllib, http_client
 
 from cactus.utils.helpers import CaseInsensitiveDict
 
@@ -10,10 +9,10 @@ EXTERNAL_SCHEMES = ("//", "http://", "https://", "mailto:")
 
 
 def getURLHeaders(url):
-    url = urlparse.urlparse(url)
+    url = urllib.parse.urlparse(url)
 
-    conn = httplib.HTTPConnection(url.netloc)
-    conn.request('HEAD', urllib.quote(url.path))
+    conn = http_client.HTTPConnection(url.netloc)
+    conn.request('HEAD', urllib.parse.quote(url.path))
 
     response = conn.getresponse()
 

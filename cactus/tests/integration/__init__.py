@@ -1,8 +1,9 @@
 #coding:utf-8
-import httplib
+from __future__ import unicode_literals
+
 import os
 import shutil
-import urlparse
+from six.moves import http_client, urllib
 
 from cactus.site import Site
 from cactus.plugin.manager import PluginManager
@@ -58,7 +59,7 @@ class BaseTestHTTPConnection(object):
     def close(self):
         pass
 
-    def request(self, method, url, body='', headers=None):
+    def request(self, method, url, body=b'', headers=None):
         """
         Send a full request at once
         """
@@ -70,7 +71,7 @@ class BaseTestHTTPConnection(object):
         """
         Create a new request, but add more things to it later
         """
-        self.current_request = TestHTTPRequest(self, method, url, '', {})
+        self.current_request = TestHTTPRequest(self, method, url, b'', {})
         self.current_request.state = "headers"
 
     def putheader(self, header, value):
@@ -146,15 +147,15 @@ class TestHTTPRequest(object):
         self.body = body
         self.headers = CaseInsensitiveDict(headers)
 
-        u = urlparse.urlparse(url)
+        u = urllib.parse.urlparse(url)
         self.path = u.path
-        self.params = urlparse.parse_qs(u.query, keep_blank_values=True)
+        self.params = urllib.parse.parse_qs(u.query, keep_blank_values=True)
 
 
 class TestHTTPResponse(object):
     def __init__(self, status, reason=None, headers=None, body=''):
         if reason is None:
-            reason = httplib.responses[status]
+            reason = http_client.responses[status]
         if headers is None:
             headers = {}
 

@@ -42,7 +42,7 @@ class S3File(BaseFile):
 
     @retry((S3ResponseError, socket.error, socket.timeout), tries=5, delay=1, backoff=2)
     def do_upload(self):
-        
+
         kbConstant = (1024 * 100)
 
         progressCallbackCount = len(self.payload()) / kbConstant
@@ -54,7 +54,7 @@ class S3File(BaseFile):
 
             self.total_bytes_uploaded = current
 
-            logger.info('+ %s upload progress %.1f%%', 
+            logger.info('+ %s upload progress %.1f%%',
                 self.url, float(current) / float(total) * 100)
 
             # logger.warning("deploy.progress %s", self.engine.progress())
@@ -69,7 +69,7 @@ class S3File(BaseFile):
             progressCallbackCount = None
 
         key = self.engine.bucket.new_key(self.url)
-        
+
         if self.content_type:
             key.content_type = self.content_type  # We don't it need before (local headers only)
         key.md5 = self.payload_checksum   # In case of a flaky network

@@ -4,7 +4,7 @@ import logging
 
 from cactus.deployment.file import BaseFile
 from cactus.utils.filesystem import fileList
-from cactus.utils.helpers import get_or_prompt, memoize
+from cactus.utils.helpers import get_or_prompt, memoize, map_apply
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 
 
@@ -34,10 +34,7 @@ class BaseDeploymentEngine(object):
         self.configure()
 
         # Upload all files concurrently in a thread pool
-        mapper = multiMap
-        if self.site._parallel <= PARALLEL_DISABLED:
-            mapper = map
-
+        mapper = multiMap if self.site._parallel > PARALLEL_DISABLED else map_apply
         totalFiles = mapper(lambda p: p.upload(), self.files())
 
         return totalFiles

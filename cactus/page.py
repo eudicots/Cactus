@@ -1,6 +1,8 @@
 import os
+import io
 import logging
-import urlparse
+
+from six.moves import urllib
 
 from django.template import Template, Context
 from cactus.compat.paths import PageCompatibilityLayer
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
-    
+
     discarded = False
 
     def __init__(self, site, source_path):
@@ -44,17 +46,17 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             self.build_path = self.source_path
 
     def is_html(self):
-        return urlparse.urlparse(self.source_path).path.endswith('.html')
+        return urllib.parse.urlparse(self.source_path).path.endswith('.html')
 
     def is_index(self):
-        return urlparse.urlparse(self.source_path).path.endswith('index.html')
+        return urllib.parse.urlparse(self.source_path).path.endswith('index.html')
 
     @property
     def absolute_final_url(self):
         """
         Return the absolute URL for this page in the final build
         """
-        return urlparse.urljoin(self.site.url, self.final_url)
+        return urllib.parse.urljoin(self.site.url, self.final_url)
 
     @property
     def full_source_path(self):
@@ -65,11 +67,12 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         return os.path.join(self.site.build_path, self.build_path)
 
     def data(self):
-        with open(self.full_source_path, 'rU') as f:
+        with io.FileIO(self.full_source_path, 'r') as f:
             try:
                 return f.read().decode('utf-8')
             except:
-                logger.warning("Template engine could not process page: %s", self.path)
+                logger.warning("Template engine could not process page: %s", self.path, exc_info=True)
+                return u""
 
     def context(self, data=None, extra=None):
         """
@@ -79,7 +82,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             extra = {}
 
         context = {'__CACTUS_CURRENT_PAGE__': self,}
-        
+
         page_context, data = self.parse_context(data or self.data())
 
         context.update(self.site.context())
@@ -120,7 +123,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             except OSError:
                 pass
 
-            with open(self.full_build_path, 'w') as f:
+            with io.FileIO(self.full_build_path, 'w') as f:
                 f.write(data.encode('utf-8'))
 
             self.site.plugin_manager.postBuildPage(self)

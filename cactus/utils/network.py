@@ -1,7 +1,7 @@
 #coding:utf-8
 import logging
 import time
-import urllib2
+from six.moves import urllib
 
 from cactus.utils.parallel import multiMap
 
@@ -37,9 +37,9 @@ def retry(exceptions, tries=4, delay=3, backoff=2):
 def internetWorking():
     def check(url):
         try:
-            response = urllib2.urlopen(url, timeout = 1)
+            response = urllib.request.urlopen(url, timeout = 1)
             return True
-        except urllib2.URLError as err:
+        except urllib.error.URLError as err:
             pass
         return False
 

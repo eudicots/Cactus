@@ -21,7 +21,7 @@ class struct_stat64(Structure):
         ('st_nlink', c_uint16),
         ('st_ino', c_uint64),
         ('st_uid', c_uint32),
-        ('st_gid', c_uint32), 
+        ('st_gid', c_uint32),
         ('st_rdev', c_int32),
         ('st_atimespec', struct_timespec),
         ('st_mtimespec', struct_timespec),
@@ -60,24 +60,24 @@ def createStream(real_path, link_path, callback):
 
 class FSEventsListener(object):
     def __init__(self, path, f, ignore = None):
-        
+
         logging.info("Using FSEvents")
-        
+
         self.path = path
         self.f = f
         self.ignore = ignore
-        
+
         self.observer = Observer()
         self.observer.daemon = True
 
         self._streams = []
         self._streams.append(createStream(self.path, path, self._update))
-        
+
         self._streamed_folders = [self.path]
 
         def add_stream(p):
             if p in self._streamed_folders:
-                return 
+                return
             self._streams.append(
                 createStream(p, file_path, self._update))
             self._streamed_folders.append(p)
@@ -89,7 +89,7 @@ class FSEventsListener(object):
                     add_stream(os.path.realpath(file_path))
                 else:
                     add_stream(os.path.dirname(os.path.realpath(file_path)))
-        
+
     def run(self):
         self.resume()
         self.observer.start()
@@ -102,17 +102,17 @@ class FSEventsListener(object):
 
     def resume(self):
         logging.debug("MacListener.RESUME")
-        
+
         for stream in self._streams:
             self.observer.schedule(stream)
 
     def stop():
         self.observer.stop()
-    
+
     def _update(self, event):
-        
+
         path = event.name
-        
+
         if self.ignore and self.ignore(path):
             return
 
@@ -123,7 +123,7 @@ class FSEventsListener(object):
             'deleted': [],
             'changed': [],
         }
-        
+
         if os.path.exists(path):
 
             seconds_since_created = int(time.time()) - get_creation_time(os.path.realpath(path))
@@ -134,5 +134,5 @@ class FSEventsListener(object):
                 result["changed"].append(path)
         else:
             result["deleted"].append(path)
-        
+
         self.f(result)

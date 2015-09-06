@@ -58,7 +58,7 @@ class External(object):
 
         try:
             self._run()
-        except OSError, e:
+        except OSError as e:
             msg = 'Could not call external processor {0}: {1}'.format(self.__class__.__name__, e)
 
             if self.critical:

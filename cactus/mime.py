@@ -17,7 +17,7 @@ MIMETYPE_MAP = {
 MIMETYPE_DEFAULT = 'application/octet-stream'
 
 def guess(path):
-    
+
     if not path:
         return MIMETYPE_DEFAULT
 

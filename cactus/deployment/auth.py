@@ -38,9 +38,9 @@ class BaseKeyringCredentialsManager(object):
         self.username = self.engine.site.config.get(self._username_config_entry)
         if self.username is None:
             self.username = self.engine.site.ui.prompt("Enter your {0}".format(self._username_display_name))
-        
+
         self.password = get_password(self._keyring_service, self.username)
-        
+
         if self.password is None:
             self.password = self.engine.site.ui.prompt("Enter your {0} (will not be echoed)".format(self._password_display_name),
                 prompt_fn=getpass.getpass)

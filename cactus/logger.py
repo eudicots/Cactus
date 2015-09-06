@@ -3,6 +3,9 @@ import logging
 import types
 import json
 
+import six
+
+
 class JsonFormatter(logging.Formatter):
 
     def format(self, record):
@@ -15,7 +18,7 @@ class JsonFormatter(logging.Formatter):
         # data["location"] = "%s/%s:%s" % (record.pathname, record.filename, record.lineno)
 
         if type(record.args) is types.DictType:
-            for k, v in record.args.iteritems():
+            for k, v in six.iteritems(record.args):
                 data[k] = v
 
         return json.dumps(data)
@@ -32,23 +35,22 @@ def setup_logging():
         handler.setFormatter(JsonFormatter())
 
     else:
-
         from colorlog import ColoredFormatter
-        
+
         log_level = logging.INFO
-        
+
         formatter = ColoredFormatter(
-            "%(log_color)s%(message)s",
-            datefmt=None,
-            reset=True,
-            log_colors={
+                "%(log_color)s%(message)s",
+                datefmt=None,
+                reset=True,
+                log_colors={
                     'DEBUG':    'white',
                     'INFO':     'white',
                     'WARNING':  'bold_yellow',
                     'ERROR':    'bold_red',
                     'CRITICAL': 'bold_red',
-            }
-        )
+                    }
+                )
 
         handler.setFormatter(formatter)
 

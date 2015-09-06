@@ -7,15 +7,15 @@ import unittest
 import zipfile
 import threading
 import random
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+
+from six.moves import BaseHTTPServer, SimpleHTTPServer, xrange
 
 from cactus.bootstrap import bootstrap
 from cactus.tests import BaseTestCase
 from cactus.utils.filesystem import fileList
 
 def ArchiveServerHandlerFactory(archive_path):
-    class ArchiveHandler(SimpleHTTPRequestHandler):
+    class ArchiveHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         def do_GET(self):
             """
             Reply with the archive.
@@ -90,7 +90,7 @@ class BaseTestArchiveBootstrap(object):
         port = random.choice(xrange(7000, 10000))
 
         server_address = ("127.0.0.1", port)
-        httpd = HTTPServer(server_address, ArchiveServerHandlerFactory(archive_path))
+        httpd = BaseHTTPServer.HTTPServer(server_address, ArchiveServerHandlerFactory(archive_path))
         t = threading.Thread(target=httpd.serve_forever)
         t.start()
 
