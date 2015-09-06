@@ -236,6 +236,13 @@ Cactus will auto generate a `robots.txt` and `sitemap.xml` file for you based on
 This will help bots to index your pages for Google and Bing for example.
 
 
+Python Versions
+---------------
+
+Cactus is tested on Python 2.6, 2.7, and 3.4. It probably works on Python 3.3
+as well.
+
+
 
 
 
