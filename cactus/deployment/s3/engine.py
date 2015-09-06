@@ -55,7 +55,8 @@ class S3DeploymentEngine(BaseDeploymentEngine):
                 aws_access_key_id=aws_access_key.strip(),
                 aws_secret_access_key=aws_secret_key.strip(),
                 is_secure=self._s3_is_secure, port=self._s3_port,
-                https_connection_factory=self._s3_https_connection_factory
+                https_connection_factory=self._s3_https_connection_factory,
+                calling_format='boto.s3.connection.OrdinaryCallingFormat'
         )
 
     def get_bucket(self):

@@ -21,6 +21,7 @@ class DeployTestCase(S3IntegrationTestCase):
         - Compressed (if useful) -- #TODO
         - Publicly readable
         """
+        bucket_name = self.site.config.get("aws-bucket-name")
 
         payload = "\x01" * 1000 + "\x02" * 1000  # Will compress very well
 
@@ -36,7 +37,7 @@ class DeployTestCase(S3IntegrationTestCase):
         put = puts[0]
 
         # What file did we upload?
-        self.assertEqual("/static/static.css", put.url)
+        self.assertEqual("/{0}/static/static.css".format(bucket_name), put.url)
 
         # Where the AWS standard headers correct?
         self.assertEqual("public-read", put.headers["x-amz-acl"])
@@ -49,7 +50,7 @@ class DeployTestCase(S3IntegrationTestCase):
         self.assertEqual("AWS 123", put.headers["authorization"].split(':')[0])
 
         # Did we talk to the right host?
-        self.assertEqual("website.s3.amazonaws.com", put.connection.host)
+        self.assertEqual("s3.amazonaws.com", put.connection.host)
 
         # Are the file contents correct?
         compressed = gzip.GzipFile(fileobj=StringIO.StringIO(put.body), mode="r")
