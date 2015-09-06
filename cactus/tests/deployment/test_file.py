@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 
 from cactus.tests.deployment import BaseDeploymentTestCase, DummyDeploymentEngine, DummySite, DummyUI, DummyFile
@@ -31,7 +31,6 @@ class FileChangedTestCase(BaseDeploymentTestCase):
 
         self.assertEqual(1, f.remote_changed_calls)
         self.assertEqual(0, f.do_upload_calls)
-
 
     def test_file_changed(self):
         """

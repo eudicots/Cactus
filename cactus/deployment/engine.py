@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import logging
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class BaseDeploymentEngine(object):
     FileClass = BaseFile
-    CredentialsManagerClass = None  #TODO: Define interface?
+    CredentialsManagerClass = None  # TODO: Define interface?
 
     config_bucket_name = None
     config_bucket_website = None
@@ -50,7 +50,6 @@ class BaseDeploymentEngine(object):
 
         return False
 
-
     @memoize
     def files(self):
         """
@@ -83,7 +82,6 @@ class BaseDeploymentEngine(object):
 
         return total_bytes_uploaded / total_bytes
 
-
     def get_connection(self):
         if self._connection is None:
             self._connection = self._create_connection()
@@ -111,7 +109,7 @@ class BaseDeploymentEngine(object):
         """
         Should return the Website endpoint for the bucket.
         """
-        #TODO: Normalize -- rackspace gives an URL, but Amazon gives a domain name
+        # TODO: Normalize -- rackspace gives an URL, but Amazon gives a domain name
         raise NotImplementedError()
 
     def configure(self):
@@ -122,11 +120,11 @@ class BaseDeploymentEngine(object):
         """
         self.bucket_name = get_or_prompt(self.site.config, self.config_bucket_name, self.site.ui.prompt_normalized,
                                          "Enter the bucket name (e.g.: www.example.com)")
-        #TODO: Validate this is not empty
+        # TODO: Validate this is not empty
 
-        self.bucket = self.get_bucket()  #TODO: Catch auth errors
+        self.bucket = self.get_bucket()  # TODO: Catch auth errors
 
-        #TODO: Make this all integrated and consistent!
+        # TODO: Make this all integrated and consistent!
         created = False
         if self.bucket is None:
             if self.site.ui.prompt_yes_no("Bucket does not exist. Create it?"):
@@ -142,7 +140,7 @@ class BaseDeploymentEngine(object):
         self.credentials_manager.save_credentials()
 
         if created:
-            logger.info('Bucket %s was created with website endpoint %s',  self.bucket_name, website_endpoint)
+            logger.info('Bucket %s was created with website endpoint %s', self.bucket_name, website_endpoint)
 
         logger.info("Bucket Name: %s", self.bucket_name)
         logger.info("Bucket Web Endpoint: %s", website_endpoint)

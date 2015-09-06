@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from cactus.tests import SiteTestCase
 
 
@@ -34,7 +34,7 @@ class TestCompatibility(SiteTestCase):
         page = self.site.pages()[0]
         self.assertEqual(page.source_path, page.path)
 
-    def test_page_paths_keys_exist(self):
+    def test_page_static_paths_keys_exist(self):
         static = self.site.static()[0]
 
         for old_key in ('full', 'full-build'):

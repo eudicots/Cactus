@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import io
 import base64
 import socket
@@ -16,7 +16,7 @@ class GCSFile(BaseFile):
         Note: we don't set the etag, since the GCS API does not accept what we set
         """
         metadata = {
-            "acl": [{"entity": "allUsers", "role": "READER"},],
+            "acl": [{"entity": "allUsers", "role": "READER"}],
             "md5Hash": base64.b64encode(self.payload_checksum.decode('hex')),
             "contentType": self.content_type,  # Given twice...
             "cacheControl": unicode(self.cache_control)  # That's what GCS will return
@@ -44,7 +44,7 @@ class GCSFile(BaseFile):
                 return True
             raise
 
-        ignore_metadata = ["acl"] # We can't control what we'll retrieve TODO: do the best we can do!
+        ignore_metadata = ["acl"]  # We can't control what we'll retrieve TODO: do the best we can do!
 
         for k, v in self.get_metadata().items():
             if k not in ignore_metadata and remote_metadata.get(k) != v:

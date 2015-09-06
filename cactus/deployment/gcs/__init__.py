@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 CACTUS_CLIENT_ID = "985227088845.apps.googleusercontent.com"
 CACTUS_CLIENT_SECRET = "6PzihpbiC33TW-GIagIRH0t_"

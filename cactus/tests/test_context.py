@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 from cactus.tests import SiteTestCase
 
@@ -19,7 +19,7 @@ class TestSiteContext(SiteTestCase):
         self.site.build()
 
     def get_config_for_test(self):
-        return {"context": {"a":"1", "b":True}}
+        return {"context": {"a": "1", "b": True}}
 
     def test_site_context(self):
         """
@@ -39,6 +39,7 @@ class TestSiteContext(SiteTestCase):
 
         self.assertEqual(a, "1")
         self.assertEqual(b, "True")
+
 
 class TestCustomPageContext(SiteTestCase):
     """

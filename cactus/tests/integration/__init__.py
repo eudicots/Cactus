@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from __future__ import unicode_literals
 
 import os
@@ -28,8 +28,11 @@ class IntegrationTestCase(BaseTestCase):
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
 
-        self.site = Site(self.path,
-            PluginManagerClass=DummyPluginManager, DeploymentEngineClass=self.get_deployment_engine_class())
+        self.site = Site(
+            self.path,
+            PluginManagerClass=DummyPluginManager,
+            DeploymentEngineClass=self.get_deployment_engine_class()
+        )
         self.site._parallel = PARALLEL_DISABLED
 
         self.site.config.set('site-url', 'http://example.com/')
@@ -106,7 +109,6 @@ class BaseTestHTTPConnection(object):
         :param request: The request to handle
         """
         raise NotImplementedError("handle_request should be implemented by subclasses")
-
 
     def set_debuglevel(self, level):
         pass

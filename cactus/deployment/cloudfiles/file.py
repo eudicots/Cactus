@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 from cactus.deployment.file import BaseFile
 from cactus.utils.helpers import CaseInsensitiveDict
@@ -7,7 +7,7 @@ from cactus.utils.helpers import CaseInsensitiveDict
 class CloudFilesFile(BaseFile):
     def remote_changed(self):
         obj = self.engine.bucket.get_object(self.url)
-        #TODO: Headers
+        # TODO: Headers
         return obj.etag != self.payload_checksum
 
     def get_headers(self):

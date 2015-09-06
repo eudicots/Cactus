@@ -1,4 +1,5 @@
-#coding:utf-8
+# coding:utf-8
+
 
 # Define no-op plugin methods
 def preBuildPage(page, context, data):
@@ -53,6 +54,7 @@ def preBuild(site):
     :returns: None
     """
     pass
+
 
 def postBuild(site):
     """

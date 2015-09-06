@@ -1,7 +1,6 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import logging
-import tempfile
 import shutil
 
 from cactus.compat.paths import StaticCompatibilityLayer
@@ -11,6 +10,7 @@ from cactus.utils.url import ResourceURLHelperMixin
 
 
 logger = logging.getLogger(__name__)
+
 
 class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
     """
@@ -65,7 +65,6 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         if not hasattr(self.site, "_static_file_cache"):
             self.site._static_file_cache = {}
 
-
     @property
     def full_source_path(self):
         if self.relative_to is not None:
@@ -85,7 +84,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         """
         Path where the file should be built to.
         """
-        return  os.path.join(self.src_dir, self.final_name)
+        return os.path.join(self.src_dir, self.final_name)
 
     @property
     def full_build_path(self):
@@ -100,7 +99,6 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         Path where the file should be referenced in built files
         """
         return "/{0}".format(self.build_path)
-
 
     def run_externals(self, current_extension, pre_path, externals):
         """
@@ -151,7 +149,7 @@ class Static(StaticCompatibilityLayer, ResourceURLHelperMixin):
         return pre_path
 
     def discard(self):
-        self.discarded = True  #TODO: Warn on usage of the static!
+        self.discarded = True  # TODO: Warn on usage of the static!
 
     def build(self):
 

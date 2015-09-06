@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import logging
 import socket
 
@@ -54,8 +54,7 @@ class S3File(BaseFile):
 
             self.total_bytes_uploaded = current
 
-            logger.info('+ %s upload progress %.1f%%',
-                self.url, float(current) / float(total) * 100)
+            logger.info('+ %s upload progress %.1f%%', self.url, float(current) / float(total) * 100)
 
             # logger.warning("deploy.progress %s", self.engine.progress())
 
@@ -73,8 +72,10 @@ class S3File(BaseFile):
         if self.content_type:
             key.content_type = self.content_type  # We don't it need before (local headers only)
         key.md5 = self.payload_checksum   # In case of a flaky network
-        key.set_contents_from_string(self.payload(),
+        key.set_contents_from_string(
+            self.payload(),
             headers=self.get_headers(),
             policy='public-read',
             cb=progressCallback,
-            num_cb=progressCallbackCount)
+            num_cb=progressCallbackCount
+        )

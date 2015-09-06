@@ -1,8 +1,4 @@
-import os
 import sys
-import pipes
-import shutil
-import subprocess
 
 from cactus.utils.filesystem import fileList
 

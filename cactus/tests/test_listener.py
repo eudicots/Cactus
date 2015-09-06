@@ -2,7 +2,6 @@ import os
 import tempfile
 import unittest
 import threading
-import time
 
 from cactus.listener import PollingListener
 
@@ -11,10 +10,12 @@ try:
 except ImportError:
     FSEventsListener = None
 
+
 def sleep(s):
     # time.sleep(s)
     event = threading.Event()
     event.wait(timeout=s)
+
 
 class PollingListenerTest(unittest.TestCase):
 
@@ -22,7 +23,6 @@ class PollingListenerTest(unittest.TestCase):
         self._callbacks = []
         self._callback_count = 0
         self.lock = threading.Lock()
-
 
     def _callback(self, event):
         with self.lock:
@@ -112,10 +112,7 @@ class PollingListenerTest(unittest.TestCase):
         self.assertEqual(len(self.callbacks), 2)
         self.assertEqual(self.callbacks[1]["deleted"], [path_file])
 
-
     def testSymlinkFile(self):
-
-
         path_watch = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
         path_linked = os.path.realpath(os.path.join(tempfile.mkdtemp(), "linked"))
 

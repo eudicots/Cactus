@@ -1,9 +1,10 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import getpass
 import keyring
 
 is_desktop_app = os.environ.get("DESKTOPAPP", None) not in ["", None]
+
 
 def get_password(service, account):
 
@@ -13,6 +14,7 @@ def get_password(service, account):
         return os.environ.get("SECRET_KEY", None)
 
     return keyring.get_password(service, account)
+
 
 def set_password(service, account, password):
 
@@ -30,7 +32,7 @@ class BaseKeyringCredentialsManager(object):
     _password_display_name = "Password"
 
     def __init__(self, engine):
-        self.engine = engine  #TODO: Don't we want only UI and config?
+        self.engine = engine  # TODO: Don't we want only UI and config?
         self.username = None
         self.password = None
 
@@ -42,8 +44,9 @@ class BaseKeyringCredentialsManager(object):
         self.password = get_password(self._keyring_service, self.username)
 
         if self.password is None:
-            self.password = self.engine.site.ui.prompt("Enter your {0} (will not be echoed)".format(self._password_display_name),
-                prompt_fn=getpass.getpass)
+            self.password = self.engine.site.ui.prompt(
+                "Enter your {0} (will not be echoed)".format(self._password_display_name), prompt_fn=getpass.getpass
+            )
 
         return self.username, self.password
 

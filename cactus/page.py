@@ -7,7 +7,6 @@ from six.moves import urllib
 from django.template import Template, Context
 from cactus.compat.paths import PageCompatibilityLayer
 from cactus.utils.url import ResourceURLHelperMixin
-from cactus.utils.helpers import memoize
 
 
 logger = logging.getLogger(__name__)
@@ -81,7 +80,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         if extra is None:
             extra = {}
 
-        context = {'__CACTUS_CURRENT_PAGE__': self,}
+        context = {'__CACTUS_CURRENT_PAGE__': self}
 
         page_context, data = self.parse_context(data or self.data())
 
@@ -112,11 +111,12 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         """
         Save the rendered output to the output file.
         """
-        logger.debug('Building {0} --> {1}'.format(self.source_path, self.final_url))  #TODO: Fix inconsistency w/ static
-        data = self.render()  #TODO: This calls preBuild indirectly. Not great.
+        # TODO: Fix inconsistency w/ static:
+        logger.debug('Building {0} --> {1}'.format(self.source_path, self.final_url))
+        # TODO: This calls preBuild indirectly. Not great:
+        data = self.render()
 
         if not self.discarded:
-
             # Make sure a folder for the output path exists
             try:
                 os.makedirs(os.path.dirname(self.full_build_path))

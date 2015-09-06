@@ -1,7 +1,4 @@
-import os
-import sys
 import logging
-import threading
 import mimetypes
 import itertools
 
@@ -10,11 +7,12 @@ import tornado.websocket
 import tornado.ioloop
 import tornado.web
 
-logger = logging.getLogger(__name__)
-
 from cactus import mime
 
+logger = logging.getLogger(__name__)
+
 TEMPLATES = {}
+
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
@@ -28,6 +26,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, msg):
         pass
+
 
 class StaticHandler(tornado.web.StaticFileHandler):
 
@@ -72,11 +71,13 @@ class StaticHandler(tornado.web.StaticFileHandler):
     def log_request(self, handler):
         pass
 
+
 class StaticSingleFileHandler(tornado.web.RequestHandler):
 
     def get(self):
         self.set_header("Content-Type", mime.guess("file.js"))
         self.finish(TEMPLATES["js"])
+
 
 class WebServer(object):
 
@@ -95,7 +96,7 @@ class WebServer(object):
             (r'/_cactus/ws', WebSocketHandler),
             (r'/_cactus/cactus.js', StaticSingleFileHandler),
             (r'/(.*)', StaticHandler, {'path': self.path, "default_filename": "index.html"}),
-            ], template_path=self.path)
+        ], template_path=self.path)
 
         self.application.log_request = lambda x: self._log_request(x)
 
@@ -112,7 +113,6 @@ class WebServer(object):
             log_method = logging.error
 
         log_method("%d %s %s", handler.get_status(), handler.request.method, handler.request.uri)
-
 
     def start(self):
 

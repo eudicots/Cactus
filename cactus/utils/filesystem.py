@@ -9,6 +9,7 @@ from cactus.utils.helpers import map_apply
 def mkdtemp():
     return tempfile.mkdtemp(dir=os.environ.get("TEMPDIR"))
 
+
 def fileList(paths, relative=False, folders=False):
     """
     Generate a recursive list of files from a given path.

@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import shutil
 import tarfile
@@ -13,6 +13,7 @@ from six.moves import BaseHTTPServer, SimpleHTTPServer, xrange
 from cactus.bootstrap import bootstrap
 from cactus.tests import BaseTestCase
 from cactus.utils.filesystem import fileList
+
 
 def ArchiveServerHandlerFactory(archive_path):
     class ArchiveHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):

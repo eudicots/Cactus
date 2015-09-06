@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from cactus.tests.integration.s3 import S3TestHTTPConnection, S3IntegrationTestCase
 
 
@@ -18,8 +18,10 @@ class WorkflowTestCase(S3IntegrationTestCase):
         self.site.upload()
 
         self.assertEqual(bucket_name, self.site.config.get('aws-bucket-name'))
-        self.assertEqual("{0}.s3-website-us-east-1.amazonaws.com".format(bucket_name),
-            self.site.config.get('aws-bucket-website'))  # See the response we send (US standard).
+        self.assertEqual(
+            "{0}.s3-website-us-east-1.amazonaws.com".format(bucket_name),
+            self.site.config.get('aws-bucket-website')
+        )  # See the response we send (US standard).
 
     def test_no_bucket_create(self):
         """
@@ -51,8 +53,10 @@ class WorkflowTestCase(S3IntegrationTestCase):
         self.assertEqual("GET", retrieve_location.method)
 
         # Check that we updated our config
-        self.assertEqual("{0}.s3-website-us-east-1.amazonaws.com".format(bucket_name),
-            self.site.config.get('aws-bucket-website'))  # See the response we send (US standard).
+        self.assertEqual(
+            "{0}.s3-website-us-east-1.amazonaws.com".format(bucket_name),
+            self.site.config.get('aws-bucket-website')
+        )  # See the response we send (US standard).
 
     def test_credentials_manager(self):
         """

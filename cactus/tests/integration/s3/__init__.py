@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import re
 
@@ -51,7 +51,7 @@ class S3TestHTTPConnection(BaseTestHTTPConnection):
         return self._serve_data("location.xml")
 
     def put_object(self, req):
-        return TestHTTPResponse(200, headers={"ETag":'"{0}"'.format(checksum(req.body))})
+        return TestHTTPResponse(200, headers={"ETag": '"{0}"'.format(checksum(req.body))})
 
 
 class S3IntegrationTestCase(IntegrationTestCase):

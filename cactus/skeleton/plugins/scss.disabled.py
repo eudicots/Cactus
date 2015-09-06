@@ -1,8 +1,4 @@
-import os
 import sys
-import pipes
-import shutil
-import subprocess
 
 from cactus.utils.filesystem import fileList
 
@@ -12,7 +8,6 @@ This plugin uses pyScss to translate sass files to css
 Install:
 
 sudo easy_install pyScss
-
 """
 
 try:

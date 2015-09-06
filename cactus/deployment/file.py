@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import io
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class BaseFile(object):
     DEFAULT_CACHE_EXPIRATION = 60 * 60 * 24 * 7  # One week
-    MAX_CACHE_EXPIRATION = 60 * 60 * 24 * 365 # 1 Year (for cached)
+    MAX_CACHE_EXPIRATION = 60 * 60 * 24 * 365  # 1 Year (for cached)
     PROGRESS_MIN_SIZE = (1024 * 1024) / 2  # 521 kb
 
     def __init__(self, engine, path):
@@ -85,7 +85,7 @@ class BaseFile(object):
         Lazy implementation (needs to be fixed); we'll re-fingerprint the file
         and check whether that happens to be in the filename.
         """
-        #TODO: FixMe!
+        # TODO: FixMe!
         return checksum(self.data()) in self.path
 
     def extension(self):

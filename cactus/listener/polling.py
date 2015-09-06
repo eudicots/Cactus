@@ -1,16 +1,16 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import time
 import threading
-import logging
 
 import six
 
 from cactus.utils.filesystem import fileList
 from cactus.utils.network import retry
 
+
 class PollingListener(object):
-    def __init__(self, path, f, delay = .5, ignore = None):
+    def __init__(self, path, f, delay=.5, ignore=None):
         self.path = path
         self.f = f
         self.delay = delay
@@ -55,7 +55,7 @@ class PollingListener(object):
         while True:
             self._run()
 
-    @retry((Exception,), tries = 5, delay = 0.5)
+    @retry((Exception,), tries=5, delay=0.5)
     def _run(self):
         if not self._pause:
             oldChecksums = self._checksums

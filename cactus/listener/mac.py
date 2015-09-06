@@ -1,18 +1,19 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import time
-import threading
 import logging
 
-from ctypes import *
+# FIXME: this is bad:
+from ctypes import *  # noqa
 
 from cactus.utils.filesystem import fileList
-from cactus.utils.network import retry
 
 from fsevents import Observer, Stream
 
+
 class struct_timespec(Structure):
     _fields_ = [('tv_sec', c_long), ('tv_nsec', c_long)]
+
 
 class struct_stat64(Structure):
     _fields_ = [
@@ -33,6 +34,7 @@ class struct_stat64(Structure):
 libc = CDLL('libc.dylib')
 stat64 = libc.stat64
 stat64.argtypes = [c_char_p, POINTER(struct_stat64)]
+
 
 # OS-X only function to get actual creation date
 def get_creation_time(path):
@@ -59,7 +61,7 @@ def createStream(real_path, link_path, callback):
 
 
 class FSEventsListener(object):
-    def __init__(self, path, f, ignore = None):
+    def __init__(self, path, f, ignore=None):
 
         logging.info("Using FSEvents")
 

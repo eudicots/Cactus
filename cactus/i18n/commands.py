@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from django.core.management.commands.makemessages import Command as MakeMessagesCommand
 from django.core.management.commands.compilemessages import Command as CompileMessagesCommand
 
@@ -27,6 +27,7 @@ DEFAULT_MAKEMESSAGES_KWARGS = {
     "keep_pot": False
 }
 
+
 def WrappedCommandFactory(wrapped, default_kwargs=None):
     # Compose a list of kwargs for future runs
     base_kwargs = {}
@@ -48,7 +49,6 @@ def WrappedCommandFactory(wrapped, default_kwargs=None):
             cmd = wrapped()
             with chdir(self.site.path):
                 cmd.execute(**kwargs)  # May raise an exception depending on gettext install.
-
 
     return WrappedCommand
 

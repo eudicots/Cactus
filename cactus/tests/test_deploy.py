@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from __future__ import unicode_literals
 
 import os
@@ -34,18 +34,18 @@ class TestFile(BaseFile):
     def do_upload(self):
         pass
 
+
 class TestDeploymentEngine(BaseDeploymentEngine):
     CredentialsManagerClass = lambda self, engine: None  # We never use it here
 
 
-#TODO: Retest this with a custom deployment engine or file class
+# TODO: Retest this with a custom deployment engine or file class
 
 class TestDeployFile(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.build_path = os.path.join(self.test_dir, '.build')
         os.mkdir(self.build_path)
-
 
         self.site = mock.MagicMock()
         self.site.plugin_manager = PluginManager(self.site, [])
@@ -55,7 +55,6 @@ class TestDeployFile(unittest.TestCase):
         self.site.config.set("site-url", "http://example.com")
 
         self.engine = TestDeploymentEngine(self.site)
-
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
@@ -69,7 +68,7 @@ class TestDeployFile(unittest.TestCase):
         h = hashlib.md5(content.encode('utf-8')).hexdigest()
         filename = "file.{0}.data".format(h)
 
-        with open(os.path.join(self.build_path,  filename), "w") as f:
+        with open(os.path.join(self.build_path, filename), "w") as f:
             f.write(content)
 
         p = TestHeadersPlugin()
@@ -81,7 +80,6 @@ class TestDeployFile(unittest.TestCase):
         f.upload()
 
         self.assertEqual(p.file.cache_control, f.MAX_CACHE_EXPIRATION)
-
 
         # Test a non fingerprinted file
         with open(os.path.join(self.build_path, "123.html"), "w") as f:

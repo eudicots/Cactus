@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 
 from cactus.tests import SiteTestCase
@@ -41,7 +41,7 @@ class TestPageTags(SiteTestCase):
             self.assertEqual(f.read(), "0")
 
     def test_pretty_urls(self):
-        self.site.prettify_urls = True  #TOOD: should be read at runtime
+        self.site.prettify_urls = True  # TODO: should be read at runtime
         self.site.build()
 
         with open(os.path.join(self.site.build_path, "test", "index.html")) as f:
@@ -87,6 +87,7 @@ class TestStatic(SiteTestCase):
         with open(os.path.join(self.site.build_path, "test.html")) as f:
             self.assertEqual(f.read(), expected)
 
+
 class TestStaticLookup(SiteTestCase):
     """
     {% static %} should auto append static
@@ -123,6 +124,7 @@ class TestStaticLookup(SiteTestCase):
         with(open(os.path.join(self.site.build_path, "test.html"))) as f:
             self.assertEqual(f.read(), "/notexists.js")
 
+
 class TestStaticRelative(SiteTestCase):
 
     def doit(self, static_subdir, page_subdir, page_contents, output):
@@ -130,11 +132,15 @@ class TestStaticRelative(SiteTestCase):
         full_static_subdir = os.path.join(self.site.static_path, static_subdir)
         full_page_subdir = os.path.join(self.site.page_path, page_subdir)
 
-        try: os.makedirs(full_static_subdir)
-        except: pass
+        try:
+            os.makedirs(full_static_subdir)
+        except:
+            pass
 
-        try: os.makedirs(full_page_subdir)
-        except: pass
+        try:
+            os.makedirs(full_page_subdir)
+        except:
+            pass
 
         # Write the static file
         with open(os.path.join(full_static_subdir, "test.js"), "w") as f:
@@ -158,8 +164,6 @@ class TestStaticRelative(SiteTestCase):
     #     self.doit("", "docs", "{% static 'static/test.js' %}", "../static/test.js")
 
 
-
-
 class TestMarkdown(SiteTestCase):
 
     def test_tags(self):
@@ -175,6 +179,7 @@ class TestMarkdown(SiteTestCase):
 
             with open(os.path.join(self.site.build_path, "test.html")) as f:
                 self.assertEqual(f.read(), "<h%s>Hello</h%s>\n" % (level, level))
+
 
 class TestConfig(SiteTestCase):
 

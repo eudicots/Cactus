@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from __future__ import print_function
 from six.moves import urllib
 from six.moves import input
@@ -24,7 +24,7 @@ def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again", promp
     :rtype: str
     """
     if coerce_fn is None:
-        coerce_fn = lambda x:x
+        coerce_fn = lambda x: x
 
     while 1:
         r = prompt_fn(q + " > ")
@@ -34,7 +34,9 @@ def prompt(q, coerce_fn=None, error_msg="Invalid input, please try again", promp
             print(e.reason or error_msg)
 
 
-_yes_no_mapping = {"y":True, "n":False}
+_yes_no_mapping = {"y": True, "n": False}
+
+
 def _yes_no_coerce_fn(r):
     """
     :rtype: bool
@@ -43,6 +45,7 @@ def _yes_no_coerce_fn(r):
         return _yes_no_mapping[r.lower()]
     except KeyError:
         raise InvalidInput("Please enter `y` or `n`")
+
 
 def prompt_yes_no(q):
     """
@@ -58,6 +61,7 @@ def _normalized_coerce_fn(r):
     :rtype: str
     """
     return r.lower().strip()
+
 
 def prompt_normalized(q):
     """
@@ -83,7 +87,7 @@ def _url_coerce_fn(r):
         raise InvalidInput("Do not leave trailing elements")
 
     if not p.path:
-        r += "/"  #TODO: Fixme once the sitemap is fixed!
+        r += "/"  # TODO: Fixme once the sitemap is fixed!
     r = r.lower()
 
     return r

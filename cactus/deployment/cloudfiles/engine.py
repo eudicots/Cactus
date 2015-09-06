@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 import pyrax
 
@@ -27,7 +27,7 @@ class CloudFilesDeploymentEngine(BaseDeploymentEngine):
             return None
 
     def create_bucket(self):
-        #TODO: Handle errors
+        # TODO: Handle errors
         conn = self.get_connection()
         container = conn.create_container(self.bucket_name)
         container.set_web_index_page(self._index_page)

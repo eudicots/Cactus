@@ -1,4 +1,5 @@
-#coding:utf-8
+# coding:utf-8
+
 
 class TestPluginMethod(object):
     def __init__(self, fn=None):
