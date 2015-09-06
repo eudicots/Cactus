@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from cactus.tests.integration.s3 import S3IntegrationTestCase
 
 

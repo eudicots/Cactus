@@ -5,7 +5,7 @@ import six
 
 
 class CaseInsensitiveDict(dict):
-    def __init__(self, obj = None, **kwargs):
+    def __init__(self, obj=None, **kwargs):
         if obj is not None:
             if isinstance(obj, dict):
                 for k, v in obj.items():

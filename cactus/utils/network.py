@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import logging
 import time
 from six.moves import urllib
@@ -37,9 +37,9 @@ def retry(exceptions, tries=4, delay=3, backoff=2):
 def internetWorking():
     def check(url):
         try:
-            response = urllib.request.urlopen(url, timeout = 1)
+            urllib.request.urlopen(url, timeout=1)
             return True
-        except urllib.error.URLError as err:
+        except urllib.error.URLError:
             pass
         return False
 

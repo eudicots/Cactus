@@ -17,11 +17,12 @@ class JsonFormatter(logging.Formatter):
         data["msg"] = logging.Formatter.format(self, record)
         # data["location"] = "%s/%s:%s" % (record.pathname, record.filename, record.lineno)
 
-        if type(record.args) is types.DictType:
+        if isinstance(record.args, types.DictType):
             for k, v in six.iteritems(record.args):
                 data[k] = v
 
         return json.dumps(data)
+
 
 def setup_logging():
 
@@ -30,7 +31,6 @@ def setup_logging():
 
     if os.environ.get('DESKTOPAPP'):
         log_level = logging.INFO
-        log_format = '%(message)s'
 
         handler.setFormatter(JsonFormatter())
 
@@ -40,17 +40,17 @@ def setup_logging():
         log_level = logging.INFO
 
         formatter = ColoredFormatter(
-                "%(log_color)s%(message)s",
-                datefmt=None,
-                reset=True,
-                log_colors={
-                    'DEBUG':    'white',
-                    'INFO':     'white',
-                    'WARNING':  'bold_yellow',
-                    'ERROR':    'bold_red',
-                    'CRITICAL': 'bold_red',
-                    }
-                )
+            "%(log_color)s%(message)s",
+            datefmt=None,
+            reset=True,
+            log_colors={
+                'DEBUG': 'white',
+                'INFO': 'white',
+                'WARNING': 'bold_yellow',
+                'ERROR': 'bold_red',
+                'CRITICAL': 'bold_red',
+            }
+        )
 
         handler.setFormatter(formatter)
 

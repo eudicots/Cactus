@@ -1,4 +1,3 @@
-import sys
 import os
 import codecs
 
@@ -12,25 +11,26 @@ from cactus.utils.filesystem import fileList
 
 CLEANUP = []
 
+
 def preBuild(site):
     for path in fileList(site.paths['pages']):
 
-        #only file ends with haml
+        # only file ends with haml
         if not path.endswith('.haml'):
             continue
 
-        #read the lines
+        # read the lines
         haml_lines = codecs.open(path, 'r', encoding='utf-8').read().splitlines()
 
-        #compile haml to html
+        # compile haml to html
         compiler = Compiler()
         output = compiler.process_lines(haml_lines)
 
-        #replace path
+        # replace path
         outPath = path.replace('.haml', '.html')
 
-        #write the html file
-        with open(outPath,'w') as f:
+        # write the html file
+        with open(outPath, 'w') as f:
             f.write(output)
 
         CLEANUP.append(outPath)

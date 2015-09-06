@@ -1,6 +1,5 @@
-#coding:utf-8
+# coding:utf-8
 import os
-import sys
 import imp
 import logging
 
@@ -83,7 +82,6 @@ class CustomPluginsLoader(BasePluginsLoader):
                 if custom_plugin:
                     self._initialize_plugin(custom_plugin)
                     plugins.append(custom_plugin)
-
 
         return plugins
 

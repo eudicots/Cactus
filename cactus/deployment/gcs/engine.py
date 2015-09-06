@@ -1,5 +1,4 @@
-#coding:utf-8
-import logging
+# coding:utf-8
 import threading
 
 import httplib2
@@ -9,7 +8,6 @@ import apiclient.errors
 from cactus.deployment.engine import BaseDeploymentEngine
 from cactus.deployment.gcs.auth import GCSCredentialsManager
 from cactus.deployment.gcs.file import GCSFile
-from cactus.exceptions import InvalidCredentials
 
 
 class GCSDeploymentEngine(BaseDeploymentEngine):
@@ -20,7 +18,6 @@ class GCSDeploymentEngine(BaseDeploymentEngine):
     config_bucket_website = "gcs-bucket-website"
 
     _HTTPClass = httplib2.Http
-
 
     def __init__(self, *args, **kwargs):
         super(GCSDeploymentEngine, self).__init__(*args, **kwargs)
@@ -66,7 +63,7 @@ class GCSDeploymentEngine(BaseDeploymentEngine):
                 "mainPageSuffix": self._index_page,
                 "notFoundPage": self._error_page,
             },
-            "defaultObjectAcl": [public_acl], #TODO: Not required actually
+            "defaultObjectAcl": [public_acl],  # TODO: Not required actually
         }
 
         self.get_connection().buckets().insert(project=project_id, body=body).execute()

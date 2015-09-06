@@ -2,9 +2,7 @@ import os
 import sys
 import shutil
 import logging
-import webbrowser
 import traceback
-import socket
 
 import django.conf
 
@@ -29,9 +27,7 @@ from cactus.utils.url import is_external
 from cactus.page import Page
 from cactus.static import Static
 from cactus.listener import Listener
-# from cactus.server import Server, RequestHandler
 from cactus.server import WebServer
-from cactus.browser import browserReload, browserReloadCSS
 from cactus.utils import ipc
 
 
@@ -42,11 +38,11 @@ DEFAULT_PROVIDER = "aws"
 
 class Site(SiteCompatibilityLayer):
     _path = None
-    _parallel = PARALLEL_CONSERVATIVE  #TODO: Test me
+    _parallel = PARALLEL_CONSERVATIVE  # TODO: Test me
     _static = None
 
     def __init__(self, path, config_paths=None, ui=None,
-        PluginManagerClass=None, ExternalManagerClass=None, DeploymentEngineClass=None):
+                 PluginManagerClass=None, ExternalManagerClass=None, DeploymentEngineClass=None):
 
         # Load the config engine
         if config_paths is None:
@@ -69,16 +65,14 @@ class Site(SiteCompatibilityLayer):
         self.ui = ui
 
         if PluginManagerClass is None:
-            PluginManagerClass =  PluginManager
-        self.plugin_manager = PluginManagerClass(self,
-            [
-                CustomPluginsLoader(self.plugin_path),  # User plugins
-                ObjectsPluginLoader([   # Builtin plugins
-                    ContextPlugin(), CacheDurationPlugin(),
-                    IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
-                ])
-            ]
-        )
+            PluginManagerClass = PluginManager
+        self.plugin_manager = PluginManagerClass(self, [
+            CustomPluginsLoader(self.plugin_path),  # User plugins
+            ObjectsPluginLoader([   # Builtin plugins
+                ContextPlugin(), CacheDurationPlugin(),
+                IgnorePatternsPlugin(), PageContextCompatibilityPlugin(),
+            ])
+        ])
 
         if ExternalManagerClass is None:
             ExternalManagerClass = ExternalManager
@@ -88,7 +82,7 @@ class Site(SiteCompatibilityLayer):
             hosting_provider = self.config.get("provider", DEFAULT_PROVIDER)
             DeploymentEngineClass = get_deployment_engine_class(hosting_provider)
             assert DeploymentEngineClass is not None, \
-                   "Could not load Deployment for Provider: {0}".format(hosting_provider)
+                "Could not load Deployment for Provider: {0}".format(hosting_provider)
         self.deployment_engine = DeploymentEngineClass(self)
 
         # Load Django settings
@@ -107,8 +101,8 @@ class Site(SiteCompatibilityLayer):
         """
         We need the site url to generate the sitemap.
         """
-        #TODO: Make a "required" option in the config.
-        #TODO: Use URL tags in the sitemap
+        # TODO: Make a "required" option in the config.
+        # TODO: Use URL tags in the sitemap
 
         # if self.url is None:
         #     self.url = self.ui.prompt_url("Enter your site URL (e.g. http://example.com/)")
@@ -130,7 +124,6 @@ class Site(SiteCompatibilityLayer):
         self.script_path = os.path.join(os.getcwd(), __file__)
         self.locale_path = os.path.join(path, "locale")
 
-
     def setup(self):
         """
         Configure django to use both our template and pages folder as locations
@@ -146,7 +139,7 @@ class Site(SiteCompatibilityLayer):
             settings.update({
                 "USE_I18N": True,
                 "USE_L10N": False,
-                "LANGUAGE_CODE":  self.locale,
+                "LANGUAGE_CODE": self.locale,
                 "LOCALE_PATHS": [self.locale_path],
             })
 
@@ -178,7 +171,7 @@ class Site(SiteCompatibilityLayer):
         """
         ctx = {
             'CACTUS': {
-                'pages':  [p for p in self.pages() if p.is_html()],
+                'pages': [p for p in self.pages() if p.is_html()],
                 'static': [p for p in self.static()]
             },
             '__CACTUS_SITE__': self,
@@ -204,7 +197,7 @@ class Site(SiteCompatibilityLayer):
         """
         Remove pre-existing compiled language files, and re-compile.
         """
-        #TODO: Make this cleaner
+        # TODO: Make this cleaner
         mo_path = os.path.join(self.locale_path, self.locale, "LC_MESSAGES", "django.mo")
         try:
             os.remove(mo_path)
@@ -236,8 +229,8 @@ class Site(SiteCompatibilityLayer):
         # Reset the static content
         self._static = None
 
-        #TODO: Facility to reset the site, and reload config.
-        #TODO: Currently, we can't build a site instance multiple times
+        # TODO: Facility to reset the site, and reload config.
+        # TODO: Currently, we can't build a site instance multiple times
         self.plugin_manager.reload()  # Reload in case we're running on the server # We're still loading twice!
 
         self.plugin_manager.preBuild(self)
@@ -253,7 +246,7 @@ class Site(SiteCompatibilityLayer):
         # Prepare translations
         if self.locale is not None:
             self.compile_messages()
-            #TODO: Check the command actually completes (msgfmt might not be on the PATH!)
+            # TODO: Check the command actually completes (msgfmt might not be on the PATH!)
 
         # Copy the static files
         self.buildStatic()
@@ -316,7 +309,6 @@ class Site(SiteCompatibilityLayer):
             return resources_dict[src_url].final_url
 
         return None
-
 
     def _get_url(self, src_url, resources):
         return self._get_resource(src_url, resources)
@@ -391,10 +383,10 @@ class Site(SiteCompatibilityLayer):
         self.listener.pause()
 
         try:
-            #TODO: Fix this.
-            #TODO: The static files should handle collection of their static folder on their own
-            #TODO: The static files should not run everything on __init__
-            #TODO: Only rebuild static files that changed
+            # TODO: Fix this.
+            # TODO: The static files should handle collection of their static folder on their own
+            # TODO: The static files should not run everything on __init__
+            # TODO: Only rebuild static files that changed
             # We need to "clear out" the list of static first. Otherwise, processors will not run again
             # They run on __init__ to run before fingerprinting, and the "built" static files themselves,
             # which are in a temporary folder, have been deleted already!
@@ -412,13 +404,14 @@ class Site(SiteCompatibilityLayer):
         # Mostly we just refresh the browser except when there are just css changes,
         # then we reload the css in place.
 
-        local_hosts = [
-            "http://127.0.0.1:%s" % self._port,
-            "http://localhost:%s" % self._port,
-            "http://0.0.0.0:%s" % self._port
-        ]
+        # local_hosts = [
+        #     "http://127.0.0.1:%s" % self._port,
+        #     "http://localhost:%s" % self._port,
+        #     "http://0.0.0.0:%s" % self._port
+        # ]
 
-        if len(changes["added"]) == 0 and len(changes["deleted"]) == 0 and changed_file_extension.issubset(reload_css_file_extenstions):
+        if (len(changes["added"]) == 0 and len(changes["deleted"]) == 0 and
+                changed_file_extension.issubset(reload_css_file_extenstions)):
             # browserReloadCSS(local_hosts)
             self.server.reloadCSS()
         else:
@@ -483,12 +476,11 @@ class Site(SiteCompatibilityLayer):
         logger.info('\nDone\n')
 
         logger.info('%s total files with a size of %s' %
-                     (len(totalFiles), fileSize(sum([r['size'] for r in totalFiles]))))
+                    (len(totalFiles), fileSize(sum([r['size'] for r in totalFiles]))))
         logger.info('%s changed files with a size of %s' %
-                     (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
+                    (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
-        logger.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix
-
+        logger.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  # TODO: Fix
 
     def domain_setup(self):
 

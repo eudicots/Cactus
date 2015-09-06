@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import shutil
 import tempfile
@@ -6,6 +6,7 @@ import unittest2 as unittest
 
 from cactus.config.file import ConfigFile
 from cactus.config.router import ConfigRouter
+
 
 class TestConfigRouter(unittest.TestCase):
     """
@@ -97,8 +98,8 @@ class TestConfigRouter(unittest.TestCase):
         """
         Test that we support nested config for context
         """
-        self.conf1.set("context", {"k1":"v1"})
-        self.conf2.set("context", {"k2":"v2"})
+        self.conf1.set("context", {"k1": "v1"})
+        self.conf2.set("context", {"k2": "v2"})
         self.conf1.write()
         self.conf2.write()
 

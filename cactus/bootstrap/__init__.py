@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import logging
 
 from cactus.bootstrap.archive import bootstrap_from_archive

@@ -1,9 +1,8 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import gzip
 import io
 import hashlib
-import subprocess
 
 from six import text_type, BytesIO
 
@@ -36,6 +35,7 @@ def fileSize(num):
             return "%.0f%s" % (num, x)
         num /= 1024.0
 
+
 def calculate_file_checksum(path):
     """
     Calculate the MD5 sum for a file:
@@ -50,6 +50,7 @@ def calculate_file_checksum(path):
                 break
             hasher.update(buf)
     return hasher.hexdigest()
+
 
 def file_changed_hash(path):
     info = os.stat(path)

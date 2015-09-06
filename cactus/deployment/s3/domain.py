@@ -81,8 +81,6 @@ class AWSBucket(object):
         return self.bucket().get_website_endpoint()
 
 
-
-
 class AWSDomain(object):
 
     def __init__(self, accessKey, secretKey, domain):
@@ -118,9 +116,6 @@ class AWSDomain(object):
     def isNakedDomain(self):
         pass
 
-    def records(self):
-        pass
-
     def createHostedZone(self):
 
         logging.info('Creating hosted zone for %s', self.fullDomain)
@@ -128,7 +123,7 @@ class AWSDomain(object):
         self.connection.create_hosted_zone(self.fullDomain)
 
     def hostedZone(self):
-        if not "hostedZone" in self._cache:
+        if "hostedZone" not in self._cache:
             hostedZone = self.connection.get_hosted_zone_by_name(self.fullDomain)
             if not hostedZone:
                 return
@@ -146,17 +141,17 @@ class AWSDomain(object):
     def records(self):
         return self.connection.get_all_rrsets(self.id)
 
-    def createRecord(self, name, recordType, values, ttl=60*60*3):
+    def createRecord(self, name, recordType, values, ttl=60 * 60 * 3):
         self._changeRecord("CREATE", name, recordType, values, ttl)
 
-    def deleteRecord(self, name, recordType, values, ttl=60*60*3):
+    def deleteRecord(self, name, recordType, values, ttl=60 * 60 * 3):
         self._changeRecord("DELETE", name, recordType, values, ttl)
 
     def _changeRecord(self, change, name, recordType, values, ttl):
 
         logging.info('%s record %s:%s in zone %s', change, name, recordType, self.domain)
 
-        if type(values) is not types.ListType:
+        if not isinstance(values, types.ListType):
             values = [values]
 
         changes = ResourceRecordSets(self.connection, self.id)
@@ -166,7 +161,6 @@ class AWSDomain(object):
             change.add_value(value)
 
         changes.commit()
-
 
     def createAlias(self, name, recordType, aliasHostedZoneId, aliasDNSName, identifier=None, weight=None, comment=""):
         self._changeAlias("CREATE", name, recordType, aliasHostedZoneId, aliasDNSName, identifier, weight, comment)
@@ -183,16 +177,13 @@ class AWSDomain(object):
         change.set_alias(aliasHostedZoneId, aliasDNSName)
         changes.commit()
 
-
     def delete(self, record):
 
         if record.alias_dns_name:
-            self.deleteAlias(record.name, record.type,
-                record.alias_hosted_zone_id, record.alias_dns_name,
-                identifier=record.identifier, weight=record.weight)
+            self.deleteAlias(record.name, record.type, record.alias_hosted_zone_id, record.alias_dns_name,
+                             identifier=record.identifier, weight=record.weight)
         else:
-            self.deleteRecord(record.name, record.type, record.resource_records,
-                ttl=record.ttl)
+            self.deleteRecord(record.name, record.type, record.resource_records, ttl=record.ttl)
 
     def pointRootToBucket(self):
 
@@ -208,7 +199,6 @@ class AWSDomain(object):
 
         # Create new root domain record that points to the bucket
         self.createAlias(self.dnsDomain, "A", HOSTED_ZONES[endpointDomain], endpointDomain)
-
 
     def setupRedirect(self):
 

@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from __future__ import print_function
 import logging
 
@@ -9,7 +9,7 @@ from boto.route53.exception import DNSServerError
 from cactus.deployment.engine import BaseDeploymentEngine
 from cactus.deployment.s3.auth import AWSCredentialsManager
 from cactus.deployment.s3.file import S3File
-from cactus.deployment.s3.domain import AWSBucket, AWSDomain
+from cactus.deployment.s3.domain import AWSDomain
 from cactus.exceptions import InvalidCredentials
 from cactus.utils import ipc
 
@@ -29,7 +29,6 @@ class S3DeploymentEngine(BaseDeploymentEngine):
     _s3_port = 443
     _s3_is_secure = True
     _s3_https_connection_factory = None
-
 
     def _get_buckets(self):
         """
@@ -52,12 +51,14 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         """
         aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
 
-        return s3.connect_to_region(self._get_bucket_region(),
-                aws_access_key_id=aws_access_key.strip(),
-                aws_secret_access_key=aws_secret_key.strip(),
-                is_secure=self._s3_is_secure, port=self._s3_port,
-                https_connection_factory=self._s3_https_connection_factory,
-                calling_format='boto.s3.connection.OrdinaryCallingFormat'
+        return s3.connect_to_region(
+            self._get_bucket_region(),
+            aws_access_key_id=aws_access_key.strip(),
+            aws_secret_access_key=aws_secret_key.strip(),
+            is_secure=self._s3_is_secure,
+            port=self._s3_port,
+            https_connection_factory=self._s3_https_connection_factory,
+            calling_format='boto.s3.connection.OrdinaryCallingFormat'
         )
 
     def get_bucket(self):
@@ -83,14 +84,11 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             else:
                 region = self._get_bucket_region()
 
-            bucket = self.get_connection().create_bucket(self.bucket_name,
-                policy='public-read', location=region
-            )
+            bucket = self.get_connection().create_bucket(self.bucket_name, policy='public-read', location=region)
         except S3CreateError:
-            logger.info(
-                    'Bucket with name %s already is used by someone else, '
-                    'please try again with another name', self.bucket_name)
-            return  #TODO: These should be exceptions
+            logger.info('Bucket with name %s already is used by someone else, '
+                        'please try again with another name', self.bucket_name)
+            return  # TODO: These should be exceptions
 
         # Configure S3 to use the index.html and error.html files for indexes and 404/500s.
         bucket.configure_website(self._index_page, self._error_page)
@@ -144,7 +142,6 @@ class S3DeploymentEngine(BaseDeploymentEngine):
                 logger.info(domain)
         else:
             logger.error("No name servers configured")
-
 
     def domain_remove(self):
         pass

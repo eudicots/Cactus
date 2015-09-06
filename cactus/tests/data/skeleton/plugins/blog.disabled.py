@@ -1,14 +1,14 @@
-import os
 import datetime
 import logging
+
+from django.template import Context
+from django.template.loader import get_template
+from django.template.loader_tags import BlockNode, ExtendsNode
 
 ORDER = 999
 POSTS_PATH = 'posts/'
 POSTS = []
 
-from django.template import Context
-from django.template.loader import get_template
-from django.template.loader_tags import BlockNode, ExtendsNode
 
 def getNode(template, context=Context(), name='subject'):
     """
@@ -40,7 +40,7 @@ def preBuild(site):
             # and throw a warning if we're missing it.
             def find(name):
                 c = page.context()
-                if not name in c:
+                if name not in c:
                     logging.info("Missing info '%s' for post %s" % (name, page.path))
                     return ''
                 return c.get(name, '')
@@ -69,8 +69,10 @@ def preBuild(site):
     indexes = xrange(0, len(POSTS))
 
     for i in indexes:
-        if i+1 in indexes: POSTS[i]['prevPost'] = POSTS[i+1]
-        if i-1 in indexes: POSTS[i]['nextPost'] = POSTS[i-1]
+        if i + 1 in indexes:
+            POSTS[i]['prevPost'] = POSTS[i + 1]
+        if i - 1 in indexes:
+            POSTS[i]['nextPost'] = POSTS[i - 1]
 
 
 def preBuildPage(site, page, context, data):

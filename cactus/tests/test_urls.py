@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 
 from cactus.tests import SiteTestCase
@@ -16,7 +16,6 @@ class TestPrettyURLS(SiteTestCase):
         os.makedirs(subfolder)
         open(os.path.join(subfolder, 'index.html'), 'w')
         open(os.path.join(subfolder, 'page.html'), 'w')
-
 
         self.site.build()
 

@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import shutil
 
@@ -27,7 +27,8 @@ class TestSite(SiteTestCase):
                 self.site.get_url_for_static('/static/css/style.css')[1:],  # Strip the initial /
                 self.site.get_url_for_static('/static/images/favicon.ico')[1:],  # Strip the initial /
                 self.site.get_url_for_static('/static/js/main.js')[1:],  # Strip the initial /
-        ]))
+            ])
+        )
 
     def testRenderPage(self):
         """
@@ -38,7 +39,6 @@ class TestSite(SiteTestCase):
             os.path.join('cactus', 'tests', 'data', "test-in.html"),
             os.path.join(self.path, 'pages', 'test.html')
         )
-
 
         self.site.build()
 
@@ -82,7 +82,6 @@ class TestSite(SiteTestCase):
         """
         static = '/static/css/style.css'
         page = "{%% static '%s' %%}" % static
-
 
         with open(os.path.join(self.path, 'pages', 'staticpage.html'), "w") as dst:
             dst.write(page)

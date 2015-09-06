@@ -1,6 +1,5 @@
 import socket
-import logging
 
-from cactus.site import Site
+from cactus.site import Site  # noqa
 
 socket.setdefaulttimeout(5)

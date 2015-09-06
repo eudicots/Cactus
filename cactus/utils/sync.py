@@ -6,11 +6,11 @@ import os
 import filecmp
 import shutil
 
-from stat import *
-
 
 class Dispatch:
-    ''' This class represents a synchronization object '''
+    """
+    This class represents a synchronization object.
+    """
 
     def __init__(self, name=''):
         self.name = name
@@ -22,22 +22,28 @@ class Dispatch:
         self.node_list.append(node)
 
     def compare_nodes(self):
-        ''' This method takes the nodes in the node_list and compares them '''
+        """
+        This method takes the nodes in the node_list and compares them.
+        """
         nodeListLength = len(self.node_list)
         # For each node in the list
         for node in self.node_list:
             # If the list has another item after it, compare them
-            if self.node_list.index(node) < len(self.node_list) - 1:
+            if self.node_list.index(node) < nodeListLength - 1:
                 node2 = self.node_list[self.node_list.index(node) + 1]
-                print('\nComparing Node ' + str(self.node_list.index(node)) + ' and Node ' + str(self.node_list.index(node) + 1) + ':')
+                print('\nComparing Node {0} and Node {1}:'.format(
+                    str(self.node_list.index(node)),
+                    str(self.node_list.index(node) + 1)
+                ))
                 # Passes the two root directories of the nodes to the recursive _compare_directories.
                 self._compare_directories(node.root_path, node2.root_path)
 
     def _compare_directories(self, left, right):
-        ''' This method compares directories. If there is a common directory, the
-            algorithm must compare what is inside of the directory by calling this
-            recursively.
-        '''
+        """
+        This method compares directories. If there is a common directory, the
+        algorithm must compare what is inside of the directory by calling this
+        recursively.
+        """
         comparison = filecmp.dircmp(left, right)
         if comparison.common_dirs:
             for d in comparison.common_dirs:
@@ -60,21 +66,33 @@ class Dispatch:
         self._copy(right_newer, right, left)
 
     def _copy(self, file_list, src, dest):
-        ''' This method copies a list of files from a source node to a destination node '''
+        """
+        This method copies a list of files from a source node to a destination node.
+        """
         for f in file_list:
             srcpath = os.path.join(src, os.path.basename(f))
             if os.path.isdir(srcpath):
                 shutil.copytree(srcpath, os.path.join(dest, os.path.basename(f)))
                 self.folder_copied_count = self.folder_copied_count + 1
-                print('Copied directory \"' + os.path.basename(srcpath) + '\" from \"' + os.path.dirname(srcpath) + '\" to \"' + dest + '\"')
+                print('Copied directory "{0}" from "{1}" to "{2}"'.format(
+                    os.path.basename(srcpath),
+                    os.path.dirname(srcpath),
+                    dest
+                ))
             else:
                 shutil.copy2(srcpath, dest)
                 self.file_copied_count = self.file_copied_count + 1
-                print('Copied \"' + os.path.basename(srcpath) + '\" from \"' + os.path.dirname(srcpath) + '\" to \"' + dest + '\"')
+                print('Copied "{0}" from "{1}" to "{2}"'.format(
+                    os.path.basename(srcpath),
+                    os.path.dirname(srcpath),
+                    dest
+                ))
 
 
 class Node:
-    ''' This class represents a node in a dispatch synchronization '''
+    """
+    This class represents a node in a dispatch synchronization.
+    """
     def __init__(self, path, name=''):
         self.name = name
         self.root_path = os.path.abspath(path)

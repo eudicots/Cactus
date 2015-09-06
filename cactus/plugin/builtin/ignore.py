@@ -1,5 +1,6 @@
-#coding:utf-8
+# coding:utf-8
 import fnmatch
+
 
 class IgnorePatternsPlugin(object):
     """
@@ -15,7 +16,6 @@ class IgnorePatternsPlugin(object):
         if not self.accept_path(page.source_path):
             page.discarded = True
         return context, data
-
 
     def preBuildStatic(self, static):
         if not self.accept_path(static.path):

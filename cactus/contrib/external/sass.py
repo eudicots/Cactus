@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import subprocess
 import platform
 
@@ -12,11 +12,11 @@ if _platform in ("Darwin", "Linux"):
 elif _platform in ("Windows",):
     SASS_PATH = "sass.bat"
 else:
-    #TODO: Java?
+    # TODO: Java?
     pass
 
 
-#TODO: Extra args to make "nice to read" output (the optimizer will fix it)
+# TODO: Extra args to make "nice to read" output (the optimizer will fix it)
 class SASSProcessor(External):
     supported_extensions = ('sass',)
     output_extension = 'css'

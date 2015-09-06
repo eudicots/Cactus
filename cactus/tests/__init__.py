@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import tempfile
 import shutil
@@ -10,7 +10,6 @@ from cactus import Site
 from cactus.bootstrap import bootstrap
 from cactus.config.router import ConfigRouter
 from cactus.utils.parallel import PARALLEL_DISABLED
-
 
 
 class BaseTestCase(unittest.TestCase):
@@ -51,7 +50,6 @@ class BaseTestCase(unittest.TestCase):
             pass
         else:
             self.fail("File exists: {0}".format(path))
-
 
 
 class SiteTestCase(BaseTestCase):

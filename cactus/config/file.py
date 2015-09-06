@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import json
 import logging
 
@@ -33,7 +33,7 @@ class ConfigFile(object):
         except IOError:
             logger.warning('No configuration file found at {0}'.format(self.path))
             self._data = {}
-        except Exception: #TODO: Specify
+        except Exception:  # TODO: Specify
             logger.error('Unable to load configuration at {0}'.format(self.path))
             self._data = {}
 

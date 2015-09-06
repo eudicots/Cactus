@@ -45,13 +45,12 @@ class External(object):
     discard = status_setter(DISCARDED)
     discarded = status_getter(DISCARDED)
 
-
     def run(self):
         """
         Return True in the case we succeed in running, False otherwise.
         This means we can use several processors and have one or the other work.
         """
-        if not self.extension in self.supported_extensions:
+        if self.extension not in self.supported_extensions:
             return self.refuse()
 
         self.accept()  # We accept now so the run method can discard

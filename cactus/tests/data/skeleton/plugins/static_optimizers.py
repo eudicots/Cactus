@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from cactus.contrib.external.closure import ClosureJSOptimizer
 from cactus.contrib.external.yui import YUICSSOptimizer
 

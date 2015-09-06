@@ -23,7 +23,7 @@ sudo pip install glue
 """
 
 try:
-    import glue
+    import glue  # noqa
 except Exception as e:
     sys.exit('Could not use glue: %s\nMaybe install: sudo easy_install glue' % e)
 
@@ -33,9 +33,11 @@ CSS_PATH = 'static/css/sprites'
 
 KEY = '_PREV_CHECKSUM'
 
+
 def checksum(path):
     command = 'md5 `find %s -type f`' % pipes.quote(IMG_PATH)
     return subprocess.check_output(command, shell=True)
+
 
 def preBuild(site):
 

@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import shutil
 from cactus.static.external.exceptions import ExternalFailure
@@ -59,7 +59,7 @@ class DummyOptimizer(DummyExternal):
 
 class SourceOptimizer(DummyExternal):
     supported_extensions = ('src',)
-    output_extension =  'src'
+    output_extension = 'src'
 
 
 class UnrelatedOptimizer(DummyExternal):
@@ -70,7 +70,6 @@ class UnrelatedOptimizer(DummyExternal):
 class DiscardingProcessor(DummyProc):
     def _run(self):
         self.discard()
-
 
 
 class TestStaticExternals(SiteTestCase):

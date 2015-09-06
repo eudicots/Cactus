@@ -2,11 +2,12 @@ from __future__ import print_function
 import os
 
 INFO = {
-        'name': 'Version Updater',
-        'description': 'Add a version to /versions.txt after each deploy'
+    'name': 'Version Updater',
+    'description': 'Add a version to /versions.txt after each deploy'
 }
 
 # Set up extra django template tags
+
 
 def templateTags():
     pass
@@ -56,6 +57,7 @@ def preDeploy(site):
 
     data += u'\t'.join([datetime.datetime.now().isoformat(), platform.node(), getpass.getuser()])
     codecs.open(os.path.join(site.paths['build'], 'versions.txt'), 'w', 'utf8').write(data)
+
 
 def postDeploy(site):
     pass

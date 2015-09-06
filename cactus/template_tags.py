@@ -1,9 +1,8 @@
-#coding:utf-8
+# coding:utf-8
 import os
 import logging
 
 from django.template.base import Library
-from django.conf import settings
 from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 
@@ -11,12 +10,13 @@ logger = logging.getLogger(__name__)
 
 register = Library()
 
+
 def static(context, link_url):
     """
     Get the path for a static file in the Cactus build.
     We'll need this because paths can be rewritten with fingerprinting.
     """
-    #TODO: Support URLS that don't start with `/static/`
+    # TODO: Support URLS that don't start with `/static/`
     site = context['__CACTUS_SITE__']
     page = context['__CACTUS_CURRENT_PAGE__']
 
@@ -27,8 +27,8 @@ def static(context, link_url):
         # For the static method we check if we need to add a prefix
         helper_keys = [
             "/static/" + link_url,
-            "/static"  + link_url,
-            "static/"  + link_url
+            "/static" + link_url,
+            "static/" + link_url
         ]
 
         for helper_key in helper_keys:
@@ -43,6 +43,7 @@ def static(context, link_url):
         url = link_url
 
     return url
+
 
 def url(context, link_url):
     """
@@ -69,6 +70,7 @@ def url(context, link_url):
         return url.rsplit('index.html', 1)[0]
 
     return url
+
 
 def config(context, key):
     """
@@ -100,6 +102,7 @@ def if_current_page(context, link_url, positive=True, negative=False):
     page = context['__CACTUS_CURRENT_PAGE__']
 
     return positive if page.link_url == link_url else negative
+
 
 @register.filter(is_safe=True)
 def markdown(value, arg=''):

@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 from cactus.deployment.auth import BaseKeyringCredentialsManager
 
 

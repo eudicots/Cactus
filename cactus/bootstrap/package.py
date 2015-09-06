@@ -1,6 +1,6 @@
-#coding:utf-8
+# coding:utf-8
 import os
-import posixpath #TODO: Windows?
+import posixpath  # TODO: Windows?
 import logging
 import pkg_resources
 

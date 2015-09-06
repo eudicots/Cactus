@@ -15,7 +15,7 @@ if "uninstall" in sys.argv:
 
     def run(command):
         try:
-            return subprocess.check_output(command, shell = True).strip()
+            return subprocess.check_output(command, shell=True).strip()
         except subprocess.CalledProcessError:
             pass
 
@@ -50,6 +50,7 @@ if "install" in sys.argv or "bdist_egg" in sys.argv:
             sys.stderr.write("  sudo rm %s" % p2)
         sys.exit()
 
+
 # From Django
 
 def fullsplit(path, result=None):
@@ -67,7 +68,8 @@ def fullsplit(path, result=None):
     return fullsplit(head, [tail] + result)
 
 
-EXCLUDE_FROM_PACKAGES = ['cactus.skeleton',]
+EXCLUDE_FROM_PACKAGES = ['cactus.skeleton']
+
 
 def is_package(package_name):
     for pkg in EXCLUDE_FROM_PACKAGES:

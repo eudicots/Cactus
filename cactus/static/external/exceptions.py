@@ -1,10 +1,11 @@
-#coding:utf-8
+# coding:utf-8
+
 
 class InvalidExternal(Exception):
     """
     Raised when an External caused an illegal operation.
     """
-    #TODO: Tests
+    # TODO: Tests
 
 
 class ExternalFailure(Exception):

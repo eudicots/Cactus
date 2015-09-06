@@ -63,7 +63,7 @@ s4 = """
 
             // Don't reload external urls, they likely did not change
             if (
-                link.href.indexOf('127.0.0.1') == -1 && 
+                link.href.indexOf('127.0.0.1') == -1 &&
                 link.href.indexOf('localhost') == -1 &&
                 link.href.indexOf('0.0.0.0') == -1) {
                 continue;
@@ -83,6 +83,7 @@ s4 = """
 })()
 """
 
+
 def applescript(input):
 
     # Bail if we're not on mac os for now
@@ -92,15 +93,18 @@ def applescript(input):
     command = "osascript<<END%sEND" % input
 
     try:
-        return subprocess.check_call(command,
+        return subprocess.check_call(
+            command,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            shell=True)
-    except Exception as e:
+            shell=True
+        )
+    except Exception:
         pass
 
     # return subprocess.check_output(command, shell=True)
+
 
 def _insertJavascript(urlMatch, js):
 
@@ -116,14 +120,18 @@ def _insertJavascript(urlMatch, js):
     if apps['Safari']:
         applescript(s2 % (urlMatch, js))
 
+
 def browserReload(url):
     _insertJavascript(url, s3)
+
 
 def browserReloadCSS(url):
     _insertJavascript(url, s4)
 
+
 def appsRunning(l):
     psdata = subprocess.check_output(['ps aux'], shell=True)
     retval = {}
-    for app in l: retval[app] = app in psdata
+    for app in l:
+        retval[app] = app in psdata
     return retval

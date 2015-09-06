@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import shutil
 import tempfile
 import unittest2 as unittest
@@ -22,7 +22,7 @@ class DummyUI(object):
         self.asked_create = 0
 
     def prompt_normalized(self, q):
-        self.asked_name +=1
+        self.asked_name += 1
         return self.bucket_name
 
     def prompt_yes_no(self, q):
