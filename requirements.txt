@@ -1,4 +1,5 @@
-Django==1.5.5
+Django>=1.6,<1.7
+django-markwhat>=1.4,<2
 markdown2
 argparse
 keyring
