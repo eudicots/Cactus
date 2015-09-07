@@ -23,7 +23,6 @@ class Dispatch:
 
     def compare_nodes(self):
         ''' This method takes the nodes in the node_list and compares them '''
-        nodeListLength = len(self.node_list)
         # For each node in the list
         for node in self.node_list:
             # If the list has another item after it, compare them
