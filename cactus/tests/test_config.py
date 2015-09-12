@@ -13,7 +13,7 @@ class TestConfigRouter(unittest.TestCase):
     """
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
-        self.path = os.path.join(self.test_dir, 'test')
+        self.path = os.path.join(self.test_dir, "test")
         os.mkdir(self.path)
 
         self.path1 = os.path.join(self.path, "conf1.json")
@@ -123,3 +123,34 @@ class TestConfigRouter(unittest.TestCase):
 
         with open(self.path1) as f:
             self.assertEqual("canary", f.read())
+
+    def test_missing_file(self):
+        """
+        Test that we don't throw on a missing file, and that the configuration
+        remains in a consistent state.
+        """
+        wrong_path = os.path.join(self.path, "does_not_exist.json")
+
+        self.conf1.set("context", {"k1":"v1"})
+        self.conf1.write()
+
+        router = ConfigRouter([wrong_path, self.path1])
+
+        self.assertEqual(router.get("context").get("k1"), "v1")
+
+    def test_broken_file(self):
+        """
+        Test that we don't throw on a broken file, and that the configuration
+        remains in a consistent state.
+        """
+
+        with open(self.path1, "w") as f:
+            f.write("{broken}")
+
+        self.conf2.set("context", {"k1":"v1"})
+        self.conf2.write()
+
+        router = ConfigRouter([self.path1, self.path2])
+
+        self.assertEqual(router.get("context").get("k1"), "v1")
+
