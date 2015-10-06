@@ -1,7 +1,8 @@
 #coding:utf-8
 import unittest2 as unittest
 
-from cactus import ui, Site
+from cactus.site import Site
+from cactus import ui
 
 from cactus.tests import BaseTestCase
 
