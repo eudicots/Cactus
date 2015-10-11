@@ -1,9 +1,14 @@
+import logging
+
+
 from cactus.listener.polling import PollingListener
 
-Listener = PollingListener
+
+logger = logging.getLogger(__name__)
+
 
 try:
-    from mac import FSEventsListener
-    Listener = FSEventsListener
-except ImportError:
-    pass
+    from cactus.listener.mac import FSEventsListener as Listener
+except (ImportError, OSError):
+    logger.debug("Failed to load FSEventsListener, falling back to PollingListener", exc_info=True)
+    Listener = PollingListener

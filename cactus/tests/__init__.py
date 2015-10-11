@@ -6,7 +6,7 @@ import unittest2 as unittest
 
 import django.conf
 
-from cactus import Site
+from cactus.site import Site
 from cactus.bootstrap import bootstrap
 from cactus.config.router import ConfigRouter
 from cactus.utils.parallel import PARALLEL_DISABLED
