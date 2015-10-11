@@ -30,7 +30,7 @@ class struct_stat64(Structure):
         ('dont_care', c_uint64 * 8)
     ]
 
-libc = CDLL('libc.dylib')
+libc = CDLL('/usr/lib/libc.dylib')
 stat64 = libc.stat64
 stat64.argtypes = [c_char_p, POINTER(struct_stat64)]
 
