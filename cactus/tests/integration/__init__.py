@@ -10,7 +10,7 @@ from cactus.plugin.manager import PluginManager
 from cactus.utils.helpers import CaseInsensitiveDict
 from cactus.utils.parallel import PARALLEL_DISABLED
 
-from cactus.tests import BaseTestCase
+from cactus.tests import BaseBootstrappedTestCase
 
 
 class DummyPluginManager(PluginManager):
@@ -24,7 +24,7 @@ class DummyPluginManager(PluginManager):
         pass
 
 
-class IntegrationTestCase(BaseTestCase):
+class IntegrationTestCase(BaseBootstrappedTestCase):
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
 
