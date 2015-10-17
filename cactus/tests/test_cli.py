@@ -43,10 +43,10 @@ class CliTestCase(BaseTestCase):
         )
 
         # Test that we prompt to move stuff out of the way
-        _, _, _ = run_cli(["create", self.path], "n\n")
+        _, _, _ = run_cli(["create", "-v", self.path], "n\n")
         self.assertEqual(1, len(os.listdir(self.test_dir)))
 
-        _, _, _ = run_cli(["create", self.path], "y\n")
+        _, _, _ = run_cli(["create", "-q", self.path], "y\n")
         self.assertEqual(2, len(os.listdir(self.test_dir)))
 
         # Test that we can build the resulting site

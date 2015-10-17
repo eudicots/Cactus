@@ -73,42 +73,30 @@ class CactusCli(object):
         site.domain_list()
 
 
-def main():
-    # Basic UI and logging setup
-    colorama.init()
-
-    from cactus.logger import setup_logging
-    setup_logging()
-
-    # Network setup that we should presumably remove. Leaving it there for now:
-    # it's a better place than cactus/__init__.py
-
-    socket.setdefaulttimeout(5)
+def main(args):
     cli = CactusCli()
 
-    # Actual CLI parsing
+    # CLI parsing
+    parser = argparse.ArgumentParser(description="Build and deploy static websites using Django templates.")
 
-    parser = argparse.ArgumentParser(description = "Build and deploy static websites using Django templates.")
-
-    subparsers = parser.add_subparsers(title = 'subcommands', description = 'Valid subcommands',
-                                       help = 'Select a command to run.')
+    subparsers = parser.add_subparsers(title='subcommands', description='Valid subcommands',
+                                       help='Select a command to run.')
 
     parser_create = subparsers.add_parser('create', help='Create a new project')
     parser_create.add_argument('path', help='The path where the new project should be created')
     parser_create.add_argument('-s', '--skeleton', help='An archive to use as skeleton to create the new project')
     parser_create.set_defaults(target=cli.create)
 
-    parser_build = subparsers.add_parser('build', help = 'Build the current project.')
+    parser_build = subparsers.add_parser('build', help='Build the current project.')
     parser_build.set_defaults(target=cli.build)
 
-    parser_deploy = subparsers.add_parser('deploy', help = 'Deploy the current project to S3.')
+    parser_deploy = subparsers.add_parser('deploy', help='Deploy the current project to S3.')
     parser_deploy.set_defaults(target=cli.deploy)
 
-    parser_serve = subparsers.add_parser('serve', help = 'Serve the current project.')
+    parser_serve = subparsers.add_parser('serve', help='Serve the current project.')
     parser_serve.set_defaults(target=cli.serve)
-    parser_serve.add_argument('-p', '--port', default = 8000, type = int, help = 'The port on which to serve the site.')
-    parser_serve.add_argument('-b', '--browser', action = 'store_true',
-                              help = 'Whether to open a browser for the site.')
+    parser_serve.add_argument('-p', '--port', default=8000, type=int, help='The port on which to serve the site.')
+    parser_serve.add_argument('-b', '--browser', action='store_true', help='Whether to open a browser for the site.')
 
     parser_make_messages = subparsers.add_parser('messages:make', help='Create translation files for the current project')
     parser_make_messages.set_defaults(target=cli.make_messages)
@@ -120,18 +108,36 @@ def main():
     parser_domain_list.set_defaults(target=cli.domain_list)
 
 
-    for subparser in (parser_build, parser_deploy, parser_serve, parser_make_messages, parser_domain_setup, parser_domain_list):
-        subparser.add_argument('-c', '--config', action="append",
-                               help='Add a config file you want to use')
+    config_parsers = [parser_build, parser_deploy, parser_serve, parser_make_messages, parser_domain_setup, parser_domain_list]
+    all_parsers = config_parsers + [parser_create]
 
-        subparser.set_defaults(path = os.getcwd())
+    for subparser in config_parsers:
+        subparser.add_argument('-c', '--config', action="append", help='Add a config file you want to use')
+        subparser.set_defaults(path=os.getcwd())
+
+    for subparser in all_parsers:
+        verbosity_group = subparser.add_mutually_exclusive_group()
+        verbosity_group.add_argument('-v', '--verbose', action='store_true', help='Be more verbose')
+        verbosity_group.add_argument('-q', '--quiet', action='store_true', help='Be quieter')
+
 
     ns = parser.parse_args(args)
 
     # Small hack to provide a default value while not replacing what's
     # given by the user, if there is
-    if hasattr(args, 'config') and args.config is None:  # We don't need config for create
-        args.config = ["config.json"]
+    if hasattr(ns, 'config') and ns.config is None:  # We don't need config for create
+        ns.config = ["config.json"]
+
+    # Colors!
+    colorama.init()
+
+    # Logging
+    from cactus.logger import setup_logging
+    setup_logging(ns.verbose, ns.quiet)
+
+    # Network setup that we should presumably remove. Leaving it there for now:
+    # it's a better place than cactus/__init__.py
+    socket.setdefaulttimeout(5)
 
     # Import Cactus packages and run required command.
     cli.do_imports()
@@ -141,4 +147,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
