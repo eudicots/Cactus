@@ -497,8 +497,10 @@ class Site(SiteCompatibilityLayer):
             logger.info('There does not seem to be internet here, check your connection')
             return
 
+        self.deployment_engine.configure()
         self.deployment_engine.domain_setup()
         self.domain_list()
 
     def domain_list(self):
+        self.deployment_engine.configure()
         self.deployment_engine.domain_list()

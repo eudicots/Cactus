@@ -1,6 +1,7 @@
 #coding:utf-8
 import os
 import logging
+from cactus.deployment.exception import DeploymentEngineStateException
 
 from cactus.deployment.file import BaseFile
 from cactus.utils.filesystem import fileList
@@ -9,6 +10,8 @@ from cactus.utils.parallel import multiMap, PARALLEL_DISABLED
 
 
 logger = logging.getLogger(__name__)
+
+unknown = object()
 
 
 class BaseDeploymentEngine(object):
@@ -30,6 +33,9 @@ class BaseDeploymentEngine(object):
         self.site = site
         self.credentials_manager = self.CredentialsManagerClass(self)
 
+        self._bucket = unknown
+        self._bucket_name = unknown
+
     def deploy(self):
         self.configure()
 
@@ -50,6 +56,25 @@ class BaseDeploymentEngine(object):
 
         return False
 
+    @property
+    def bucket(self):
+        if self._bucket is unknown:
+            raise DeploymentEngineStateException("Tried to access .bucket before setting it")
+        return self._bucket
+
+    @bucket.setter
+    def bucket(self, b):
+        self._bucket = b
+
+    @property
+    def bucket_name(self):
+        if self._bucket_name is unknown:
+            raise DeploymentEngineStateException("Tried to access .bucket_name before setting it")
+        return self._bucket_name
+
+    @bucket_name.setter
+    def bucket_name(self, n):
+        self._bucket_name = n
 
     @memoize
     def files(self):

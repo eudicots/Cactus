@@ -1,5 +1,6 @@
 import types
 import logging
+from boto.exception import S3ResponseError
 
 from boto.route53.connection import Route53Connection
 from boto.route53.record import ResourceRecordSets
@@ -41,25 +42,20 @@ HOSTED_ZONES = {
 
 class AWSBucket(object):
 
-    def __init__(self, accessKey, secretKey, name):
+    def __init__(self, connection, name):
 
+        self.connection = connection
         self.name = name
-
-        self.accessKey = accessKey
-        self.secretKey = secretKey
-
-        self.connection = S3Connection(
-            aws_access_key_id=accessKey,
-            aws_secret_access_key=secretKey,
-        )
 
         self._cache = {}
 
     def bucket(self):
         try:
             return self.connection.get_bucket(self.name)
-        except:
-            return None
+        except S3ResponseError as e:
+            if e.error_code == 404:
+                return None
+            raise
 
     def create(self):
         logging.info('Create bucket %s', self.name)
@@ -68,34 +64,19 @@ class AWSBucket(object):
     def isCreated(self):
         return self.bucket() is not None
 
-    def configureWebsite(self):
-        logging.info('Configuring website endpoint %s', self.name)
-        self.bucket().configure_website('index.html', 'error.html')
-
     def configureRedirect(self, url):
         logging.info('Setup redirect %s -> %s', self.name, url)
-        self.bucket().configure_website(
-            redirect_all_requests_to=RedirectLocation(hostname=url))
+        self.bucket().configure_website(redirect_all_requests_to=RedirectLocation(hostname=url))
 
     def websiteEndpoint(self):
         return self.bucket().get_website_endpoint()
 
 
-
-
 class AWSDomain(object):
 
-    def __init__(self, accessKey, secretKey, domain):
-
+    def __init__(self, connection, domain):
+        self.connection = connection
         self.domain = domain
-
-        self.accessKey = accessKey
-        self.secretKey = secretKey
-
-        self.connection = Route53Connection(
-            aws_access_key_id=accessKey,
-            aws_secret_access_key=secretKey,
-        )
 
         self._cache = {}
 
@@ -112,19 +93,8 @@ class AWSDomain(object):
     def dnsDomain(self):
         return self.domain + "."
 
-    def isValidDomain(self):
-        pass
-
-    def isNakedDomain(self):
-        pass
-
-    def records(self):
-        pass
-
     def createHostedZone(self):
-
         logging.info('Creating hosted zone for %s', self.fullDomain)
-
         self.connection.create_hosted_zone(self.fullDomain)
 
     def hostedZone(self):
@@ -167,7 +137,6 @@ class AWSDomain(object):
 
         changes.commit()
 
-
     def createAlias(self, name, recordType, aliasHostedZoneId, aliasDNSName, identifier=None, weight=None, comment=""):
         self._changeAlias("CREATE", name, recordType, aliasHostedZoneId, aliasDNSName, identifier, weight, comment)
 
@@ -183,9 +152,7 @@ class AWSDomain(object):
         change.set_alias(aliasHostedZoneId, aliasDNSName)
         changes.commit()
 
-
     def delete(self, record):
-
         if record.alias_dns_name:
             self.deleteAlias(record.name, record.type,
                 record.alias_hosted_zone_id, record.alias_dns_name,
@@ -197,7 +164,7 @@ class AWSDomain(object):
     def pointRootToBucket(self):
 
         # Make sure the correct bucket exists and is ours
-        bucket = AWSBucket(self.accessKey, self.secretKey, self.domain)
+        bucket = AWSBucket(self.connection, self.domain)
         endpoint = bucket.websiteEndpoint()
         endpointDomain = endpoint[len(self.dnsDomain):]
 
@@ -211,11 +178,10 @@ class AWSDomain(object):
 
 
     def setupRedirect(self):
-
         redirectDomain = "www.%s" % self.domain
         redirectDNSDomain = redirectDomain + '.'
 
-        bucket = AWSBucket(self.accessKey, self.secretKey, redirectDomain)
+        bucket = AWSBucket(self.connection, redirectDomain)
 
         if bucket.isCreated():
             logging.info("Bucket with name %s already exists, so skipping redirect bucket setup. \
@@ -233,7 +199,6 @@ class AWSDomain(object):
         self.createRecord(redirectDomain, "CNAME", [self.domain])
 
     def setup(self):
-
         if not self.hostedZone():
             self.createHostedZone()
 
@@ -241,3 +206,11 @@ class AWSDomain(object):
 
         if not self.domain.startswith("www."):
             self.setupRedirect()
+
+
+
+# TODO, Re-architect all of this.
+# -> S3Engine
+#   -> DeploymentEngine
+#   -> DNS Engine
+# -> Those should be two different things

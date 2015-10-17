@@ -101,15 +101,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         return self.bucket.get_website_endpoint()
 
     def domain_setup(self):
-        bucket_name = self.site.config.get(self.config_bucket_name)
-        bucket_name = self.site.config.get(self.config_bucket_name)
-
-        if not bucket_name:
-            logger.warning("No bucket name")
-            return
-
-        aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
-        domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
+        domain = AWSDomain(self.get_connection(), self.bucket_name)
 
         try:
             domain.setup()
@@ -120,14 +112,7 @@ class S3DeploymentEngine(BaseDeploymentEngine):
             logger.error(e)
 
     def domain_list(self):
-        bucket_name = self.site.config.get(self.config_bucket_name)
-
-        if not bucket_name:
-            logger.warning("No bucket name")
-            return
-
-        aws_access_key, aws_secret_key = self.credentials_manager.get_credentials()
-        domain = AWSDomain(aws_access_key, aws_secret_key, bucket_name)
+        domain = AWSDomain(self.get_connection(), self.bucket_name)
 
         try:
             domain_list = domain.nameServers()
