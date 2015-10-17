@@ -12,14 +12,11 @@ from cactus.config.router import ConfigRouter
 from cactus.utils.parallel import PARALLEL_DISABLED
 
 
-
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.path = os.path.join(self.test_dir, 'test')
         self.clear_django_settings()
-
-        bootstrap(self.path, os.path.join("cactus", "tests", "data", "skeleton"))
 
     def tearDown(self):
         shutil.rmtree(self.test_dir)
@@ -53,8 +50,13 @@ class BaseTestCase(unittest.TestCase):
             self.fail("File exists: {0}".format(path))
 
 
+class BaseBootstrappedTestCase(BaseTestCase):
+    def setUp(self):
+        super(BaseBootstrappedTestCase, self).setUp()
+        bootstrap(self.path, os.path.join("cactus", "tests", "data", "skeleton"))
 
-class SiteTestCase(BaseTestCase):
+
+class SiteTestCase(BaseBootstrappedTestCase):
     def setUp(self):
         super(SiteTestCase, self).setUp()
         self.config_path = os.path.join(self.path, 'config.json')

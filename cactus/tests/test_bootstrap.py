@@ -11,8 +11,9 @@ import random
 from six.moves import BaseHTTPServer, SimpleHTTPServer, xrange
 
 from cactus.bootstrap import bootstrap
-from cactus.tests import BaseTestCase
+from cactus.tests import BaseBootstrappedTestCase
 from cactus.utils.filesystem import fileList
+
 
 def ArchiveServerHandlerFactory(archive_path):
     class ArchiveHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
@@ -34,7 +35,7 @@ def ArchiveServerHandlerFactory(archive_path):
     return ArchiveHandler
 
 
-class TestFolderBootstrap(BaseTestCase):
+class TestFolderBootstrap(BaseBootstrappedTestCase):
     def test_bootstrap(self):
         self.assertEqual(
             sorted(fileList(self.path, relative=True)),
@@ -42,7 +43,7 @@ class TestFolderBootstrap(BaseTestCase):
         )
 
 
-class TestCactusPackageBootstrap(BaseTestCase):
+class TestCactusPackageBootstrap(BaseBootstrappedTestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
         self.path = os.path.join(self.test_dir, 'test')
@@ -82,9 +83,6 @@ class BaseTestArchiveBootstrap(object):
         )
 
     def test_url(self):
-
-        global ServerPort
-
         archive_path = self.archive_path
 
         port = random.choice(xrange(7000, 10000))
