@@ -10,12 +10,11 @@ class JsonFormatter(logging.Formatter):
 
     def format(self, record):
 
-        data = {}
-
-        data["level"] = record.levelno
-        data["levelName"] = record.levelname
-        data["msg"] = logging.Formatter.format(self, record)
-        # data["location"] = "%s/%s:%s" % (record.pathname, record.filename, record.lineno)
+        data = {
+            "level": record.levelno,
+            "levelName": record.levelname,
+            "msg": logging.Formatter.format(self, record)
+        }
 
         if type(record.args) is types.DictType:
             for k, v in six.iteritems(record.args):
@@ -23,21 +22,18 @@ class JsonFormatter(logging.Formatter):
 
         return json.dumps(data)
 
-def setup_logging():
+
+def setup_logging(verbose, quiet):
 
     logger = logging.getLogger()
     handler = logging.StreamHandler()
 
     if os.environ.get('DESKTOPAPP'):
         log_level = logging.INFO
-        log_format = '%(message)s'
-
         handler.setFormatter(JsonFormatter())
 
     else:
         from colorlog import ColoredFormatter
-
-        log_level = logging.INFO
 
         formatter = ColoredFormatter(
                 "%(log_color)s%(message)s",
@@ -51,6 +47,13 @@ def setup_logging():
                     'CRITICAL': 'bold_red',
                     }
                 )
+
+        if quiet:
+            log_level = logging.WARNING
+        elif verbose:
+            log_level = logging.DEBUG
+        else:
+            log_level = logging.INFO
 
         handler.setFormatter(formatter)
 
