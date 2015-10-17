@@ -59,5 +59,7 @@ def setup_logging(verbose, quiet):
 
     logger.setLevel(log_level)
 
-    logger.handlers = []
+    for h in logger.handlers:
+        logger.removeHandler(h)
+
     logger.addHandler(handler)
