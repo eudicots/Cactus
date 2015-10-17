@@ -114,7 +114,7 @@ setup(
     package_data=package_data,
     entry_points={
         'console_scripts': [
-            'cactus = cactus.cli:main',
+            'cactus = cactus.cli:cli_entrypoint',
         ],
     },
     install_requires=open(os.path.join(root_dir, "requirements.txt")).readlines(),

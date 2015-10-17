@@ -146,5 +146,9 @@ def main(args):
     ns.target(**kwargs)
 
 
-if __name__ == "__main__":
+def cli_entrypoint():
     main(sys.argv[1:])
+
+
+if __name__ == "__main__":
+    cli_entrypoint()
