@@ -6,6 +6,7 @@ import time
 import argparse
 import socket
 
+from six.moves import input
 import colorama
 
 # No cactus imports here! There's no logging in place (or anything really).
@@ -30,35 +31,29 @@ class CactusCli(object):
         :param skeleton: An (optional) skeleton to use to create the project.
                          This could be a zip, tar archive (file path or URL)
         """
-
         if os.path.exists(path):
             new_path = '%s.%s.moved' % (path, int(time.time()))
-            if raw_input('Path %s exists, move aside to %s? (y/n) ' % (path, new_path)) == 'y':
+            if input('Path %s exists, move aside to %s? (y/n) ' % (path, new_path)) == 'y':
                 os.rename(path, new_path)
             else:
                 sys.exit()
 
         self.bootstrap(path, skeleton)
 
-
     def build(self, path, config):
         """Build a cactus project"""
-
         site = self.Site(path, config)
         site.build()
-
 
     def deploy(self, path, config):
         """Upload the project to S3"""
         site = self.Site(path, config)
         site.upload()
 
-
     def make_messages(self, path, config):
         """ Create the list of translation files for the site """
         site = self.Site(path, config)
         site.make_messages()
-
 
     def serve(self, path, config, port, browser):
         """Serve the project and watch changes"""
@@ -133,14 +128,15 @@ def main():
 
         subparser.set_defaults(path = os.getcwd())
 
-    args = parser.parse_args()
+    ns = parser.parse_args(args)
 
     # Small hack to provide a default value while not replacing what's
     # given by the user, if there is
     if hasattr(args, 'config') and args.config is None:  # We don't need config for create
         args.config = ["config.json"]
 
-    args.target(**{k: v for k, v in vars(args).items() if k != 'target'})
+    kwargs = dict((k, v) for k, v in vars(ns).items() if k not in ['target', 'verbose', 'quiet'])
+    ns.target(**kwargs)
 
 
 if __name__ == "__main__":
