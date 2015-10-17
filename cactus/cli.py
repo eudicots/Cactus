@@ -17,11 +17,15 @@ class CactusCli(object):
     """
     We wrap all imports into this object to control their order
     """
-    def __init__(self, Site, bootstrap):
+    def __init__(self):
+        self.Site = None
+        self.bootstrap = None
 
+    def do_imports(self):
+        from cactus.site import Site
+        from cactus.bootstrap import bootstrap
         self.Site = Site
         self.bootstrap = bootstrap
-
 
     def create(self, path, skeleton=None):
         """
@@ -80,13 +84,7 @@ def main():
     # it's a better place than cactus/__init__.py
 
     socket.setdefaulttimeout(5)
-
-    # Cactus imports
-
-    from cactus.site import Site
-    from cactus.bootstrap import bootstrap
-
-    cli = CactusCli(Site, bootstrap)
+    cli = CactusCli()
 
     # Actual CLI parsing
 
@@ -134,6 +132,9 @@ def main():
     # given by the user, if there is
     if hasattr(args, 'config') and args.config is None:  # We don't need config for create
         args.config = ["config.json"]
+
+    # Import Cactus packages and run required command.
+    cli.do_imports()
 
     kwargs = dict((k, v) for k, v in vars(ns).items() if k not in ['target', 'verbose', 'quiet'])
     ns.target(**kwargs)
