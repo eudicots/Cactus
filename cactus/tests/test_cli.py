@@ -14,10 +14,27 @@ class CliTestCase(BaseTestCase):
         This is meant to work well in a Tox environment. That's how we run our tests, so that's all that really
         matters here.
         """
-        path = os.path.abspath(os.path.join(os.path.dirname(sys.executable), "cactus"))
-        with open(path) as f:
-            self.assertEqual("#!{0}".format(sys.executable), f.readline().strip())
-        return path
+        bin_path = os.path.abspath(os.path.dirname(sys.executable))
+
+        try:
+            path = os.path.join(bin_path, "cactus")
+            with open(path) as f:
+                self.assertEqual("#!{0}".format(sys.executable), f.readline().strip())
+        except IOError:
+            pass
+        else:
+            return path
+
+        try:
+            path = os.path.join(bin_path, "cactus.exe")
+            with open(path):
+                pass
+        except IOError:
+            pass
+        else:
+            return path
+
+        self.fail("Unable to find Cactus")
 
     def run_cli(self, args, stdin="", cwd=None):
         real_args = [self.find_cactus()]
