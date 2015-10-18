@@ -34,6 +34,7 @@ from cactus.server import WebServer
 from cactus.browser import browserReload, browserReloadCSS
 from cactus.utils import ipc
 
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ class Site(SiteCompatibilityLayer):
     _path = None
     _parallel = PARALLEL_CONSERVATIVE  #TODO: Test me
     _static = None
+    _page_cache = []
 
     def __init__(self, path, config_paths=None, ui=None,
         PluginManagerClass=None, ExternalManagerClass=None, DeploymentEngineClass=None):
@@ -230,11 +232,15 @@ class Site(SiteCompatibilityLayer):
         """
 
         logger.debug("*** BUILD %s", self.path)
+        start = datetime.now()
 
         self.verify_url()
 
         # Reset the static content
         self._static = None
+
+        # Reset page cache
+        self._page_cache = []
 
         #TODO: Facility to reset the site, and reload config.
         #TODO: Currently, we can't build a site instance multiple times
@@ -279,6 +285,9 @@ class Site(SiteCompatibilityLayer):
         for static in self.static():
             if os.path.isdir(static.pre_dir):
                 shutil.rmtree(static.pre_dir)
+
+        duration = datetime.now() - start
+        logger.info('Site built in {:.2f} seconds.'.format(duration.total_seconds()))
 
     def static(self):
         """
@@ -339,23 +348,16 @@ class Site(SiteCompatibilityLayer):
         List of pages.
         """
 
-        if not hasattr(self, "_page_cache"):
-            self._page_cache = {}
-
-        pages = []
+        if self._page_cache:
+            return self._page_cache
 
         for path in fileList(self.page_path, relative=True):
-
             if path.endswith("~"):
                 continue
+            logger.debug("Found page: %s", path)
+            self._page_cache.append(Page(self, path))
 
-            if path not in self._page_cache:
-                logger.debug("Found page: %s", path)
-                self._page_cache[path] = Page(self, path)
-
-            pages.append(self._page_cache[path])
-
-        return pages
+        return self._page_cache
 
     def _rebuild_should_ignore(self, file_path):
 
