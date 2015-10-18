@@ -2,8 +2,19 @@
 import sys
 import os
 import subprocess
+import time
+
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3 import Retry
+
 from cactus.tests import BaseTestCase
 from cactus.utils.filesystem import fileList
+
+
+# Python < 3.3 compatibility
+if not hasattr(subprocess, "DEVNULL"):
+    subprocess.DEVNULL = open(os.devnull, 'w')
 
 
 class CliTestCase(BaseTestCase):
@@ -41,14 +52,13 @@ class CliTestCase(BaseTestCase):
 
         kwargs = {
             "args": real_args,
-            "stdin":subprocess.PIPE,
-            "stdout":subprocess.PIPE,
-            "stderr":subprocess.PIPE,
+            "stdin": subprocess.PIPE,
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.PIPE,
         }
 
         if cwd is not None:
             kwargs["cwd"] = cwd
-
 
         p = subprocess.Popen(**kwargs)
         out, err = p.communicate(stdin.encode("utf-8"))
@@ -98,3 +108,32 @@ class CliTestCase(BaseTestCase):
         ret, out, err = self.run_cli([])
         self.assertNotEqual(0, ret)
         self.assertIn("usage: cactus", err)
+
+    def test_serve(self):
+        cactus = self.find_cactus()
+
+        ret, _, _ = self.run_cli(["create", self.path])
+        self.assertEqual(0, ret)
+
+        port = 12345
+
+        p = subprocess.Popen([cactus, "serve", "-p", str(port)], cwd=self.path, stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL)
+
+        srv = "http://127.0.0.1:{0}".format(port)
+        s = requests.Session()
+        s.mount(srv, HTTPAdapter(max_retries=Retry(backoff_factor=0.2)))
+
+        r = s.post("{0}/_cactus/shutdown".format(srv))
+        r.raise_for_status()
+
+        # We'd love to use p.wait(n) here, but that doesn't work on
+        # some of the versions of Python we support.
+        for _ in range(5):
+            if p.poll() != None:
+                break
+            time.sleep(1)
+        else:
+            self.fail("Server did not exit!")
+
+        self.assertEqual(0, p.returncode)
