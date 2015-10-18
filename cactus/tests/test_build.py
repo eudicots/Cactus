@@ -1,13 +1,15 @@
 #coding:utf-8
 import os
-import logging
 import tempfile
+import unittest2 as unittest
 
 from cactus.tests import SiteTestCase
+from cactus.tests.compat import has_symlink
 
 
 class TestBuild(SiteTestCase):
 
+    @unittest.skipUnless(has_symlink, "No symlink support")
     def test_existing_symlink(self):
 
         with open(os.path.join(self.site.static_path, 'file.js'), "w") as f:
@@ -28,6 +30,7 @@ class TestBuild(SiteTestCase):
         self.assertEqual(
             os.path.islink(os.path.join(self.site.build_path, 'static', 'file-link.js')), False)
 
+    @unittest.skipUnless(has_symlink, "No symlink support")
     def test_nonexisting_symlink(self):
 
         os.symlink(
@@ -83,7 +86,7 @@ class TestBuild(SiteTestCase):
         self.assertEqual(True, self.site._rebuild_should_ignore(
             os.path.join(self.site.path, "pages", ".hidden", "a.html")))
 
-
+    @unittest.skipUnless(has_symlink, "No symlink support")
     def test_symlink_ignore(self):
 
         file_path = os.path.join(tempfile.mkdtemp(), 'file.js')
