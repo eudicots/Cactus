@@ -1,20 +1,22 @@
 import os
 import tempfile
-import unittest
 import threading
-import time
+import unittest2 as unittest
 
 from cactus.listener import PollingListener
+from cactus.tests.compat import has_symlink
 
 try:
     from cactus.listener import FSEventsListener
 except ImportError:
     FSEventsListener = None
 
+
 def sleep(s):
     # time.sleep(s)
     event = threading.Event()
     event.wait(timeout=s)
+
 
 class PollingListenerTest(unittest.TestCase):
 
@@ -55,6 +57,7 @@ class PollingListenerTest(unittest.TestCase):
     def create_listener(self, path):
         return PollingListener(path, self._callback)
 
+    @unittest.skipUnless(has_symlink, "No symlink support")
     def testSymlinkFolder(self):
 
         path1 = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
@@ -112,9 +115,8 @@ class PollingListenerTest(unittest.TestCase):
         self.assertEqual(len(self.callbacks), 2)
         self.assertEqual(self.callbacks[1]["deleted"], [path_file])
 
-
+    @unittest.skipUnless(has_symlink, "No symlink support")
     def testSymlinkFile(self):
-
 
         path_watch = os.path.realpath(os.path.join(tempfile.mkdtemp(), "watched"))
         path_linked = os.path.realpath(os.path.join(tempfile.mkdtemp(), "linked"))
