@@ -1,6 +1,8 @@
 News
 --------------
 
+[![Join the chat at https://gitter.im/koenbok/Cactus](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/koenbok/Cactus?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ### Cactus 3 is out!
 
 We're happy to announce Cactus 3. It brings a set of great new features like asset fingerprinting, an asset pipeline, pretty urls, native Mac filesystem events, automatic nameserver configuration, support for multiple deployment backends (Google Sites) and more. Large parts of the code have been rewritten, accompanied by an extensive suite of unit tests. Many thanks to Thomas Orozco and other contributors.
