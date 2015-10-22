@@ -1,7 +1,6 @@
 #coding:utf-8
 import sys
 import os
-import os.path
 import subprocess
 from cactus.tests import BaseTestCase
 from cactus.utils.filesystem import fileList
@@ -53,7 +52,7 @@ class CliTestCase(BaseTestCase):
 
         p = subprocess.Popen(**kwargs)
         out, err = p.communicate(stdin.encode("utf-8"))
-        return p.returncode, out, err
+        return p.returncode, out.decode("utf-8"), err.decode("utf-8")
 
     def test_create_and_build(self):
         self.assertEqual(0, len(os.listdir(self.test_dir)))
@@ -78,5 +77,20 @@ class CliTestCase(BaseTestCase):
         ret, _, _ = self.run_cli(["build"], cwd=self.path)
         self.assertEqual(0, ret)
 
+    def test_custom_path(self):
+        """
+        Test that we can build a site in a custom folder.
+        """
+        ret, out, err = self.run_cli(["create", self.path, "--skeleton", os.path.join("cactus", "tests", "data", "skeleton")])
+        self.assertEqual(0, ret)
 
+        ret, out, err = self.run_cli(["build", "--path", self.path], cwd=self.test_dir)
+        self.assertEqual(0, ret)
+        self.assertIn(os.path.join(self.path, "config.json"), err)  # Check that we tried to find the config file in the right folder (and failed)
+
+        ret, _, _ = self.run_cli(["build", "-d", self.path], cwd=self.test_dir)
+        self.assertEqual(0, ret)
+
+        ret, _, _ = self.run_cli(["build"], cwd=self.test_dir)
+        self.assertNotEqual(0, ret)
 
