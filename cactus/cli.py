@@ -79,7 +79,8 @@ def parse_arguments(cli, args):
     parser = argparse.ArgumentParser(description="Build and deploy static websites using Django templates.")
 
     subparsers = parser.add_subparsers(title='subcommands', description='Valid subcommands',
-                                       help='Select a command to run.')
+                                       help='Select a command to run.', dest='command')
+    subparsers.required = True
 
     parser_create = subparsers.add_parser('create', help='Create a new project')
     parser_create.add_argument('path', help='The path where the new project should be created')
@@ -150,7 +151,7 @@ def main(args):
     # Import Cactus packages and run required command.
     cli.do_imports()
 
-    kwargs = dict((k, v) for k, v in vars(ns).items() if k not in ['target', 'verbose', 'quiet'])
+    kwargs = dict((k, v) for k, v in vars(ns).items() if k not in ['command', 'target', 'verbose', 'quiet'])
     ns.target(**kwargs)
 
 

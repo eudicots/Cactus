@@ -94,3 +94,7 @@ class CliTestCase(BaseTestCase):
         ret, _, _ = self.run_cli(["build"], cwd=self.test_dir)
         self.assertNotEqual(0, ret)
 
+    def test_help(self):
+        ret, out, err = self.run_cli([])
+        self.assertNotEqual(0, ret)
+        self.assertIn("usage: cactus", err)
