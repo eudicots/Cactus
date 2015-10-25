@@ -19,21 +19,18 @@ def fileList(paths, relative=False, folders=False):
 
     files = []
 
+    def append(directory, name):
+        if not name.startswith('.'):
+            path = os.path.join(directory, name)
+            files.append(path)
+
     for path in paths:
-        for fileName in os.listdir(path):
-
-            if fileName.startswith('.'):
-                continue
-
-            filePath = os.path.join(path, fileName)
-
-            if os.path.isdir(filePath):
-                if folders:
-                    files.append(filePath)
-                files += fileList(filePath)
-            else:
-                files.append(filePath)
-
+        for directory, dirnames, filenames in os.walk(path, followlinks=True):
+            if folders:
+                for dirname in dirnames:
+                    append(directory, dirname)
+            for filename in filenames:
+                append(directory, filename)
         if relative:
             files = map_apply(lambda x: x[len(path) + 1:], files)
 
