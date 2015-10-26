@@ -122,6 +122,7 @@ setup(
         'GCS Deployment': ['google-api-python-client'],
         'Cloud Files Deployment': ['pyrax'],
         'Mac Native FSEvents': ['macfsevents'],
+        'Tests': open(os.path.join(root_dir, "test_requirements.txt")).readlines(),
     },
     tests_require=open(os.path.join(root_dir, "test_requirements.txt")).readlines(),
     zip_safe=False,

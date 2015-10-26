@@ -3,9 +3,15 @@
 dist
 build
 skeleton.tar.gz
-Cactus.egg-info
+*.egg-info
 examples/blog/config.json
 *.egg
 .tox
 TestProject
 .eggs
+.installed.cfg
+bin/
+develop-eggs/
+parts/
+venv/
+
