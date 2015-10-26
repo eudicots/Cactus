@@ -18,7 +18,7 @@ To get a quick overview [watch this short video tutorial][3].
 Cactus is based on the idea that most dynamic features on websites these days can be done using Javascript while the
 actual site can stay static. Static websites are easy to host and typically very fast.
 
-I developed Cactus because I wanted a standard, easy system that designers at [Sofa](http://www.madebysofa.com) could
+I developed Cactus because I wanted a standard, easy system that designers at [Sofa](http://madebysofa.com) could
 use to build and deploy fast websites. So typical users would be designers that are tech-savvy, want to use templates,
 but don't like to mess with setting up django or S3.
 
