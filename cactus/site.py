@@ -322,10 +322,20 @@ class Site(SiteCompatibilityLayer):
         return self._get_resource(src_url, resources)
 
     def get_url_for_static(self, src_path):
-        return self._get_url(src_path, self.static())
+        prefix = self.config.get('static-prefix')
+        url = self._get_url(src_path, self.static())
+        if prefix and url:
+            return prefix + url
+        else:
+            return url
 
     def get_url_for_page(self, src_path):
-        return self._get_url(src_path, self.pages())
+        prefix = self.config.get('page-prefix')
+        url = self._get_url(src_path, self.pages())
+        if prefix and url:
+            return prefix + url
+        else:
+            return url
 
     def buildStatic(self):
         """
