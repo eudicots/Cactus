@@ -198,6 +198,12 @@ You can enable this by adding modifying your configuration and adding:
 
 Note that you need to do this if you want your sitemap to be valid for Google Webmaster Tools.
 
+#### Static and page prefixes
+
+If you want to add a prefix in the path generated for static and url, you can enable this by adding in our configuration:
+
+    "page-prefix": "/abc",
+    "static-prefix": "/def",
 
 #### "Pretty" URLs
 
