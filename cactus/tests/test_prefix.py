@@ -21,6 +21,12 @@ class TestPrefixedURLS(SiteTestCase):
         open(os.path.join(subfolder, 'index.html'), 'w')
         open(os.path.join(subfolder, 'page.html'), 'w')
 
+        open(os.path.join(self.path, 'static', 'blabla.png'), 'w')
+        subfolder = os.path.join(self.path, 'static', 'folder')
+        os.makedirs(subfolder)
+        open(os.path.join(subfolder, 'favicon.ico'), 'w')
+
+
         self.site.build()
 
     def test_get_path_for_pages(self):
@@ -31,3 +37,10 @@ class TestPrefixedURLS(SiteTestCase):
         self.assertEqual(self.site.get_url_for_page('/test.html'), '/abc/test/')
         self.assertEqual(self.site.get_url_for_page('/folder/index.html'), '/abc/folder/')
         self.assertEqual(self.site.get_url_for_page('/folder/page.html'), '/abc/folder/page/')
+
+    def test_get_path_for_static(self):
+        """
+        Test that URL rewriting includes static prefix for static ressources.
+        """
+        self.assertEqual(self.site.get_url_for_page('/static/blabla.png'), '/def/static/blabla.png')
+        self.assertEqual(self.site.get_url_for_page('/static/folder/index.html'), '/def/static/folder/favicon.css')
