@@ -42,5 +42,5 @@ class TestPrefixedURLS(SiteTestCase):
         """
         Test that URL rewriting includes static prefix for static ressources.
         """
-        self.assertEqual(self.site.get_url_for_page('/static/blabla.png'), '/def/static/blabla.png')
-        self.assertEqual(self.site.get_url_for_page('/static/folder/index.html'), '/def/static/folder/favicon.css')
+        self.assertEqual(self.site.get_url_for_static('/static/blabla.png'), '/def/static/blabla.png')
+        self.assertEqual(self.site.get_url_for_static('/static/folder/index.html'), '/def/static/folder/favicon.css')
