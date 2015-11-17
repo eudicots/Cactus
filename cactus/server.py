@@ -82,7 +82,7 @@ class WebServer(object):
 
     def __init__(self, path, port=8080):
 
-        self.path = path.decode("utf-8")
+        self.path = path.decode("utf-8") if hasattr(path, 'decode') else path
         self.port = port
 
         # print type(self.path)
