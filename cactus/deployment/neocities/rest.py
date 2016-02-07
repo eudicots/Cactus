@@ -1,7 +1,6 @@
 import requests
 import logging
 import json
-from pprint import pprint
 
 from requests.auth import HTTPBasicAuth
 
