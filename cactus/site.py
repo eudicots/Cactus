@@ -235,6 +235,7 @@ class Site(SiteCompatibilityLayer):
 
         # Reset the static content
         self._static = None
+        self._static_resources_dict = None
 
         #TODO: Facility to reset the site, and reload config.
         #TODO: Currently, we can't build a site instance multiple times
@@ -301,6 +302,16 @@ class Site(SiteCompatibilityLayer):
 
         return self._static
 
+    def static_resources_dict(self):
+        """
+        Retrieve a dictionary mapping URL's to static files
+        :return:
+        """
+        if self._static_resources_dict is None:
+            self._static_resources_dict = dict((resource.link_url, resource) for resource in self.static())
+
+        return self._static_resources_dict
+
     def _get_resource(self, src_url, resources):
 
         if is_external(src_url):
@@ -310,10 +321,8 @@ class Site(SiteCompatibilityLayer):
             if split_char in src_url:
                 src_url = src_url.split(split_char)[0]
 
-        resources_dict = dict((resource.link_url, resource) for resource in resources)
-
-        if src_url in resources_dict:
-            return resources_dict[src_url].final_url
+        if src_url in resources:
+            return resources[src_url].final_url
 
         return None
 
@@ -322,10 +331,10 @@ class Site(SiteCompatibilityLayer):
         return self._get_resource(src_url, resources)
 
     def get_url_for_static(self, src_path):
-        return self._get_url(src_path, self.static())
+        return self._get_url(src_path, self.static_resources_dict())
 
     def get_url_for_page(self, src_path):
-        return self._get_url(src_path, self.pages())
+        return self._get_url(src_path, dict((resource.link_url, resource) for resource in self.pages()))
 
     def buildStatic(self):
         """
