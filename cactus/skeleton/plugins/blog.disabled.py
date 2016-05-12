@@ -81,7 +81,7 @@ def preBuildPage(site, page, context, data):
     context['posts'] = POSTS
 
     for post in POSTS:
-        if post['path'] == page.path:
+        if post['path'] == page.final_url:
             context.update(post)
 
     return context, data
