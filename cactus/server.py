@@ -16,6 +16,7 @@ from cactus import mime
 
 TEMPLATES = {}
 
+
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def open(self):
@@ -28,6 +29,13 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, msg):
         pass
+
+
+class ShutdownHandler(tornado.web.RequestHandler):
+    def post(self, *args, **kwargs):
+        ioloop = tornado.ioloop.IOLoop.instance()
+        ioloop.add_callback(lambda x: x.stop(), ioloop)
+
 
 class StaticHandler(tornado.web.StaticFileHandler):
 
@@ -72,30 +80,27 @@ class StaticHandler(tornado.web.StaticFileHandler):
     def log_request(self, handler):
         pass
 
+
 class StaticSingleFileHandler(tornado.web.RequestHandler):
 
     def get(self):
         self.set_header("Content-Type", mime.guess("file.js"))
         self.finish(TEMPLATES["js"])
 
+
 class WebServer(object):
 
     def __init__(self, path, port=8080):
 
-        self.path = path.decode("utf-8")
+        self.path = path
         self.port = port
 
-        # print type(self.path)
-        # print self.path
-        # print repr(self.path)
-        # print repr(self.path.decode('unicode-escape'))
-        # print self.path.decode('utf-8')
-
         self.application = tornado.web.Application([
+            (r'/_cactus/shutdown', ShutdownHandler),
             (r'/_cactus/ws', WebSocketHandler),
             (r'/_cactus/cactus.js', StaticSingleFileHandler),
             (r'/(.*)', StaticHandler, {'path': self.path, "default_filename": "index.html"}),
-            ], template_path=self.path)
+        ], template_path=self.path)
 
         self.application.log_request = lambda x: self._log_request(x)
 
@@ -115,7 +120,6 @@ class WebServer(object):
 
 
     def start(self):
-
         self.application._socketHandlers = []
 
         self._server = tornado.httpserver.HTTPServer(self.application)

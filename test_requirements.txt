@@ -2,3 +2,4 @@ nose
 mock
 tox
 unittest2
+requests
