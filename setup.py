@@ -101,6 +101,25 @@ for dirpath, dirnames, filenames in os.walk(cactus_dir):
         package_files.extend([os.path.join(path, f) for f in filenames])
 
 
+def find_requirements():
+    # Find all requirements.VERSION.txt files that match (e.g. Python 2.6 matches
+    # requirements.2.6.txt, requirements.2.txt, and requirments.txt).
+    v = [str(x) for x in  sys.version_info[:2]]
+    requirements = []
+    while True:
+        reqs_file = '.'.join(["requirements"] + v + ["txt"])
+        try:
+            with open(os.path.join(root_dir, reqs_file)) as f:
+                requirements.extend(f.readlines())
+        except IOError:
+            pass
+        try:
+            v.pop()
+        except IndexError:
+            break
+
+    return requirements
+
 setup(
     name='Cactus',
     version=VERSION,
@@ -117,7 +136,7 @@ setup(
             'cactus = cactus.cli:cli_entrypoint',
         ],
     },
-    install_requires=open(os.path.join(root_dir, "requirements.txt")).readlines(),
+    install_requires=find_requirements(),
     extras_require={
         'GCS Deployment': ['google-api-python-client'],
         'Cloud Files Deployment': ['pyrax'],
