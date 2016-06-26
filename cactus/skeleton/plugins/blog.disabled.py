@@ -50,7 +50,7 @@ def preBuild(site):
             postContext['title'] = find('title')
             postContext['author'] = find('author')
             postContext['date'] = find('date')
-            postContext['path'] = page.path
+            postContext['path'] = page.final_url
             postContext['body'] = getNode(get_template(page.path), name="body")
 
             # Parse the date into a date object
@@ -81,7 +81,7 @@ def preBuildPage(site, page, context, data):
     context['posts'] = POSTS
 
     for post in POSTS:
-        if post['path'] == page.path:
+        if post['path'] == page.final_url:
             context.update(post)
 
     return context, data
