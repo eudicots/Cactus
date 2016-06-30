@@ -27,6 +27,7 @@ def getNode(template, context=Context(), name='subject'):
 def preBuild(site):
 
     global POSTS
+    siteContext = site.context();
 
     # Build all the posts
     for page in site.pages():
@@ -46,12 +47,16 @@ def preBuild(site):
                 return c.get(name, '')
 
             # Build a context for each post
+            context = {'__CACTUS_CURRENT_PAGE__': page,}
+            context.update(siteContext);
             postContext = {}
             postContext['title'] = find('title')
             postContext['author'] = find('author')
             postContext['date'] = find('date')
             postContext['path'] = page.final_url
-            postContext['body'] = getNode(get_template(page.path), name="body")
+            postContext['body'] = getNode(get_template(page.path),
+                                          context=Context(context),
+                                          name="body")
 
             # Parse the date into a date object
             try:
