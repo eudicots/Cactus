@@ -135,8 +135,6 @@ capabilities like inheritance. In a nutshell: a variable looks like this `{{ nam
 ### Enabling Plugins
 
 To enable a plugin for your site, change the file name from [PLUGIN].disabled.py to [PLUGIN].py.
-For an example of how to build a blog on top of Cactus, see [CactusBlog](https://github.com/koenbok/CactusBlog/)
-
 
 ### Deploying
 
@@ -150,6 +148,29 @@ After deploying you can visit the website directly. Cactus also makes sure all y
 
 
 ### Extras
+
+#### Blogs
+
+For the full example of how to build a blog on top of Cactus, see [CactusBlog](https://github.com/koenbok/CactusBlog/).
+
+Blog plugin takes post title, author, and date from metadata. For example:
+
+    title: My first post
+    author: Koen Bok
+    date: 22-07-2012
+    
+    {% extends "post.html" %}
+    {% block body %}
+    
+    {% endblock %}
+
+Modify `config.json` to set a custom blog path, default author name, or date pattern used to parse metadata. The defaults are:
+
+    "blog": {
+        "path": "blog",
+        "author": "Unknown",
+        "date-format": "%d-%m-%Y"
+    }
 
 
 #### Asset pipeline
