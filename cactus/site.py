@@ -21,7 +21,7 @@ from cactus.static.external.manager import ExternalManager
 from cactus.compat.paths import SiteCompatibilityLayer
 from cactus.compat.page import PageContextCompatibilityPlugin
 from cactus.utils.file import fileSize
-from cactus.utils.filesystem import fileList
+from cactus.utils.filesystem import chdir, fileList
 from cactus.utils.helpers import memoize, map_apply
 from cactus.utils.network import internetWorking
 from cactus.utils.parallel import multiMap, PARALLEL_DISABLED, PARALLEL_CONSERVATIVE, PARALLEL_AGGRESSIVE
@@ -449,10 +449,9 @@ class Site(SiteCompatibilityLayer):
         ipc.signal("server.didstart")
         logger.info('Type control-c to exit')
 
-        os.chdir(self.build_path)
-
-        self.listener = Listener(self.path, self._rebuild, ignore=self._rebuild_should_ignore)
-        self.listener.run()
+        with chdir(self.build_path):
+            self.listener = Listener(self.path, self._rebuild, ignore=self._rebuild_should_ignore)
+            self.listener.run()
 
         self.server = WebServer(self.build_path, port=port)
 
