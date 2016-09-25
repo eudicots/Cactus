@@ -36,7 +36,7 @@ def setup_logging(verbose, quiet):
         from colorlog import ColoredFormatter
 
         formatter = ColoredFormatter(
-                "%(log_color)s%(message)s%(reset)s",
+                "%(log_color)s%(message)s",
                 datefmt=None,
                 reset=True,
                 log_colors={
