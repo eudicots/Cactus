@@ -173,27 +173,39 @@ Modify `config.json` to set a custom blog path, default author name, or date pat
     }
 
 #### YAML Variables
-Above each page template you can declare variables to be included, for example:
+By default you can declare variables to be included above each page, for example:
+
 ```
 test_text: Lorem Ipsum
 
 <p>{{ test_text }}</p>
 ```
 
-Those variables are YAML-Compatible, so you can declare complex objects and arrays:
+You can declare the variables using YAML instead; just surround the block with the `---`
+and `...` ([Document Separators](http://yaml.org/spec/1.1/#id857577)) and the objects
+and arrays will be available inside the templates:
+
 ```
+---
 header_text: Lorem Ipsum
+custom_object:
+  name: Lorem
+  description: Ipsum
 custom_array:
   -
     name: lorem
   -
     name: ipsum
+...
 
 {% for item in custom_array %}
   <p>{{ header_text }}: {{ item.name }}</p>
 {% endfor %}
+
+<p>{{ custom_object.name }} | {{ custom_object.description }}</p>
 ```
-*CAVEAT*: Lines to be parsed as YAML must include either the ':' or '-' character.
+
+The *PyYAML* library is used for this functionality.
 
 #### Asset pipeline
 

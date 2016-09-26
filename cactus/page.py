@@ -137,6 +137,7 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         age: 29
 
         will be converted in a dict: {'name': 'koen', 'age': '29'}
+        Also: Blocks between --- and ... will be converted into a YAML objects
         """
 
         if not self.is_html():
@@ -146,22 +147,38 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         if not lines:
             return {}, ''
 
-        yaml_lines = []
+        values = {}
+        parsing_yaml = False
         for i, line in enumerate(lines):
 
-            if not line:
+            # YAML Document Start. Shortcircuit and parse as YAML instead
+            if "---" in line:
+                parsing_yaml = True
+                break
+
+            # Start Compatibility Parser
+            elif not line:
                 continue
 
-            # Yaml-Parseable lines must include either ":" or "-"
-            elif splitChar in line or "-" in line:
-                yaml_lines.append(line)
+            elif splitChar in line:
+                line = line.split(splitChar)
+                values[line[0].strip()] = (splitChar.join(line[1:])).strip()
 
             else:
                 break
 
-        # Join the value lines and parse them as YAML
-        values = yaml.load("\n".join(yaml_lines)) or {}
-        return values, '\n'.join(lines[i:])
+        # Parse as YAML
+        if parsing_yaml:
+            [raw_yaml, template] = data.split('...', 1)
+            try:
+                return yaml.load(raw_yaml), template
+            except Exception as e:
+                # Safety return
+                return {}, template
+
+        # Parse using the old parser
+        else:
+            return values, '\n'.join(lines[i:])
 
     def __repr__(self):
         return '<Page: {0}>'.format(self.source_path)
