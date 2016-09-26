@@ -181,8 +181,8 @@ test_text: Lorem Ipsum
 <p>{{ test_text }}</p>
 ```
 
-You can declare the variables using YAML instead; just surround the block with the `---`
-and `...` ([Document Separators](http://yaml.org/spec/1.1/#id857577)) and the objects
+You can declare the variables using YAML instead. Just surround the block with the `---`
+and `...` [Document Separators](http://yaml.org/spec/1.1/#id857577). Then the objects
 and arrays will be available inside the templates:
 
 ```
