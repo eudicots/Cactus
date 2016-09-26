@@ -158,10 +158,10 @@ Blog plugin takes post title, author, and date from metadata. For example:
     title: My first post
     author: Koen Bok
     date: 22-07-2012
-    
+
     {% extends "post.html" %}
     {% block body %}
-    
+
     {% endblock %}
 
 Modify `config.json` to set a custom blog path, default author name, or date pattern used to parse metadata. The defaults are:
@@ -172,6 +172,28 @@ Modify `config.json` to set a custom blog path, default author name, or date pat
         "date-format": "%d-%m-%Y"
     }
 
+#### YAML Variables
+Above each page template you can declare variables to be included, for example:
+```
+test_text: Lorem Ipsum
+
+<p>{{ test_text }}</p>
+```
+
+Those variables are YAML-Compatible, so you can declare complex objects and arrays:
+```
+header_text: Lorem Ipsum
+custom_array:
+  -
+    name: lorem
+  -
+    name: ipsum
+
+{% for item in custom_array %}
+  <p>{{ header_text }}: {{ item.name }}</p>
+{% endfor %}
+```
+*CAVEAT*: Lines to be parsed as YAML must include either the ':' or '-' character.
 
 #### Asset pipeline
 
