@@ -1,6 +1,7 @@
 import os
 import io
 import logging
+import yaml
 
 from six.moves import urllib
 
@@ -141,23 +142,25 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         if not self.is_html():
             return {}, data
 
-        values = {}
         lines = data.splitlines()
         if not lines:
             return {}, ''
 
+        yaml_lines = []
         for i, line in enumerate(lines):
 
             if not line:
                 continue
 
-            elif splitChar in line:
-                line = line.split(splitChar)
-                values[line[0].strip()] = (splitChar.join(line[1:])).strip()
+            # Yaml-Parseable lines must include either ":" or "-"
+            elif splitChar in line or "-" in line:
+                yaml_lines.append(line)
 
             else:
                 break
 
+        # Join the value lines and parse them as YAML
+        values = yaml.load("\n".join(yaml_lines)) or {}
         return values, '\n'.join(lines[i:])
 
     def __repr__(self):
