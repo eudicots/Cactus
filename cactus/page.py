@@ -1,6 +1,7 @@
 import os
 import io
 import logging
+import yaml
 
 from six.moves import urllib
 
@@ -136,19 +137,27 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
         age: 29
 
         will be converted in a dict: {'name': 'koen', 'age': '29'}
+        Also: Blocks between --- and ... will be converted into a YAML objects
         """
 
         if not self.is_html():
             return {}, data
 
-        values = {}
         lines = data.splitlines()
         if not lines:
             return {}, ''
 
+        values = {}
+        parsing_yaml = False
         for i, line in enumerate(lines):
 
-            if not line:
+            # YAML Document Start. Shortcircuit and parse as YAML instead
+            if "---" in line:
+                parsing_yaml = True
+                break
+
+            # Start Compatibility Parser
+            elif not line:
                 continue
 
             elif splitChar in line:
@@ -158,7 +167,18 @@ class Page(PageCompatibilityLayer, ResourceURLHelperMixin):
             else:
                 break
 
-        return values, '\n'.join(lines[i:])
+        # Parse as YAML
+        if parsing_yaml:
+            [raw_yaml, template] = data.split('...', 1)
+            try:
+                return yaml.load(raw_yaml), template
+            except Exception as e:
+                # Safety return
+                return {}, template
+
+        # Parse using the old parser
+        else:
+            return values, '\n'.join(lines[i:])
 
     def __repr__(self):
         return '<Page: {0}>'.format(self.source_path)
