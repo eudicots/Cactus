@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 register = Library()
 
+
 def static(context, link_url):
     """
     Get the path for a static file in the Cactus build.
@@ -44,6 +45,7 @@ def static(context, link_url):
 
     return url
 
+
 def url(context, link_url):
     """
     Get the path for a page in the Cactus build.
@@ -65,10 +67,15 @@ def url(context, link_url):
 
         url = link_url
 
+    if site.verb == site.VERB_BUILD:
+        # prepend links with language directory
+        url = u"/%s%s" % (site.config.get("locale", "en-us"), url)
+
     if site.prettify_urls:
         return url.rsplit('index.html', 1)[0]
 
     return url
+
 
 def config(context, key):
     """

@@ -46,12 +46,12 @@ class CactusCli(object):
 
     def build(self, path, config):
         """Build a cactus project"""
-        site = self.Site(path, config)
+        site = self.Site(path, config, verb=self.Site.VERB_BUILD)
         site.build()
 
     def deploy(self, path, config):
         """Upload the project to S3"""
-        site = self.Site(path, config)
+        site = self.Site(path, config, verb=self.Site.VERB_DEPLOY)
         site.upload()
 
     def make_messages(self, path, config):
@@ -61,7 +61,7 @@ class CactusCli(object):
 
     def serve(self, path, config, port, browser):
         """Serve the project and watch changes"""
-        site = self.Site(path, config)
+        site = self.Site(path, config, verb=self.Site.VERB_SERVE)
         site.serve(port=port, browser=browser)
 
     def domain_setup(self, path, config):
