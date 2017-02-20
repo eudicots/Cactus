@@ -42,7 +42,7 @@ def WrappedCommandFactory(wrapped, default_kwargs=None):
             self.site = site
 
         def execute(self):
-            kwargs = {"locale": self.site.locale}
+            kwargs = {"locale": [self.site.locale]}
             kwargs.update(base_kwargs)
 
             cmd = wrapped()
