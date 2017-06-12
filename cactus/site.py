@@ -45,13 +45,19 @@ class Site(SiteCompatibilityLayer):
     _parallel = PARALLEL_CONSERVATIVE  #TODO: Test me
     _static = None
 
+    VERB_UNKNOWN = 0
+    VERB_SERVE = 1
+    VERB_BUILD = 2
+
     def __init__(self, path, config_paths=None, ui=None,
-        PluginManagerClass=None, ExternalManagerClass=None, DeploymentEngineClass=None):
+        PluginManagerClass=None, ExternalManagerClass=None, DeploymentEngineClass=None,
+        verb=VERB_UNKNOWN):
 
         # Load the config engine
         if config_paths is None:
             config_paths = []
         self.config = ConfigRouter(config_paths)
+        self.verb = verb
 
         # Load site-specific config values
         self.prettify_urls = self.config.get('prettify', False)
@@ -441,6 +447,7 @@ class Site(SiteCompatibilityLayer):
         """
         self._parallel = PARALLEL_DISABLED
         self._port = port
+        self.verb = self.VERB_SERVE
 
         self.clean()
         self.build()
