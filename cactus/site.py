@@ -501,8 +501,7 @@ class Site(SiteCompatibilityLayer):
         logger.info('%s changed files with a size of %s' %
                      (len(changedFiles), fileSize(sum([r['size'] for r in changedFiles]))))
 
-        logger.info('\nhttp://%s\n' % self.config.get('aws-bucket-website'))  #TODO: Fix
-
+        logger.info('\nhttp://%s\n' % self.deployment_engine.get_website_endpoint())
 
     def domain_setup(self):
 
