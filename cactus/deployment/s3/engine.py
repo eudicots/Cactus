@@ -65,9 +65,8 @@ class S3DeploymentEngine(BaseDeploymentEngine):
         :returns: The Bucket if found, None otherwise.
         :raises: InvalidCredentials if we can't connect to AWS
         """
-        buckets = self._get_buckets()
-        buckets = dict((bucket.name, bucket) for bucket in buckets)
-        return buckets.get(self.bucket_name)
+        s3con = self.get_connection()
+        return s3con.get_bucket(self.bucket_name)
 
     def create_bucket(self):
         """
