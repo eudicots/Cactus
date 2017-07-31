@@ -67,9 +67,10 @@ def url(context, link_url):
 
         url = link_url
 
-    if site.verb == site.VERB_BUILD:
+    locale = site.config.get("locale")
+    if locale is not None and site.verb == site.VERB_BUILD:
         # prepend links with language directory
-        url = u"/%s%s" % (site.config.get("locale", "en-us"), url)
+        url = u"/%s%s" % (site.config.get("locale"), url)
 
     if site.prettify_urls:
         return url.rsplit('index.html', 1)[0]
