@@ -1,7 +1,12 @@
-[![Build Status](https://travis-ci.org/eudicots/Cactus.svg?branch=master)](https://travis-ci.org/eudicots/Cactus)
+Fork Info
+---------
 
-News
---------------
+This is a fork of Cactus 3. It extends the `{% url %}` template tag with language/i18n support by adding the language code to the root URL. This is by no means bullet proof - it may break certain website builds. It works for me, though.
+
+When I have time to straighten this up and document it properly, I'll send a pull request to the Cactus team - promise!
+
+
+
 
 ### Cactus 3 is out!
 
