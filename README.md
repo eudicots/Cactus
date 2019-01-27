@@ -215,7 +215,7 @@ template tag to link to your static assets: they might be renamed in the process
 
 ##### Fingerprinting
 
-Modify `config.json`, and add the extensions you want to be fingerprinting:
+Modify `config.json`, and add the extensions you want fingerprinted:
 
     "fingerprint": [
         "js",
@@ -227,7 +227,7 @@ This lets you enable caching with long expiration dates. When a file changes, it
 
 ##### Optimization
 
-Modify `config.json`, and add the extensions you want to be optimizing:
+Modify `config.json`, and add the extensions you want optimized:
 
     "optimize": [
         "js",
