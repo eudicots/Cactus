@@ -298,7 +298,7 @@ Cactus is tested on Python 2.6, 2.7, 3.4 and 3.5. It probably works on Python
 3.3 as well.
 
 
-  [1]: http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html
+  [1]: https://peterthaleikis.com/posts/introduction-to-static-site-generators/
   [2]: http://docs.djangoproject.com/en/dev/topics/templates/
   [3]: https://vimeo.com/46999791
   [4]: http://news.ycombinator.com/item?id=2233620
