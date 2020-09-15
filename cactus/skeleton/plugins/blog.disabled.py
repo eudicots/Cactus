@@ -1,9 +1,17 @@
+"""
+Modify `config.json` to set a custom blog path, default author name, or date pattern used to parse metadata. The defaults are:
+"blog": {
+    "path": "blog",
+    "author": "Unknown",
+    "date-format": "%d-%m-%Y"
+}
+"""
+
 import os
 import datetime
 import logging
 
 ORDER = 999
-POSTS_PATH = 'posts/'
 POSTS = []
 
 from django.template import Context
@@ -27,10 +35,16 @@ def getNode(template, context=Context(), name='subject'):
 def preBuild(site):
 
     global POSTS
+    siteContext = site.context()
+    
+    blog = site.config.get('blog', {})
+    blogPath = os.path.join(blog.get('path', 'blog'), '')
+    dateFormat = blog.get('date-format', '%d-%m-%Y')
+    defaultAuthor = blog.get('author', 'Unknown')
 
     # Build all the posts
     for page in site.pages():
-        if page.path.startswith(POSTS_PATH):
+        if page.path.startswith(blogPath):
 
             # Skip non html posts for obious reasons
             if not page.path.endswith('.html'):
@@ -46,18 +60,21 @@ def preBuild(site):
                 return c.get(name, '')
 
             # Build a context for each post
+            context = {'__CACTUS_CURRENT_PAGE__': page,}
+            context.update(siteContext)
+
             postContext = {}
             postContext['title'] = find('title')
-            postContext['author'] = find('author')
+            postContext['author'] = find('author') or defaultAuthor
             postContext['date'] = find('date')
-            postContext['path'] = page.path
-            postContext['body'] = getNode(get_template(page.path), name="body")
+            postContext['path'] = page.final_url
+            postContext['body'] = getNode(get_template(page.path), context=Context(context), name="body")
 
             # Parse the date into a date object
             try:
-                postContext['date'] = datetime.datetime.strptime(postContext['date'], '%d-%m-%Y')
+                postContext['date'] = datetime.datetime.strptime(postContext['date'], dateFormat)
             except Exception as e:
-                logging.warning("Date format not correct for page %s, should be dd-mm-yy\n%s" % (page.path, e))
+                logging.warning("Date format not correct for page %s, should be %s\n%s" % (page.path, dateFormat, e))
                 continue
 
             POSTS.append(postContext)
@@ -81,7 +98,7 @@ def preBuildPage(site, page, context, data):
     context['posts'] = POSTS
 
     for post in POSTS:
-        if post['path'] == page.path:
+        if post['path'] == page.final_url:
             context.update(post)
 
     return context, data

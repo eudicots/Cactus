@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 register = Library()
 
+
 def static(context, link_url):
     """
     Get the path for a static file in the Cactus build.
@@ -38,11 +39,12 @@ def static(context, link_url):
             if url_helper_key is not None:
                 return url_helper_key
 
-        logger.warn('%s: static resource does not exist: %s', page.link_url, link_url)
+        logger.warning('%s: static resource does not exist: %s', page.link_url, link_url)
 
         url = link_url
 
     return url
+
 
 def url(context, link_url):
     """
@@ -61,14 +63,20 @@ def url(context, link_url):
         url_link_url_index = site.get_url_for_page(link_url_index)
 
         if url_link_url_index is None:
-            logger.warn('%s: page resource does not exist: %s', page.link_url, link_url)
+            logger.warning('%s: page resource does not exist: %s', page.link_url, link_url)
 
         url = link_url
+
+    locale = site.config.get("locale")
+    if locale is not None and site.verb == site.VERB_BUILD:
+        # prepend links with language directory
+        url = u"/%s%s" % (site.config.get("locale"), url)
 
     if site.prettify_urls:
         return url.rsplit('index.html', 1)[0]
 
     return url
+
 
 def config(context, key):
     """

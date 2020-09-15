@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/eudicots/Cactus.svg?branch=master)](https://travis-ci.org/eudicots/Cactus)
+
 News
 --------------
 
@@ -133,8 +135,6 @@ capabilities like inheritance. In a nutshell: a variable looks like this `{{ nam
 ### Enabling Plugins
 
 To enable a plugin for your site, change the file name from [PLUGIN].disabled.py to [PLUGIN].py.
-For an example of how to build a blog on top of Cactus, see [CactusBlog](https://github.com/koenbok/CactusBlog/)
-
 
 ### Deploying
 
@@ -149,6 +149,63 @@ After deploying you can visit the website directly. Cactus also makes sure all y
 
 ### Extras
 
+#### Blogs
+
+For the full example of how to build a blog on top of Cactus, see [CactusBlog](https://github.com/koenbok/CactusBlog/).
+
+Blog plugin takes post title, author, and date from metadata. For example:
+
+    title: My first post
+    author: Koen Bok
+    date: 22-07-2012
+
+    {% extends "post.html" %}
+    {% block body %}
+
+    {% endblock %}
+
+Modify `config.json` to set a custom blog path, default author name, or date pattern used to parse metadata. The defaults are:
+
+    "blog": {
+        "path": "blog",
+        "author": "Unknown",
+        "date-format": "%d-%m-%Y"
+    }
+
+#### YAML Variables
+By default you can declare variables to be included above each page, for example:
+
+```
+test_text: Lorem Ipsum
+
+<p>{{ test_text }}</p>
+```
+
+You can declare the variables using YAML instead. Just surround the block with the `---`
+and `...` [Document Separators](http://yaml.org/spec/1.1/#id857577). Then the objects
+and arrays will be available inside the templates:
+
+```
+---
+header_text: Lorem Ipsum
+custom_object:
+  name: Lorem
+  description: Ipsum
+custom_array:
+  -
+    name: lorem
+  -
+    name: ipsum
+...
+
+{% for item in custom_array %}
+  <p>{{ header_text }}: {{ item.name }}</p>
+{% endfor %}
+
+<p>{{ custom_object.name }} | {{ custom_object.description }}</p>
+```
+
+The *PyYAML* library is used for this functionality.
 
 #### Asset pipeline
 
@@ -237,8 +294,8 @@ This will help bots to index your pages for Google and Bing for example.
 Python Versions
 ---------------
 
-Cactus is tested on Python 2.6, 2.7, and 3.4. It probably works on Python 3.3
-as well.
+Cactus is tested on Python 2.6, 2.7, 3.4 and 3.5. It probably works on Python
+3.3 as well.
 
 
   [1]: http://mickgardner.com/2011/04/27/An-Introduction-To-Static-Site-Generators.html

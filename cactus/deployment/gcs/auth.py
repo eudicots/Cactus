@@ -2,7 +2,7 @@
 import webbrowser
 
 from oauth2client.client import OAuth2WebServerFlow, FlowExchangeError
-from oauth2client.keyring_storage import Storage
+from oauth2client.contrib.keyring_storage import Storage
 
 from cactus.deployment.gcs import CACTUS_CLIENT_ID, CACTUS_CLIENT_SECRET, CACTUS_REQUIRED_SCOPE, LOCAL_REDIRECT_URI
 from cactus.exceptions import InvalidCredentials

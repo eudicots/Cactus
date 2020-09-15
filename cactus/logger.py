@@ -40,10 +40,10 @@ def setup_logging(verbose, quiet):
                 datefmt=None,
                 reset=True,
                 log_colors={
-                    'DEBUG':    'white',
-                    'INFO':     'white',
-                    'WARNING':  'bold_yellow',
-                    'ERROR':    'bold_red',
+                    'DEBUG':    'cyan',
+                    'INFO':     'green',
+                    'WARNING':  'yellow',
+                    'ERROR':    'red',
                     'CRITICAL': 'bold_red',
                     }
                 )

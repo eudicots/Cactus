@@ -8,3 +8,4 @@ tornado>=3.2
 colorlog
 colorama
 six>=1.9.0
+PyYAML
