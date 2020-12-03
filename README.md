@@ -3,6 +3,10 @@
 News
 --------------
 
+### Dead
+
+There are no updates since 2017. Please have a look at this list to find a SSG: [Github projects with topic "static-site-generator"](https://github.com/topics/static-site-generator)
+
 ### Cactus 3 is out!
 
 We're happy to announce Cactus 3. It brings a set of great new features like asset fingerprinting, an asset pipeline, pretty urls, native Mac filesystem events, automatic nameserver configuration, support for multiple deployment backends (Google Sites) and more. Large parts of the code have been rewritten, accompanied by an extensive suite of unit tests. Many thanks to Thomas Orozco and other contributors.
