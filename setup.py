@@ -103,7 +103,7 @@ for dirpath, dirnames, filenames in os.walk(cactus_dir):
 
 def find_requirements():
     # Find all requirements.VERSION.txt files that match (e.g. Python 2.6 matches
-    # requirements.2.6.txt, requirements.2.txt, and requirments.txt).
+    # requirements.2.6.txt, requirements.2.txt, and requirements.txt).
     v = [str(x) for x in  sys.version_info[:2]]
     requirements = []
     while True:
