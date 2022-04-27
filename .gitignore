@@ -1,5 +1,5 @@
 .DS_Store
-.venv/**
+.venv*
 .idea/**
 *.pyc
 dist
