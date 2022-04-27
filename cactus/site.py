@@ -6,7 +6,7 @@ import webbrowser
 import traceback
 import socket
 
-import django.conf
+from django import conf as django_conf
 
 from cactus import ui as ui_module
 from cactus.config.router import ConfigRouter
@@ -142,10 +142,30 @@ class Site(SiteCompatibilityLayer):
         Configure django to use both our template and pages folder as locations
         to look for included templates.
         """
-
         settings = {
-            "TEMPLATE_DIRS": [self.template_path, self.page_path],
             "INSTALLED_APPS": ['django_markwhat'],
+            "TEMPLATES": [
+                {
+                    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                    'DIRS': [self.template_path, self.page_path],
+                    'APP_DIRS': False,
+                    'OPTIONS': {
+                        'context_processors': [
+                            # list of default context processors in Django 1.6
+                            "django.contrib.auth.context_processors.auth",
+                            "django.template.context_processors.debug",
+                            "django.template.context_processors.i18n",
+                            "django.template.context_processors.media",
+                            "django.template.context_processors.static",
+                            "django.template.context_processors.tz",
+                            "django.contrib.messages.context_processors.messages"
+                        ],
+                        'builtins': [
+                            'cactus.template_tags'
+                        ],
+                    }
+                }
+            ]
         }
 
         if self.locale is not None:
@@ -156,13 +176,12 @@ class Site(SiteCompatibilityLayer):
                 "LOCALE_PATHS": [self.locale_path],
             })
 
-        django.conf.settings.configure(**settings)
+        django_conf.settings.configure(**settings)
 
-        # - Importing here instead of the top-level makes it work on Python 3.x (!)
-        # - loading add_to_builtins from loader implictly loads the loader_tags built-in
-        # - Injecting our tags using add_to_builtins ensures that Cactus tags don't require an import
-        from django.template.loader import add_to_builtins
-        add_to_builtins('cactus.template_tags')
+        import django
+        django.setup()
+
+
 
     def verify_path(self):
         """
