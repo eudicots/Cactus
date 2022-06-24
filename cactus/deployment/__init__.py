@@ -32,7 +32,8 @@ def get_deployment_engine_class(provider):
         _mod = __import__(module, fromlist=[engine])
     except ImportError as e:
         logger.error("Unable to import requested engine (%s) for provider %s", engine, provider)
-        logger.error("A required library was missing: %s", e.message)
+        logger.error("A required library was missing: %s", str(e))
         logger.error("Please install the library and try again")
+        raise e
     else:
         return getattr(_mod, engine)
