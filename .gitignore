@@ -1,4 +1,6 @@
 .DS_Store
+.venv*
+.idea/**
 *.pyc
 dist
 build

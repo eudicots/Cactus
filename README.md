@@ -1,7 +1,3 @@
-[![Build Status](https://travis-ci.org/eudicots/Cactus.svg?branch=master)](https://travis-ci.org/eudicots/Cactus)
-
-News
---------------
 
 ### Cactus 3 is out!
 

@@ -12,6 +12,9 @@ DEFAULT_COMMAND_KWARGS = {
     "pythonpath": None,
     "traceback": True,
     "all": False,
+    "no_color": False,
+    "exclude": [],
+    "fuzzy": False,
 }
 
 DEFAULT_MAKEMESSAGES_KWARGS = {

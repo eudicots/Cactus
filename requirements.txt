@@ -1,4 +1,4 @@
-Django>=1.6,<1.7
+Django==1.11.29
 django-markwhat>=1.4,<2
 markdown2
 argparse
